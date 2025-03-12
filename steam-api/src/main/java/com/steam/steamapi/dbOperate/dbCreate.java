@@ -1,4 +1,4 @@
-package com.steam.dbOperate;
+package com.steam.steamapi.dbOperate;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

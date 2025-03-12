@@ -20,7 +20,6 @@
         <module>steam-api</module>
         <module>steam-common</module>
         <module>steam-admin</module>
-        <module>steam-db</module>
       <module>steam-login</module>
     </modules>
 

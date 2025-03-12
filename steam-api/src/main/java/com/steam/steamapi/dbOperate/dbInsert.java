@@ -1,10 +1,8 @@
-package com.steam.dbOperate;
+package com.steam.steamapi.dbOperate;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-
-import com.steam.steamapi.pogo.GameList;
 
 public class dbInsert {
     static String url = "jdbc:mysql://localhost:3306/game_db";

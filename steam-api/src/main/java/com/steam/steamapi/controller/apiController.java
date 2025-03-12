@@ -1,5 +1,6 @@
 package com.steam.steamapi.controller;
 
+import com.steam.steamapi.apiOperate.impl.apiOperateImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,17 +30,8 @@ public class apiController {
 
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-
-                JSONObject jsonResponse = new JSONObject(response.toString());
-                JSONObject responseObject = jsonResponse.getJSONObject("response");
+                apiOperateImpl.ConnectURL(conn);
+                JSONObject responseObject = new JSONObject();
                 if (responseObject.has("games")) {
                     JSONArray gamesArray = responseObject.getJSONArray("games");
                     for (int i = 0; i < gamesArray.length(); i++) {
