@@ -18,6 +18,7 @@ public class dbController {
             return;
         }
 
+
         // 检查用户是否存在
         if (!readConfig.checkUserConfig(user.getUser_id())) {
             System.out.println("Main Error: User does not exist.");
