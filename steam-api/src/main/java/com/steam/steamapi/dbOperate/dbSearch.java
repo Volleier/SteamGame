@@ -1,16 +1,21 @@
 package com.steam.steamapi.dbOperate;
 
+import com.steam.steamapi.pogo.GameList;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class dbSearch {
     static String url = "jdbc:mysql://localhost:3306/game_db";
     static String user = "root";
     static String password = "root";
 
-    public static void searchGames() {
+    public static List<GameList> searchGames() {
+        List<GameList> games = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
 
@@ -18,26 +23,24 @@ public class dbSearch {
             String sql = "SELECT * FROM games";
             ResultSet rs = stmt.executeQuery(sql);
 
-            // 检查是否有结果
-            if (!rs.isBeforeFirst()) {
-                System.out.println("No data found.");
-                return;
-            }
-
             // 处理结果集
             while (rs.next()) {
-                int id = rs.getInt("id");
-                int gameAppid = rs.getInt("game_appid");
-                String gameName = rs.getString("game_name");
-                int gamePlaytime = rs.getInt("game_playtime");
+                GameList game = new GameList();
+                game.setId(rs.getInt("id"));
+                game.setGameAppid(rs.getInt("game_appid"));
+                game.setGameName(rs.getString("game_name"));
+                game.setGamePlayTime(rs.getInt("game_playtime"));
+                games.add(game);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return games;
     }
 
-    public static void searchNonZeroGames() {
+    public static List<GameList> searchNonZeroGames() {
+        List<GameList> games = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
 
@@ -45,22 +48,19 @@ public class dbSearch {
             String sql = "SELECT * FROM games WHERE game_playtime > 0";
             ResultSet rs = stmt.executeQuery(sql);
 
-            // 检查是否有结果
-            if (!rs.isBeforeFirst()) {
-                System.out.println("No data found.");
-                return;
-            }
-
             // 处理结果集
             while (rs.next()) {
-                int id = rs.getInt("id");
-                int gameAppid = rs.getInt("game_appid");
-                String gameName = rs.getString("game_name");
-                int gamePlaytime = rs.getInt("game_playtime");
+                GameList game = new GameList();
+                game.setId(rs.getInt("id"));
+                game.setGameAppid(rs.getInt("game_appid"));
+                game.setGameName(rs.getString("game_name"));
+                game.setGamePlayTime(rs.getInt("game_playtime"));
+                games.add(game);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return games;
     }
 }

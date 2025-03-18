@@ -1,13 +1,13 @@
-<script setup>
+<script setup xmlns="">
 import { ref } from 'vue';
-const msg = ref('Hello Vue 3 + Vite');
-import Apivue from './Api.vue';
+const msg = ref('Begin here');
+import TabletVue from './components/Tablet.vue';
 </script>
 
 <template>
   <h1>{{ msg }}</h1>
   <br>
-  <Apivue />
+  <TabletVue />
 </template>
 
 <style scoped>
