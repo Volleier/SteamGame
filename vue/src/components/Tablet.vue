@@ -34,7 +34,7 @@ export default {
     methods: {
         async fetchGames() {
             try {
-                const response = await axios.get('http://localhost:8080/games');
+                const response = await axios.get('http://localhost:8080/front/games');
                 this.games = response.data;
             } catch (error) {
                 console.error('Error fetching games:', error);
