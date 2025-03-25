@@ -6,14 +6,13 @@
         <aside class="sidebar">
             <nav>
                 <ul>
-                    <li><router-link to="/">主页</router-link></li>
-                    <li><router-link to="/games">游戏列表</router-link></li>
-                    <li><router-link to="/settings">设置</router-link></li>
+                    <li><router-link to="/dashboard/gamelist">游戏列表</router-link></li>
+                    <li><router-link to="/dashboard/settings">设置</router-link></li>
                 </ul>
             </nav>
         </aside>
         <main class="main-content">
-            <router-view></router-view>
+            <router-view></router-view> <!-- 显示子路由 -->
         </main>
     </div>
 </template>

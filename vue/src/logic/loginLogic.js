@@ -1,17 +1,16 @@
 import { ref } from "vue";
 import axios from "axios";
-import { useRouter } from "vue-router";
 
+// 不要在普通 JS 文件里直接调用 useRouter()
 export const username = ref("");
 export const password = ref("");
 
-export const handleLogin = async () => {
-  const router = useRouter();
-
+// 改成传入 router 的方式
+export const handleLogin = async (router) => {
   // 测试账户
   if (username.value === "12345" && password.value === "12345") {
     alert("成功");
-    router.push("/dashboard");
+    router.push("/dashboard"); // 确保 router 已传入
     return;
   }
 
@@ -21,17 +20,12 @@ export const handleLogin = async () => {
       password: password.value,
     });
 
-    console.log("后端响应:", response.data);
-
     if (response.data.success) {
-      console.log("登录成功，跳转到 Dashboard");
       router.push("/dashboard");
     } else {
-      console.log("登录失败，用户名或密码错误");
       alert("用户名或密码错误");
     }
   } catch (error) {
-    console.error("登录请求失败:", error);
     alert("登录请求失败，请稍后再试");
   }
 };
