@@ -1,8 +1,8 @@
 package com.steam.steamapi.controller;
 
 import com.steam.steamapi.pogo.Result;
-import com.steam.steamapi.service.UserService;
 import com.steam.steamapi.pogo.User;
+import com.steam.steamapi.service.UserService;
 import com.steam.steamapi.utils.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
