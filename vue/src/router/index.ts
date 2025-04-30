@@ -1,9 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Default from '@/views/Default.vue';
-import Login from '../views/Login.vue';
-import Dashboard from '../views/Dashboard.vue';
 
-const routes = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'default',
@@ -13,11 +11,6 @@ const routes = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/Login.vue'),
-  },
-  {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: () => import('@/views/Dashboard.vue'),
   },
 ];
 

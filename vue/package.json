@@ -14,11 +14,15 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@types/node": "^22.15.3",
     "@vitejs/plugin-vue": "^4.3.1",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "prettier": "^3.0.3",
+    "sass": "^1.87.0",
     "tailwindcss": "^3.4.17",
-    "vite": "^4.4.9"
+    "typescript": "^5.8.3",
+    "vite": "^4.4.9",
+    "vue-tsc": "^2.2.10"
   }
 }
