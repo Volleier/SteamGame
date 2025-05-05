@@ -1,0 +1,30 @@
+{
+  "name": "vue",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prettier": "prettier --write  \"src/**/*.{js,json,ts,tsx,css,less,scss,vue,html,md}\""
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@vitejs/plugin-vue": "^4.3.1",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "prettier": "^3.0.3",
+    "sass": "^1.87.0",
+    "sass-loader": "^16.0.5",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vite": "^4.4.9",
+    "vue-tsc": "^2.2.10"
+  }
+}
