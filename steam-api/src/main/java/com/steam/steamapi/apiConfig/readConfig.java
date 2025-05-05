@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class readConfig {
-    private static final String CONFIG_FILE = "./steam-api/src/main/java/com/steam/steamapi/apiConfig/user.config";
+    private static final String CONFIG_FILE = "./steam-api/src/main/java/com/steam/steamapi/apiConfig/LocalUser.config";
 
     // 检查用户是否存在
     public static boolean checkUserConfig(String user_id) {

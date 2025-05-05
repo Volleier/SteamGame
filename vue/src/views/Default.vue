@@ -1,5 +1,5 @@
 <template>
-    <div class="canvas-container">
+    <div class="background-container">
         <div class="logo-container">
             <img src="@/assets/images/steam-logger-logo.png" alt="project logo">
         </div>

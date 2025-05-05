@@ -39,4 +39,4 @@ build/
 .DS_Store
 
 ### Ignore user.config ###
-/steam-api/src/main/java/com/steam/steamapi/apiConfig/user.config
+/steam-api/src/main/java/com/steam/steamapi/apiConfig/LocalUser.config

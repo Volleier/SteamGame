@@ -1,5 +1,5 @@
 // 画布容器样式，确保画布在视窗中居中显示
-.canvas-container {
+.background-container {
     display: flex;
     justify-content: center; // 水平居中
     align-items: center; // 垂直居中
@@ -42,7 +42,7 @@
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     
     img {
-        max-width: 1500px;
+        max-width: 1000px;
         height: auto;
     }
 }
