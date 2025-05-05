@@ -55,12 +55,23 @@ export default {
             this.isLoading = true;
             this.errorMessage = '';
 
+            // 添加调试信息 - 打印请求信息
+            // 替换 process.env 为 import.meta.env
+            const apiUrl = import.meta.env.VUE_APP_API_URL || 'http://localhost:8080';
+            console.log(`发送至：${apiUrl}，发送数据：`, {
+                steamId: this.Steam_Id,
+                apiKey: this.Api_Key
+            });
+
             try {
-                // 调用后端API进行验证 - 注意这里使用了正确的本地后端地址和端口
-                const response = await axios.post(`${process.env.VUE_APP_API_URL}/api/auth/login`, {
+                // 调用后端API进行验证
+                const response = await axios.post(`${apiUrl}/test`, {
                     steamId: this.Steam_Id,
                     apiKey: this.Api_Key
                 });
+
+                // 添加调试信息 - 打印响应数据
+                console.log('接收到响应：', response.data);
 
                 // 处理登录成功
                 const { token, user } = response.data;
@@ -81,6 +92,11 @@ export default {
             } catch (error) {
                 // 处理登录失败
                 console.error('登录失败:', error);
+                console.error('错误详情:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
                 this.errorMessage = error.response?.data?.message || '登录失败，请检查您的凭据';
             } finally {
                 this.isLoading = false;
