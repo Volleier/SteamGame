@@ -5,25 +5,25 @@
             <div class="nav-item" :class="{ 'active': currentView === 'dashboard' }"
                 @click="$emit('change-view', 'dashboard')">
                 <i class="icon dashboard-icon"></i>
-                <span>主界面</span>
+                <span class="text">主界面</span>
             </div>
 
             <div class="nav-item" :class="{ 'active': currentView === 'games' }" @click="$emit('change-view', 'games')">
                 <i class="icon games-icon"></i>
-                <span>游戏列表</span>
+                <span class="text">游戏列表</span>
             </div>
 
             <div class="nav-item" :class="{ 'active': currentView === 'game-details' }"
                 @click="$emit('change-view', 'game-details')">
                 <i class="icon details-icon"></i>
-                <span>游戏详情</span>
+                <span class="text">游戏详情</span>
             </div>
         </nav>
 
         <div class="sidebar-footer">
             <button class="logout-button" @click="logout">
                 <i class="icon logout-icon"></i>
-                <span>退出登录</span>
+                <span class="text">退出登录</span>
             </button>
         </div>
     </div>
@@ -54,7 +54,7 @@ export default {
     flex-direction: column;
     width: 240px;
     height: 100%;
-    background-color: #ff0000;
+    background-color: #00ffd5;
     color: #ffffff;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     position: fixed;
@@ -92,12 +92,12 @@ export default {
 }
 
 .nav-item:hover {
-    background-color: #2c2c2c;
+    background-color: #ffffff;
     color: #ffffff;
 }
 
 .nav-item.active {
-    background-color: #2a6def;
+    background-color: #00b7ff;
     color: #ffffff;
 }
 
@@ -147,5 +147,11 @@ export default {
 
 .logout-icon {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>');
+}
+
+.text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #000000;
 }
 </style>

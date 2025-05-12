@@ -35,9 +35,8 @@ export default {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: #1a1a1a;
+    background: linear-gradient(135deg, #00ffd5, #00d5ff);
     color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     z-index: 20;
     position: fixed;
     top: 0;

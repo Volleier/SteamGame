@@ -1,17 +1,21 @@
 <script>
 import TheHeader from '@/components/TheHeader.vue'
 import TheSidebar from '@/components/TheSidebar.vue'
+import MainPage from '@/views/MainPage.vue'
+import GameList from '@/views/GameList.vue'
 
 export default {
   name: "Dashboard",
   components: {
     TheHeader,
     TheSidebar,
+    MainPage,
+    GameList,
   },
   data() {
     return {
       username: 'User',
-      currentView: 'dashboard' // 默认显示主界面，可选值：'dashboard', 'games', 'game-details'
+      currentView: 'dashboard'
     }
   },
   methods: {
@@ -30,13 +34,11 @@ export default {
       <main class="content">
         <transition name="fade" mode="out-in">
           <div v-if="currentView === 'dashboard'" key="dashboard" class="view-content">
-            <h2>主界面</h2>
-            <!-- 内容 -->
+            <MainPage />
           </div>
 
           <div v-else-if="currentView === 'games'" key="games" class="view-content">
-            <h2>游戏列表</h2>
-            <!-- 内容 -->
+            <GameList />
           </div>
 
           <div v-else-if="currentView === 'game-details'" key="game-details" class="view-content">
