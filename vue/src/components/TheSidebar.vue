@@ -12,18 +12,12 @@
                 <i class="icon games-icon"></i>
                 <span class="text">游戏列表</span>
             </div>
-
-            <div class="nav-item" :class="{ 'active': currentView === 'game-details' }"
-                @click="$emit('change-view', 'game-details')">
-                <i class="icon details-icon"></i>
-                <span class="text">游戏详情</span>
-            </div>
         </nav>
 
         <div class="sidebar-footer">
             <button class="logout-button" @click="logout">
                 <i class="icon logout-icon"></i>
-                <span class="text">退出登录</span>
+                <router-link to="/login" @click.native.prevent class="text link-style">返回登录</router-link>
             </button>
         </div>
     </div>

@@ -40,11 +40,6 @@ export default {
           <div v-else-if="currentView === 'games'" key="games" class="view-content">
             <GameList />
           </div>
-
-          <div v-else-if="currentView === 'game-details'" key="game-details" class="view-content">
-            <h2>游戏详情</h2>
-            <!-- 内容 -->
-          </div>
         </transition>
       </main>
       <TheFooter />
