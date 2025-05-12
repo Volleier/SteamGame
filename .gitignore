@@ -40,3 +40,6 @@ build/
 
 ### Ignore user.config ###
 /steam-api/src/main/java/com/steam/steamapi/apiConfig/LocalUser.config
+
+### local readme ###
+/Local_Readme.md

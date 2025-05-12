@@ -7,6 +7,7 @@
         <groupId>com.steam</groupId>
         <artifactId>steam-dependencies</artifactId>
         <version>0.0.1</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>steam-login</artifactId>
@@ -17,4 +18,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+            <!-- 引入 steam-common 模块 -->
+        <dependency>
+            <groupId>com.steam</groupId>
+            <artifactId>steam-common</artifactId>
+            <version>${project.parent.version}</version> <!-- 使用相同版本 -->
+        </dependency>
+     </dependencies>
 </project>
