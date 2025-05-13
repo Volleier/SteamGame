@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.steam</groupId>
+        <groupId>com.SteamGame</groupId>
         <artifactId>steam-dependencies</artifactId>
         <version>0.0.1</version>
         <relativePath>../pom.xml</relativePath>
@@ -21,9 +21,9 @@
     <dependencies>
             <!-- 引入 steam-common 模块 -->
         <dependency>
-            <groupId>com.steam</groupId>
+            <groupId>com.SteamGame</groupId>
             <artifactId>steam-common</artifactId>
-            <version>${project.parent.version}</version> <!-- 使用相同版本 -->
+            <version>0.0.1</version> <!-- 使用相同版本 -->
         </dependency>
      </dependencies>
 </project>
