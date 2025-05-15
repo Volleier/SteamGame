@@ -43,3 +43,6 @@ build/
 
 ### local readme ###
 /Local_Readme.md
+
+### local auth information ###
+/auth.yaml

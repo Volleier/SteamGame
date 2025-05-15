@@ -19,11 +19,11 @@
     </properties>
 
     <dependencies>
-            <!-- 引入 steam-common 模块 -->
+        <!-- 引入 steam-common 模块 -->
         <dependency>
             <groupId>com.SteamGame</groupId>
             <artifactId>steam-common</artifactId>
             <version>0.0.1</version> <!-- 使用相同版本 -->
         </dependency>
-     </dependencies>
+    </dependencies>
 </project>
