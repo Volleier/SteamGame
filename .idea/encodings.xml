@@ -8,6 +8,7 @@
     <file url="file://$PROJECT_DIR$/steam-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/steam-common/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/steam-db/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/steam-launcher/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/steam-login/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/steam-test/src/main/java" charset="UTF-8" />
   </component>

@@ -21,6 +21,7 @@
         <module>steam-login</module>
         <module>steam-api</module>
         <module>steam-admin</module>
+        <module>steam-launcher</module>
     </modules>
 
     <dependencies>
