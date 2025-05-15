@@ -1,4 +1,4 @@
-package com.steamgame.steamtest.test;
+package com.steamgame.steamtest.testcase;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;

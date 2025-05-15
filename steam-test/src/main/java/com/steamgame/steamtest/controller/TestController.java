@@ -1,4 +1,4 @@
-package com.steamgame.steamtest.test;
+package com.steamgame.steamtest.controller;
 
 import lombok.Data;
 import org.springframework.web.bind.annotation.CrossOrigin;
