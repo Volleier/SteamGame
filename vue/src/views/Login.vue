@@ -37,6 +37,9 @@
                         登录
                     </button>
                 </div>
+                <div v-if="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
             </form>
         </div>
     </div>
@@ -87,20 +90,23 @@ export default {
             this.isLoading = true;
             this.errorMessage = '';
 
+            // 创建LoginDto数据结构
+            const loginData = {
+                time: new Date().toISOString(), // 当前时间的ISO字符串格式
+                steamId: this.Steam_Id,
+                apiKey: this.Api_Key,
+                rememberMe: this.rememberMe
+            };
+
             // 添加调试信息 - 打印请求信息
-            // 替换 process.env 为 import.meta.env
-            const apiUrl = import.meta.env.VUE_APP_API_URL || 'http://localhost:8080';
-            console.log(`发送至：${apiUrl}，发送数据：`, {
+            console.log(`发送数据：`, {
                 steamId: this.Steam_Id,
                 apiKey: this.Api_Key
             });
 
             try {
-                // 调用后端API进行验证
-                const response = await axios.post(`${apiUrl}/test`, {
-                    steamId: this.Steam_Id,
-                    apiKey: this.Api_Key
-                });
+                // 调用后端API进行验证 - 使用指定的URL路径
+                const response = await axios.post('/api/login', loginData);
 
                 // 添加调试信息 - 打印响应数据
                 console.log('接收到响应：', response.data);
