@@ -1,8 +1,8 @@
 <script>
 import TheHeader from '@/components/TheHeader.vue'
 import TheSidebar from '@/components/TheSidebar.vue'
-import MainPage from '@/views/MainPage.vue'
-import GameList from '@/views/GameList.vue'
+import MainPage from '@/views/Dashboard/MainPage.vue'
+import GameList from '@/views/Dashboard/GameList.vue'
 
 export default {
   name: "Dashboard",
