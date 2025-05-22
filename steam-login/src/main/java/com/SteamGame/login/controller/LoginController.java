@@ -1,12 +1,11 @@
 package com.SteamGame.login.controller;
 
-import org.slf4j.Logger;
 import com.SteamGame.login.dto.LoginDTO;
 import com.SteamGame.login.service.LoginService;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,22 +19,16 @@ public class LoginController {
         this.loginService = loginService;
     }
 
-    /**
-     * 用于初始化时调用的方法
-     */
     public void login() {
         // 应用初始化时的登录逻辑，可以调用service
-        loginService.sayHello();
     }
 
     /**
-     * 处理前端登录请求的API端点
+     * 从YAML读取配置并发送到前端的API端点
      */
-    @PostMapping
-    public ResponseEntity<Boolean> handleLogin(@RequestBody LoginDTO loginDTO) {
-        logger.info("接收到登录请求 - SteamID: {}, API Key: {}",
-                loginDTO.getSteamId(), loginDTO.getApiKey());
-        boolean result = loginService.saveLoginInfo(loginDTO);
-        return ResponseEntity.ok(result);
+    @GetMapping
+    public ResponseEntity<LoginDTO> getLoginInfo() {
+        logger.info("sending login info to frontend");
+        return loginService.sendLoginInfoToFrontend();
     }
 }

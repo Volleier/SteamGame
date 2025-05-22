@@ -11,57 +11,62 @@ export default {
       errorMessage: '',
     };
   },
+  created() {
+    // 组件创建时加载用户数据
+    this.loadUserCredentials();
+  },
   methods: {
-    // 添加临时登录方法
-    handleTempLogin() {
-      // 创建临时用户数据
-      const tempUser = {
-        id: 'temp-user-123',
-        name: '演示用户',
-        steamId: 'DEMO_STEAM_ID',
-      };
+    // 从后端加载用户凭据
+    async loadUserCredentials() {
+      try {
+        const response = await axios.get('/api/login');
 
-      // 创建临时token
-      const tempToken = 'demo-token-' + Date.now();
+        // 打印完整的响应数据，便于调试
+        console.log('后端返回的完整数据:', response.data);
 
-      // 存储认证信息
-      localStorage.setItem('token', tempToken);
-      localStorage.setItem('user', JSON.stringify(tempUser));
+        // 更灵活地处理后端返回的数据
+        const data = response.data;
 
-      // 如果使用了Vuex，更新状态
-      if (this.$store && typeof this.$store.commit === 'function') {
-        this.$store.commit('setUser', tempUser);
-        this.$store.commit('setAuthenticated', true);
+        // 尝试不同的字段名称
+        // 有些API返回camelCase，有些返回snake_case格式
+        this.Steam_Id = data.steamId || data.steam_id || data.SteamId || '';
+        this.Api_Key = data.apiKey || data.api_key || data.ApiKey || '';
+        this.rememberMe = data.rememberMe || data.remember_me || false;
+
+        // 检查是否确实获取到了数据
+        if (this.Steam_Id || this.Api_Key) {
+          console.log('加载用户凭据成功，已填充表单:', {
+            steamId: this.Steam_Id,
+            apiKeyLength: this.Api_Key ? this.Api_Key.length : 0,
+          });
+        } else {
+          console.warn('加载用户凭据成功，但数据为空');
+        }
+      } catch (error) {
+        console.error('加载用户凭据失败:', error);
       }
-
-      // 跳转到仪表盘
-      this.$router.push('/dashboard');
     },
 
     async handleLogin() {
+      // 其余登录逻辑保持不变
       this.isLoading = true;
       this.errorMessage = '';
 
       // 创建LoginDto数据结构
       const loginData = {
-        time: new Date().toISOString(), // 当前时间的ISO字符串格式
+        time: new Date().toISOString(),
         steamId: this.Steam_Id,
         apiKey: this.Api_Key,
         rememberMe: this.rememberMe,
       };
 
-      // 添加调试信息 - 打印请求信息
-      console.log(`发送数据：`, {
-        steamId: this.Steam_Id,
-        apiKey: this.Api_Key,
-      });
+      // 增加更详细的日志
+      console.log(`准备发送登录数据:`, loginData);
 
       try {
-        // 调用后端API进行验证 - 使用指定的URL路径
+        // 调用后端API进行验证
         const response = await axios.post('/api/login', loginData);
-
-        // 添加调试信息 - 打印响应数据
-        console.log('接收到响应：', response.data);
+        console.log('登录成功，接收到响应:', response.data);
 
         // 处理登录成功
         const { token, user } = response.data;
@@ -69,7 +74,14 @@ export default {
         // 存储认证信息
         localStorage.setItem('token', token);
         if (this.rememberMe) {
-          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem(
+            'user',
+            JSON.stringify({
+              ...user,
+              steamId: this.Steam_Id,
+              apiKey: this.Api_Key,
+            })
+          );
         }
 
         // 更新全局状态

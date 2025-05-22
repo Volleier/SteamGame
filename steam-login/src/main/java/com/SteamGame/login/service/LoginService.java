@@ -1,22 +1,20 @@
 package com.SteamGame.login.service;
 
 import com.SteamGame.login.dto.LoginDTO;
+import org.springframework.http.ResponseEntity;
 
 public interface LoginService {
+    /**
+     * 从YAML配置文件读取登录信息
+     *
+     * @return LoginDTO 包含steamId和apiKey的登录信息
+     */
+    LoginDTO readLoginInfoFromYaml();
 
     /**
-     * 接收登录信息
-     * @param loginDTO 登录信息(time, steam_id, api_key, rememberMe)
-     * @return 操作是否成功
+     * 将steamId和apiKey发送到前端
+     *
+     * @return 包含登录信息的ResponseEntity
      */
-    boolean receiveLoginInfo(LoginDTO loginDTO);
-
-    /**
-     * 保存登录信息到YAML配置文件
-     * @param loginDTO 登录信息(time, steam_id, api_key, rememberMe)
-     * @return 操作是否成功
-     */
-    boolean saveLoginInfo(LoginDTO loginDTO);
-
-    void sayHello();
+    ResponseEntity<LoginDTO> sendLoginInfoToFrontend();
 }

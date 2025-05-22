@@ -1,5 +1,6 @@
 package com.SteamGame.steamLauncher;
 
+import com.SteamGame.login.controller.RegisterController;
 import com.SteamGame.login.controller.LoginController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
