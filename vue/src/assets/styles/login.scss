@@ -1,52 +1,53 @@
+/* 登录页面容器 */
 .login-container {
   display: flex;
   justify-content: center; // 水平居中
   align-items: center; // 垂直居中
   width: 100%;
   height: 100vh; // 占满整个视窗高度
+
+  /* 背景渐变设置 */
   background: linear-gradient(135deg, #00d5ff, #00ffd5, #00ff26);
   background-size: 400% 400%; // 扩大背景尺寸，为动画提供空间
   animation: gradientRotateAnimation 10s ease infinite; // 应用旋转渐变动画，10秒循环一次
   position: relative; // 为渐变效果添加定位上下文
-
   overflow: hidden; // 防止旋转时溢出
 }
-// 定义渐变动画（包含旋转）
+
+/* 渐变背景动画定义 */
 @keyframes gradientRotateAnimation {
   0% {
     background-position: 0% 50%;
     filter: hue-rotate(0deg);
   }
-
   25% {
     background-position: 50% 100%;
     filter: hue-rotate(90deg);
   }
-
   50% {
     background-position: 100% 50%;
     filter: hue-rotate(180deg);
   }
-
   75% {
     background-position: 50% 0%;
     filter: hue-rotate(270deg);
   }
-
   100% {
     background-position: 0% 50%;
     filter: hue-rotate(360deg);
   }
 }
 
+/* 登录卡片样式 */
 .login-card {
   width: 100%;
   max-width: 420px;
   padding: 2rem;
   border-radius: 10px;
-  box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1); // 添加阴影效果
 }
 
+/* 登录卡片头部样式 */
 .login-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -63,12 +64,15 @@
   }
 }
 
+/* 登录表单样式 */
 .login-form {
+  /* 表单组样式 */
   .form-group {
     margin-bottom: 1.5rem;
     text-align: center;
   }
 
+  /* 表单标签样式 */
   .form-label {
     display: block;
     margin-bottom: 0.5rem;
@@ -76,6 +80,7 @@
     color: #374151;
   }
 
+  /* 表单输入框样式 */
   .form-input {
     width: 100%;
     padding: 0.75rem;
@@ -83,6 +88,7 @@
     border-radius: 4px;
     transition: border-color 0.15s ease;
 
+    /* 输入框聚焦状态 */
     &:focus {
       outline: none;
       border-color: #3b82f6;
@@ -104,12 +110,14 @@
     }
   }
 
+  /* 复选框容器样式 */
   .checkbox-container {
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 1.5rem;
 
+    /* 记住我选项样式 */
     .remember-me {
       display: flex;
       align-items: center;
@@ -126,6 +134,7 @@
     }
   }
 
+  /* 登录按钮样式 */
   .login-button {
     width: 100%;
     padding: 0.75rem 1rem;
@@ -146,5 +155,134 @@
       outline: none;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
     }
+  }
+}
+
+/* 临时登录按钮样式 */
+.temp-login-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #45a049;
+  }
+}
+
+/* 按钮容器样式 */
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; // 按钮之间的间距
+  width: 100%;
+}
+
+/* 注册按钮样式 */
+.register-button {
+  background-color: #2196f3;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #0b7dda;
+  }
+}
+
+/* 模态窗口相关样式 */
+/* 模态窗口遮罩层 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); // 半透明黑色背景
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10; // 确保模态窗口在其他元素之上
+}
+
+/* 模态窗口内容区域 */
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease; // 为动画添加过渡效果
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+}
+
+/* 模态窗口按钮区域 */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* 取消按钮样式 */
+  .cancel-button {
+    background-color: #f44336;
+    color: white;
+
+    &:hover {
+      background-color: #d32f2f;
+    }
+  }
+
+  /* 提交按钮样式 */
+  .submit-button {
+    background-color: #4caf50;
+    color: white;
+
+    &:hover {
+      background-color: #45a049;
+    }
+  }
+}
+
+/* 模态窗口过渡动画 */
+.modal-slide-enter-active,
+.modal-slide-leave-active {
+  transition: all 0.3s ease; // 进入和离开时的过渡效果
+}
+
+.modal-slide-enter-from {
+  opacity: 0;
+
+  .modal-content {
+    transform: translateY(-50vh); // 从上方进入
+  }
+}
+
+.modal-slide-leave-to {
+  opacity: 0;
+
+  .modal-content {
+    transform: translateY(-50vh); // 向上方离开
   }
 }
