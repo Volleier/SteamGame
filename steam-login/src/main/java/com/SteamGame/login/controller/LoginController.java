@@ -4,6 +4,7 @@ import com.SteamGame.login.dto.LoginDTO;
 import com.SteamGame.login.service.LoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,11 @@ public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     private final LoginService loginService;
 
+    /**
+     * 构造方法注入RegisterService
+     * @param loginService 注册服务
+     */
+    @Autowired
     public LoginController(LoginService loginService) {
         this.loginService = loginService;
     }

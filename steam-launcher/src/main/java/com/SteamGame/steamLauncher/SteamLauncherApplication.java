@@ -23,8 +23,11 @@ public class SteamLauncherApplication {
     }
 
     @Bean
-    public CommandLineRunner initLoginModule(LoginController loginController) {
+    public CommandLineRunner initLoginModule(LoginController loginController, RegisterController registerController) {
         return args -> {
+            logger.info("正在初始化注册模块...");
+            registerController.register();
+            logger.info("注册模块初始化完成");
             logger.info("正在初始化登录模块...");
             loginController.login();
             logger.info("登录模块初始化完成");
