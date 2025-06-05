@@ -18,6 +18,7 @@ public class LoginController {
 
     /**
      * 构造方法注入RegisterService
+     *
      * @param loginService 注册服务
      */
     @Autowired

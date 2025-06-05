@@ -16,6 +16,12 @@ export default {
       registerSteamId: '',
       registerApiKey: '',
       registerRememberMe: false,
+      isRegisterLoading: false, // 新增：注册时的加载状态
+
+      // 注册错误和成功信息
+      registerError: '', // 注册错误信息
+      showRegisterSuccess: false, // 显示注册成功消息
+      registerSuccessMessage: '', // 注册成功消息内容
     };
   },
 
@@ -117,20 +123,13 @@ export default {
     },
 
     /**
-     * 关闭注册模态框并重置表单
-     */
-    closeRegisterModal() {
-      this.showRegisterModal = false;
-      this.registerSteamId = '';
-      this.registerApiKey = '';
-      this.registerRememberMe = false;
-    },
-
-    /**
      * 处理用户注册提交
      */
     async handleRegister() {
       try {
+        this.registerError = ''; // 清除之前的错误信息
+        this.isRegisterLoading = true; // 设置加载状态
+
         const registerData = {
           steamId: this.registerSteamId,
           apiKey: this.registerApiKey,
@@ -141,23 +140,62 @@ export default {
         const response = await axios.post('/api/register', registerData);
         console.log('注册成功:', response.data);
 
-        // 处理响应数据
-        if (typeof response.data === 'object' && response.data.steamId && response.data.apiKey) {
-          const { steamId, apiKey } = response.data;
-          this.syncLoginData(steamId, apiKey);
-        } else {
-          this.syncLoginData(this.registerSteamId, this.registerApiKey);
-        }
+        // 检查后端返回的验证结果
+        if (response.data.status === 1 || response.data === 1) {
+          console.log('验证成功，准备跳转到dashboard');
 
-        this.closeRegisterModal();
-        this.$emit('register-success', '注册成功！');
+          // 处理响应数据
+          if (typeof response.data === 'object' && response.data.steamId && response.data.apiKey) {
+            const { steamId, apiKey } = response.data;
+            this.syncLoginData(steamId, apiKey);
+          } else {
+            this.syncLoginData(this.registerSteamId, this.registerApiKey);
+          }
+
+          // 关闭模态框并显示成功消息
+          this.closeRegisterModal();
+          this.showRegisterSuccess = true;
+          this.registerSuccessMessage = '注册验证成功！正在跳转...';
+
+          // 设置认证状态并重定向到dashboard
+          if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+          }
+
+          this.$store.commit('setAuthenticated', true);
+          if (response.data.user) {
+            this.$store.commit('setUser', response.data.user);
+          }
+
+          // 短暂延迟后跳转，让用户看到成功消息
+          setTimeout(() => {
+            this.$router.push('/dashboard');
+            setTimeout(() => {
+              this.showRegisterSuccess = false;
+            }, 1000);
+          }, 1500);
+        } else {
+          // 验证失败
+          this.registerError = response.data.message || '验证失败，请检查您的SteamID和ApiKey';
+        }
       } catch (error) {
         console.error('注册失败:', error);
-        this.$emit('register-error', error.response?.data?.message || '注册失败，请稍后再试');
+        this.registerError = error.response?.data?.message || '注册失败，请稍后再试';
+      } finally {
+        this.isRegisterLoading = false; // 无论成功还是失败，最终都要关闭加载状态
       }
     },
 
-    // === 工具方法 ===
+    /**
+     * 关闭注册模态框并重置表单
+     */
+    closeRegisterModal() {
+      this.showRegisterModal = false;
+      this.registerSteamId = '';
+      this.registerApiKey = '';
+      this.registerRememberMe = false;
+      this.isRegisterLoading = false; // 确保关闭模态框时重置加载状态
+    },
 
     /**
      * 同步注册数据到登录表单
