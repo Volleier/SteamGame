@@ -46,3 +46,9 @@ build/
 
 ### local auth information ###
 /auth.yaml
+
+### ReSharper Cache ###
+_ReSharper.Caches
+
+### JetBrains Application ###
+.idea/

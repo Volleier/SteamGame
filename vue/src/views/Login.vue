@@ -1,15 +1,10 @@
 <template>
     <div class="login-container">
         <div class="login-card">
+            <div class="steamGame-icon"> </div>
             <div class="login-header">
                 <h1>登录</h1>
                 <p>使用你的Steam API来获取你的游戏信息</p>
-            </div>
-
-            <div class="temp-login">
-                <button @click="handleTempLogin" class="temp-login-button">
-                    临时登录
-                </button>
             </div>
 
             <form class="login-form" @submit.prevent="handleLogin">
@@ -19,19 +14,10 @@
                         class="form-input readonly-input" placeholder="请输入你的 Steam ID" />
                 </div>
 
-                <div class="form-group">
-                    <label for="Api_Key" class="form-label">Api_Key</label>
-                    <input id="Api_Key" type="text" v-model="Api_Key" disabled required
-                        class="form-input readonly-input" placeholder="请输入你的 Steam API" />
-                </div>
-
                 <div class="button-container">
-                    <button type="button" @click="openRegisterModal" class="register-button">
-                        注册
-                    </button>
                     <button type="submit" class="login-button" :disabled="isLoading">
                         <span v-if="isLoading" class="loading-spinner"></span>
-                        <span>{{ isLoading ? '登录中...' : '登录' }}</span>
+                        <span>{{ isLoading ? '登录中...' : '确认登录' }}</span>
                     </button>
                 </div>
                 <div v-if="errorMessage" class="error-message">
@@ -40,62 +26,16 @@
             </form>
         </div>
     </div>
-
-    <!-- 注册弹窗 -->
-    <transition name="modal-slide">
-        <div v-if="showRegisterModal" class="modal-overlay" @click.self="closeRegisterModal">
-            <div class="modal-content">
-                <h2>注册</h2>
-                <form @submit.prevent="handleRegister">
-                    <div class="form-group">
-                        <label for="register-steam-id" class="form-label">Steam ID</label>
-                        <input id="register-steam-id" type="text" v-model="registerSteamId" class="form-input"
-                            placeholder="请输入你的 Steam ID" required :disabled="isRegisterLoading" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="register-api-key" class="form-label">API Key</label>
-                        <input id="register-api-key" type="text" v-model="registerApiKey" class="form-input"
-                            placeholder="请输入你的 Steam API Key" required :disabled="isRegisterLoading" />
-                    </div>
-
-                    <div class="checkbox-container">
-                        <div class="remember-me">
-                            <input id="register-remember-me" type="checkbox" v-model="registerRememberMe"
-                                :disabled="isRegisterLoading">
-                            <label for="register-remember-me">记住我</label>
-                        </div>
-                    </div>
-
-                    <!-- 添加注册错误信息显示 -->
-                    <div v-if="registerError" class="error-message">
-                        {{ registerError }}
-                    </div>
-
-                    <div class="modal-buttons">
-                        <button type="button" @click="closeRegisterModal" class="cancel-button"
-                            :disabled="isRegisterLoading">取消</button>
-                        <button type="submit" class="submit-button" :disabled="isRegisterLoading">
-                            <span v-if="isRegisterLoading" class="loading-spinner"></span>
-                            <span>{{ isRegisterLoading ? '验证中...' : '提交' }}</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </transition>
-
-    <!-- 注册成功提示 -->
-    <transition name="toast">
-        <div v-if="showRegisterSuccess" class="toast-message success">
-            {{ registerSuccessMessage }}
-        </div>
-    </transition>
 </template>
 
 <script>
 import loginScript from '@/script/login.ts';
-export default loginScript;
+export default {
+    ...loginScript,
+    methods: {
+        ...loginScript.methods,
+    },
+};
 </script>
 
 <style scoped lang="scss">
