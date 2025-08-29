@@ -1,3 +1,12 @@
+.card-divider {
+  width: 2px;
+  min-width: 2px;
+  background: linear-gradient(to bottom, #e0e7ef 60%, #b6c2d6 100%);
+  margin: 0 0.5rem;
+  border-radius: 1px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.04);
+}
+
 /* 登录页面容器 */
 .login-container {
   display: flex;
@@ -41,10 +50,56 @@
 /* 登录卡片样式 */
 .login-card {
   width: 100%;
-  max-width: 420px;
-  padding: 2rem;
+  max-width: 960px;
+  padding: 3rem 2.5rem;
   border-radius: 10px;
   box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1); // 添加阴影效果
+}
+
+.login-card-flex {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 320px;
+  height: 420px;
+}
+
+.card-left {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  flex: 0 0 30%; /* 左边占30% */
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  padding: 0;
+}
+
+.steamGame-icon {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  width: 100%;
+  height: 100%;
+}
+
+.steamGame-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+}
+
+.card-right {
+  flex: 1 1 70%; /* 右边占70% */
+  min-width: 220px;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 /* 登录卡片头部样式 */
@@ -94,20 +149,6 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
     }
-
-    /* 只读输入框样式 */
-    .readonly-input {
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
-      color: #666;
-      cursor: default;
-
-      &:focus {
-        outline: none;
-        box-shadow: none;
-        border-color: #ddd;
-      }
-    }
   }
 
   /* 复选框容器样式 */
@@ -139,16 +180,19 @@
     width: 100%;
     padding: 0.75rem 1rem;
     background-color: #1e40af;
-    color: white;
-    opacity: 0.5;
+    color: #fff;
+    opacity: 1;
     border: none;
     border-radius: 4px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      opacity 0.15s ease;
 
     &:hover {
       background-color: #000000;
+      opacity: 0.85;
     }
 
     &:focus {
@@ -178,8 +222,10 @@
 .button-container {
   display: flex;
   flex-direction: column;
-  gap: 10px; // 按钮之间的间距
+  gap: 12px;
   width: 100%;
+  margin-bottom: 1rem;
+  align-items: stretch;
 }
 
 /* 注册按钮样式 */
@@ -307,14 +353,16 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 3px solid rgba(255,255,255,0.3);
+  border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 按钮禁用状态样式 */

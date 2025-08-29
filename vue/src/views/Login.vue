@@ -1,29 +1,37 @@
 <template>
     <div class="login-container">
-        <div class="login-card">
-            <div class="steamGame-icon"> </div>
-            <div class="login-header">
-                <h1>登录</h1>
-                <p>使用你的Steam API来获取你的游戏信息</p>
+        <div class="login-card login-card-flex">
+            <div class="card-left">
+                <div class="steamGame-icon">
+                    <img src="@/assets/images/SteamGame-Icon.png" alt="Steam Game Icon" />
+                </div>
             </div>
-
-            <form class="login-form" @submit.prevent="handleLogin">
-                <div class="form-group">
-                    <label for="Steam_Id" class="form-label">Steam_Id</label>
-                    <input id="Steam_Id" type="text" v-model="Steam_Id" disabled readonly
-                        class="form-input readonly-input" placeholder="请输入你的 Steam ID" />
+            <div class="card-divider"></div>
+            <div class="card-right">
+                <div class="login-header">
+                    <h1>登录</h1>
+                    <p>使用你的Steam API来获取你的游戏信息</p>
                 </div>
-
-                <div class="button-container">
-                    <button type="submit" class="login-button" :disabled="isLoading">
-                        <span v-if="isLoading" class="loading-spinner"></span>
-                        <span>{{ isLoading ? '登录中...' : '确认登录' }}</span>
-                    </button>
-                </div>
-                <div v-if="errorMessage" class="error-message">
-                    {{ errorMessage }}
-                </div>
-            </form>
+                <form class="login-form" @submit.prevent="handleLogin">
+                    <div class="form-group">
+                        <label for="Steam_Id" class="form-label">Steam_Id</label>
+                        <input id="Steam_Id" type="text" v-model="Steam_Id" disabled readonly
+                            class="form-input readonly-input" placeholder="请输入你的 Steam ID" />
+                    </div>
+                    <div class="button-container">
+                        <button type="submit" class="login-button" :disabled="isLoading">
+                            <span v-if="isLoading" class="loading-spinner"></span>
+                            <span>{{ isLoading ? '登录中...' : '确认登录' }}</span>
+                        </button>
+                        <button type="button" class="register-button" @click="handleRegister">
+                            注册
+                        </button>
+                    </div>
+                    <div v-if="errorMessage" class="error-message">
+                        {{ errorMessage }}
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </template>
@@ -34,6 +42,9 @@ export default {
     ...loginScript,
     methods: {
         ...loginScript.methods,
+        handleRegister() {
+            this.$router.push({ name: 'register' });
+        },
     },
 };
 </script>
@@ -41,7 +52,6 @@ export default {
 <style scoped lang="scss">
 @import url('@/assets/styles/login.scss');
 
-/* 加载指示器样式 - 添加到组件内部确保可用 */
 .loading-spinner {
     display: inline-block;
     width: 16px;
@@ -62,46 +72,5 @@ export default {
     100% {
         transform: rotate(360deg);
     }
-}
-
-/* 提交按钮在加载状态时的样式 */
-.submit-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    position: relative;
-
-    &:disabled {
-        opacity: 0.7;
-        cursor: wait;
-    }
-}
-
-/* 成功消息提示样式 */
-.toast-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 4px;
-    z-index: 2000;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-
-    &.success {
-        background-color: #4caf50;
-        color: white;
-    }
-}
-
-.toast-enter-active,
-.toast-leave-active {
-    transition: all 0.3s ease;
-}
-
-.toast-enter,
-.toast-leave-to {
-    opacity: 0;
-    transform: translateY(-20px);
 }
 </style>
