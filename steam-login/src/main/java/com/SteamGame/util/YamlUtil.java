@@ -49,7 +49,6 @@ public class YamlUtil {
             dtoMap.put("time", dto.getTime());
             dtoMap.put("steamId", dto.getSteamId());
             dtoMap.put("apiKey", dto.getApiKey());
-            dtoMap.put("rememberMe", dto.isRememberMe());
 
             authMap.put("auth", dtoMap);
 
@@ -95,8 +94,6 @@ public class YamlUtil {
             if (yamlMap != null && yamlMap.containsKey("time")) dto.setTime((String) yamlMap.get("time"));
             if (yamlMap != null && yamlMap.containsKey("steamId")) dto.setSteamId((String) yamlMap.get("steamId"));
             if (yamlMap != null && yamlMap.containsKey("apiKey")) dto.setApiKey((String) yamlMap.get("apiKey"));
-            if (yamlMap != null && yamlMap.containsKey("rememberMe"))
-                dto.setRememberMe((Boolean) yamlMap.get("rememberMe"));
 
             return dto;
         } catch (IOException e) {
@@ -110,7 +107,6 @@ public class YamlUtil {
         if (yamlMap.containsKey("time")) dto.setTime((String) yamlMap.get("time"));
         if (yamlMap.containsKey("steamId")) dto.setSteamId((String) yamlMap.get("steamId"));
         if (yamlMap.containsKey("apiKey")) dto.setApiKey((String) yamlMap.get("apiKey"));
-        if (yamlMap.containsKey("rememberMe")) dto.setRememberMe((Boolean) yamlMap.get("rememberMe"));
         return dto;
     }
 }

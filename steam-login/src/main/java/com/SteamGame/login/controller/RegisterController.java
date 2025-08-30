@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 /**
  * 注册相关接口控制器
  */
@@ -43,13 +45,13 @@ public class RegisterController {
      * @return 注册结果响应
      */
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<Object> register(@RequestBody LoginDTO loginDTO) {
         logger.info("收到注册请求 - SteamID: {}", loginDTO.getSteamId());
 
         // 校验必要字段
         if (loginDTO.getSteamId() == null || loginDTO.getApiKey() == null) {
             logger.warn("注册信息不完整，缺少必要字段");
-            return ResponseEntity.badRequest().body("steamId 和 apiKey 为必填项");
+            return ResponseEntity.badRequest().body(Map.of("message", "steamId 和 apiKey 为必填项"));
         }
 
         // 保存登录信息
@@ -57,10 +59,10 @@ public class RegisterController {
 
         if (saved) {
             logger.info("注册信息保存成功");
-            return ResponseEntity.ok("注册成功");
+            return ResponseEntity.status(201).body(Map.of("message", "注册成功", "steamId", loginDTO.getSteamId()));
         } else {
             logger.error("保存注册信息失败");
-            return ResponseEntity.internalServerError().body("注册失败，请稍后重试");
+            return ResponseEntity.status(500).body(Map.of("message", "注册失败，请稍后重试"));
         }
     }
 }

@@ -78,36 +78,66 @@ export default {
       console.log(`准备发送登录数据:`, loginData);
 
       try {
-        const response = await axios.post('/api/login', loginData);
-        console.log('登录成功，接收到响应:', response.data);
+        let response;
 
-        const { token, user } = response.data;
+  // 按新设计：始终使用本地配置来登录（仅发送空 POST），不再通过请求体提交凭据
+  console.log('发送空 POST /api/login（后端将使用本地 YAML 配置验证）');
+  response = await axios.post('/api/login');
 
-        // 存储认证数据
-        localStorage.setItem('token', token);
-        if (this.rememberMe) {
-          localStorage.setItem(
-            'user',
-            JSON.stringify({
-              ...user,
-              steamId: this.Steam_Id,
-              apiKey: this.Api_Key,
-            })
-          );
+        console.log('登录请求返回，状态码:', response.status, '数据:', response.data);
+
+        if (response.status === 200) {
+          const { token, user } = response.data || {};
+
+          // 存储认证数据
+          if (token) {
+            localStorage.setItem('token', token);
+          }
+          if (this.rememberMe && user) {
+            localStorage.setItem(
+              'user',
+              JSON.stringify({
+                ...user,
+                steamId: this.Steam_Id,
+                apiKey: this.Api_Key,
+              })
+            );
+          }
+
+          // 更新全局状态并重定向
+          if (user) this.$store.commit('setUser', user);
+          this.$store.commit('setAuthenticated', true);
+          this.$router.push('/dashboard');
+        } else {
+          // 非预期的 2xx 之外的成功状态（如果有）也处理
+          this.errorMessage = response.data?.message || `登录返回状态: ${response.status}`;
         }
+      } catch (err: any) {
+        console.error('登录失败:', err);
+        const status = err?.response?.status;
+        const respData = err?.response?.data;
+        console.error('错误详情:', { message: err?.message, response: respData, status });
 
-        // 更新全局状态并重定向
-        this.$store.commit('setUser', user);
-        this.$store.commit('setAuthenticated', true);
-        this.$router.push('/dashboard');
-      } catch (error) {
-        console.error('登录失败:', error);
-        console.error('错误详情:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
-        this.errorMessage = error.response?.data?.message || '登录失败，请检查您的凭据';
+        // 无响应（网络、超时、CORS）
+        if (!err?.response) {
+          this.errorMessage = '网络错误或服务器无响应（请检查网络或 CORS）';
+        } else if (respData && (respData.message || respData.error || respData.msg)) {
+          // 优先显示后端 message 字段或常见替代字段
+          this.errorMessage = respData.message || respData.error || respData.msg;
+        } else if (status === 400) {
+          this.errorMessage = '错误的 SteamID 或 ApiKey 格式';
+        } else if (status === 404) {
+          this.errorMessage = '未找到用户或 API Key 无效';
+        } else if (status === 502) {
+          this.errorMessage = 'Steam 服务不可用，请稍后重试';
+        } else if (status === 500) {
+          this.errorMessage = '服务器内部错误，请联系管理员';
+        } else {
+          // 回退：显示状态码、状态文本及响应摘要，便于排查
+          const statusText = err.response?.statusText || '';
+          const snippet = typeof respData === 'string' ? respData : JSON.stringify(respData || {}).slice(0, 200);
+          this.errorMessage = `未知错误 (status ${status}${statusText ? ' ' + statusText : ''})${snippet ? ': ' + snippet : ''}`;
+        }
       } finally {
         this.isLoading = false;
       }
@@ -138,10 +168,9 @@ export default {
 
         console.log('准备发送注册信息:', registerData);
         const response = await axios.post('/api/register', registerData);
-        console.log('注册成功:', response.data);
+        console.log('注册请求返回，状态码:', response.status, '数据:', response.data);
 
-        // 检查后端返回的验证结果
-        if (response.data.status === 1 || response.data === 1) {
+        if (response.status === 200) {
           console.log('验证成功，准备跳转到dashboard');
 
           // 处理响应数据
@@ -157,7 +186,7 @@ export default {
           this.showRegisterSuccess = true;
           this.registerSuccessMessage = '注册验证成功！正在跳转...';
 
-          // 设置认证状态并重定向到dashboard
+          // 设置认证状态并重定向
           if (response.data.token) {
             localStorage.setItem('token', response.data.token);
           }
@@ -175,12 +204,32 @@ export default {
             }, 1000);
           }, 1500);
         } else {
-          // 验证失败
-          this.registerError = response.data.message || '验证失败，请检查您的SteamID和ApiKey';
+          // 非 200 的成功响应（不常见）
+          this.registerError = response.data?.message || `注册返回状态: ${response.status}`;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('注册失败:', error);
-        this.registerError = error.response?.data?.message || '注册失败，请稍后再试';
+        const status = error?.response?.status;
+        const respData = error?.response?.data;
+        console.error('注册错误详情:', { message: error?.message, response: respData, status });
+
+        if (!error?.response) {
+          this.registerError = '网络错误或服务器无响应（请检查网络或 CORS）';
+        } else if (respData && (respData.message || respData.error || respData.msg)) {
+          this.registerError = respData.message || respData.error || respData.msg;
+        } else if (status === 400) {
+          this.registerError = '请求错误：请检查提交的 SteamID 与 ApiKey';
+        } else if (status === 404) {
+          this.registerError = '未找到用户或 API Key 无效';
+        } else if (status === 502) {
+          this.registerError = '上游服务（Steam API）不可用，请稍后再试';
+        } else if (status === 500) {
+          this.registerError = '服务器内部错误，请联系管理员';
+        } else {
+          const statusText = error.response?.statusText || '';
+          const snippet = typeof respData === 'string' ? respData : JSON.stringify(respData || {}).slice(0, 200);
+          this.registerError = `注册失败 (status ${status}${statusText ? ' ' + statusText : ''})${snippet ? ': ' + snippet : ''}`;
+        }
       } finally {
         this.isRegisterLoading = false; // 无论成功还是失败，最终都要关闭加载状态
       }

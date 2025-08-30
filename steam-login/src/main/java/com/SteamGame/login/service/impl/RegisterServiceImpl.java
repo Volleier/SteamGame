@@ -41,7 +41,6 @@ public class RegisterServiceImpl implements RegisterService {
             Map<String, Object> authData = new HashMap<>();
             authData.put("steamId", loginDTO.getSteamId());
             authData.put("apiKey", loginDTO.getApiKey());
-            authData.put("rememberMe", loginDTO.isRememberMe());
             authData.put("time", loginDTO.getTime());
 
             Map<String, Object> rootMap = new HashMap<>();
