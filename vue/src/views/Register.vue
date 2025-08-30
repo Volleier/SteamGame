@@ -1,45 +1,58 @@
 <template>
     <div class="register-container">
-        <div class="register-card">
-            <h1>注册</h1>
-            <form @submit.prevent="handleRegister">
-                <div class="form-group">
-                    <label for="register-steam-id" class="form-label">Steam ID</label>
-                    <input id="register-steam-id" type="text" v-model="registerSteamId" class="form-input"
-                        placeholder="请输入你的 Steam ID" required :disabled="isRegisterLoading" />
+        <div class="background-container">
+            <div class="background-gradient"></div>
+            <div class="background-img">
+                <img src="@/assets/images/Background.png" alt="Background" class="background-image" />
+            </div>
+            <div class="background-overlay"></div>
+        </div>
+        <div class="register-card login-card-flex">
+            <div class="card-left">
+                <div class="icon">
+                    <img src="@/assets/images/Icon.png" alt="Icon" />
+                </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-right">
+                <div class="login-header">
+                    <h1>注册</h1>
                 </div>
 
-                <div class="form-group">
-                    <label for="register-api-key" class="form-label">API Key</label>
-                    <input id="register-api-key" type="text" v-model="registerApiKey" class="form-input"
-                        placeholder="请输入你的 Steam API Key" required :disabled="isRegisterLoading" />
-                </div>
-
-                <div class="checkbox-container">
-                    <div class="remember-me">
-                        <input id="register-remember-me" type="checkbox" v-model="registerRememberMe"
-                            :disabled="isRegisterLoading" />
-                        <label for="register-remember-me">记住我</label>
+                <form class="login-form" @submit.prevent="handleRegister">
+                    <div class="form-group">
+                        <label for="register-steam-id" class="form-label">Steam ID</label>
+                        <input id="register-steam-id" type="text" v-model="registerSteamId" class="form-input"
+                            placeholder="请输入你的 Steam ID" required :disabled="isRegisterLoading" />
                     </div>
-                </div>
 
-                <div v-if="registerError" class="error-message">
-                    {{ registerError }}
-                </div>
+                    <div class="form-group">
+                        <label for="register-api-key" class="form-label">API Key</label>
+                        <input id="register-api-key" type="text" v-model="registerApiKey" class="form-input"
+                            placeholder="请输入你的 Steam API Key" required :disabled="isRegisterLoading" />
+                    </div>
 
-                <div class="button-container">
-                    <button type="submit" class="submit-button" :disabled="isRegisterLoading">
-                        <span v-if="isRegisterLoading" class="loading-spinner"></span>
-                        <span>{{ isRegisterLoading ? '验证中...' : '提交' }}</span>
-                    </button>
-                </div>
-            </form>
+                    <div class="checkbox-container">
+                    </div>
 
-            <transition name="toast">
-                <div v-if="showRegisterSuccess" class="toast-message success">
-                    {{ registerSuccessMessage }}
-                </div>
-            </transition>
+                    <div v-if="registerError" class="error-message">
+                        {{ registerError }}
+                    </div>
+
+                    <div class="button-container">
+                        <button type="submit" class="login-button" :disabled="isRegisterLoading">
+                            <span v-if="isRegisterLoading" class="loading-spinner"></span>
+                            <span>{{ isRegisterLoading ? '验证中...' : '提交' }}</span>
+                        </button>
+                    </div>
+                </form>
+
+                <transition name="toast">
+                    <div v-if="showRegisterSuccess" class="toast-message success">
+                        {{ registerSuccessMessage }}
+                    </div>
+                </transition>
+            </div>
         </div>
     </div>
 </template>
@@ -115,86 +128,6 @@ export default {
 };
 </script>
 
-<style scoped>
-.register-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f5f5f5;
-}
-
-.register-card {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-}
-
-.form-input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.checkbox-container {
-    margin-bottom: 16px;
-}
-
-.remember-me {
-    display: flex;
-    align-items: center;
-}
-
-.error-message {
-    color: red;
-    margin-bottom: 16px;
-}
-
-.button-container {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.submit-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.submit-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-.toast-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 4px;
-    z-index: 2000;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-}
-
-.toast-message.success {
-    background-color: #4caf50;
-    color: white;
-}
+<style scoped lang="scss">
+@import url('@/assets/styles/register.scss');
 </style>
