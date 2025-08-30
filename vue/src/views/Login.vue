@@ -1,9 +1,16 @@
 <template>
     <div class="login-container">
+        <div class="background-container">
+            <div class="background-gradient"></div>
+            <div class="background-img">
+                <img src="@/assets/images/Background.png" alt="Background" class="background-image" />
+            </div>
+            <div class="background-overlay"></div>
+        </div>
         <div class="login-card login-card-flex">
             <div class="card-left">
-                <div class="steamGame-icon">
-                    <img src="@/assets/images/SteamGame-Icon.png" alt="Steam Game Icon" />
+                <div class="icon">
+                    <img src="@/assets/images/Icon.png" alt="Icon" />
                 </div>
             </div>
             <div class="card-divider"></div>
@@ -14,9 +21,8 @@
                 </div>
                 <form class="login-form" @submit.prevent="handleLogin">
                     <div class="form-group">
-                        <label for="Steam_Id" class="form-label">Steam_Id</label>
                         <input id="Steam_Id" type="text" v-model="Steam_Id" disabled readonly
-                            class="form-input readonly-input" placeholder="请输入你的 Steam ID" />
+                            class="form-input readonly-input" placeholder="暂无Steam ID数据" />
                     </div>
                     <div class="button-container">
                         <button type="submit" class="login-button" :disabled="isLoading">
@@ -51,26 +57,4 @@ export default {
 
 <style scoped lang="scss">
 @import url('@/assets/styles/login.scss');
-
-.loading-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s infinite linear;
-    margin-right: 8px;
-    vertical-align: middle;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
 </style>
