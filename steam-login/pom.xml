@@ -23,7 +23,14 @@
         <dependency>
             <groupId>com.SteamGame</groupId>
             <artifactId>steam-common</artifactId>
-            <version>0.0.1</version> <!-- 使用相同版本 -->
+            <version>0.0.1</version> 
+        </dependency>
+        <!-- 引入 steam-api 模块 -->
+        <dependency>
+            <groupId>com.SteamGame</groupId>
+            <artifactId>steam-api</artifactId>
+            <version>0.0.1</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

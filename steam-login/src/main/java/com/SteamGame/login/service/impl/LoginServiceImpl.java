@@ -14,9 +14,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.yaml.snakeyaml.Yaml;
+import com.SteamGame.api.service.SteamApiService;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -31,12 +33,23 @@ public class LoginServiceImpl implements LoginService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // SteamApiService 是可选的。登录模块可以在没有 steam-api 模块的情况下运行。
+    // 如果有实现，Spring 会自动注入；否则该字段为 null，代码会回退到旧的验证逻辑。
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private SteamApiService steamApiService;
+
     public LoginServiceImpl() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(4000);
         requestFactory.setReadTimeout(4000);
         this.restTemplate = new RestTemplate(requestFactory);
     }
+
+    /**
+     * 构造方法用于 Spring 依赖注入 SteamApiService 可用时。
+     */
+    // 注意：故意不强制构造器注入可选的 SteamApiService。
+    // 字段注入并设置 required=false 允许应用在没有 steam-api 模块时也能启动。
 
     @Override
     public LoginDTO readLoginInfoFromYaml() {
@@ -80,23 +93,34 @@ public class LoginServiceImpl implements LoginService {
         String key = loginDTO.getApiKey();
         String steamid = loginDTO.getSteamId();
 
+        // 检查 steamId 和 apiKey 是否存在
         if (key == null || key.isEmpty() || steamid == null || steamid.isEmpty()) {
             LoginCheckResult result = new LoginCheckResult(false, false, false, "请求中缺少steamId或apiKey", null);
             return ResponseEntity.badRequest().body(result); // 400
         }
 
         try {
-            String summariesUrl = String.format("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", key, steamid);
-            String summariesBody = restTemplate.getForObject(summariesUrl, String.class);
-            JsonNode summariesJson = objectMapper.readTree(summariesBody);
-            JsonNode players = summariesJson.path("response").path("players");
-            boolean playerExists = players.isArray() && players.size() == 1;
-
-            if (!playerExists) {
-                LoginCheckResult result = new LoginCheckResult(false, false, false, "无效的steamId或apiKey（未找到玩家）", null);
-                return ResponseEntity.status(404).body(result); // 404 Not Found
+            // 优先使用 SteamApiService 验证 API 密钥。如果 steam-api 模块可用则使用其实现。
+            if (this.steamApiService != null) {
+                boolean valid = steamApiService.isApiKeyValid(key);
+                if (!valid) {
+                    LoginCheckResult result = new LoginCheckResult(false, false, false, "Invalid API key", null);
+                    return ResponseEntity.status(403).body(result); // 403 Forbidden
+                }
+            } else {
+                // 回退：调用 GetPlayerSummaries，确保 key/steamid 组合正确
+                String summariesUrl = String.format("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", key, steamid);
+                String summariesBody = restTemplate.getForObject(summariesUrl, String.class);
+                JsonNode summariesJson = objectMapper.readTree(summariesBody);
+                JsonNode players = summariesJson.path("response").path("players");
+                boolean playerExists = players.isArray() && players.size() == 1;
+                if (!playerExists) {
+                    LoginCheckResult result = new LoginCheckResult(false, false, false, "Invalid steamId or apiKey (player not found)", null);
+                    return ResponseEntity.status(404).body(result); // 404 Not Found
+                }
             }
 
+            // API 密钥验证通过后，检查拥有的游戏数
             String ownedUrl = String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_played_free_games=1&format=json", key, steamid);
             String ownedBody = restTemplate.getForObject(ownedUrl, String.class);
             JsonNode ownedJson = objectMapper.readTree(ownedBody);
@@ -117,14 +141,18 @@ public class LoginServiceImpl implements LoginService {
             LoginCheckResult result = new LoginCheckResult(true, ownsGames, profilePrivate, message, gameCount);
             return ResponseEntity.ok(result); // 200
 
+        } catch (IOException | InterruptedException e) {
+            logger.error("使用 SteamApiService 验证 API 密钥时出错", e);
+            LoginCheckResult result = new LoginCheckResult(false, false, false, "验证 API 密钥时出错: " + e.getMessage(), null);
+            return ResponseEntity.status(502).body(result);
         } catch (RestClientException e) {
-            logger.error("调用Steam API时发生网络错误", e);
-            LoginCheckResult result = new LoginCheckResult(false, false, false, "调用Steam API时发生网络错误: " + e.getMessage(), null);
-            return ResponseEntity.status(502).body(result); // 502 Bad Gateway for upstream failure
+            logger.error("调用 Steam API 时网络错误", e);
+            LoginCheckResult result = new LoginCheckResult(false, false, false, "调用 Steam API 时网络错误: " + e.getMessage(), null);
+            return ResponseEntity.status(502).body(result);
         } catch (Exception e) {
-            logger.error("处理Steam API响应时发生错误", e);
-            LoginCheckResult result = new LoginCheckResult(false, false, false, "解析Steam API响应时发生错误: " + e.getMessage(), null);
-            return ResponseEntity.status(500).body(result); // 500 Internal Server Error
+            logger.error("处理 Steam API 响应时出错", e);
+            LoginCheckResult result = new LoginCheckResult(false, false, false, "解析 Steam API 响应时出错: " + e.getMessage(), null);
+            return ResponseEntity.status(500).body(result);
         }
     }
 }

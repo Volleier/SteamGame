@@ -7,7 +7,6 @@ export default {
       // 登录表单数据
       Steam_Id: '',
       Api_Key: '',
-      rememberMe: false,
       isLoading: false,
       errorMessage: '',
 
@@ -15,7 +14,6 @@ export default {
       showRegisterModal: false,
       registerSteamId: '',
       registerApiKey: '',
-      registerRememberMe: false,
       isRegisterLoading: false, // 新增：注册时的加载状态
 
       // 注册错误和成功信息
@@ -46,7 +44,6 @@ export default {
         // 处理不同字段名格式
         this.Steam_Id = data.steamId || data.steam_id || data.SteamId || '';
         this.Api_Key = data.apiKey || data.api_key || data.ApiKey || '';
-        this.rememberMe = data.rememberMe || data.remember_me || false;
 
         if (this.Steam_Id || this.Api_Key) {
           console.log('加载用户凭据成功，已填充表单:', {
@@ -72,7 +69,6 @@ export default {
         time: new Date().toISOString(),
         steamId: this.Steam_Id,
         apiKey: this.Api_Key,
-        rememberMe: this.rememberMe,
       };
 
       console.log(`准备发送登录数据:`, loginData);
@@ -93,7 +89,7 @@ export default {
           if (token) {
             localStorage.setItem('token', token);
           }
-          if (this.rememberMe && user) {
+          if (user) {
             localStorage.setItem(
               'user',
               JSON.stringify({
@@ -105,8 +101,21 @@ export default {
           }
 
           // 更新全局状态并重定向
-          if (user) this.$store.commit('setUser', user);
-          this.$store.commit('setAuthenticated', true);
+          // 如果 $store 可用则使用提交，否则回退到 localStorage 保存状态，避免未注册 store 导致的错误
+          if (user) {
+            if (this.$store && typeof this.$store.commit === 'function') {
+              this.$store.commit('setUser', user);
+            } else {
+              localStorage.setItem('user', JSON.stringify(user));
+            }
+          }
+
+          if (this.$store && typeof this.$store.commit === 'function') {
+            this.$store.commit('setAuthenticated', true);
+          } else {
+            localStorage.setItem('authenticated', 'true');
+          }
+
           this.$router.push('/dashboard');
         } else {
           // 非预期的 2xx 之外的成功状态（如果有）也处理
@@ -163,7 +172,6 @@ export default {
         const registerData = {
           steamId: this.registerSteamId,
           apiKey: this.registerApiKey,
-          rememberMe: this.registerRememberMe,
         };
 
         console.log('准备发送注册信息:', registerData);
@@ -187,13 +195,16 @@ export default {
           this.registerSuccessMessage = '注册验证成功！正在跳转...';
 
           // 设置认证状态并重定向
-          if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-          }
-
-          this.$store.commit('setAuthenticated', true);
-          if (response.data.user) {
-            this.$store.commit('setUser', response.data.user);
+          if (this.$store && typeof this.$store.commit === 'function') {
+            this.$store.commit('setAuthenticated', true);
+            if (response.data.user) {
+              this.$store.commit('setUser', response.data.user);
+            }
+          } else {
+            localStorage.setItem('authenticated', 'true');
+            if (response.data.user) {
+              localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
           }
 
           // 短暂延迟后跳转，让用户看到成功消息
@@ -242,7 +253,6 @@ export default {
       this.showRegisterModal = false;
       this.registerSteamId = '';
       this.registerApiKey = '';
-      this.registerRememberMe = false;
       this.isRegisterLoading = false; // 确保关闭模态框时重置加载状态
     },
 
@@ -261,13 +271,10 @@ export default {
       this.Steam_Id = steamId;
       this.Api_Key = apiKey;
 
-      // 如果勾选了记住我，则保存到本地存储
-      if (this.registerRememberMe) {
         localStorage.setItem('steamId', steamId);
         localStorage.setItem('apiKey', apiKey);
-        localStorage.setItem('rememberMe', 'true');
         console.log('已将登录凭证保存到本地存储');
-      }
+      
 
       // 启用登录表单输入框
       this.$nextTick(() => {
