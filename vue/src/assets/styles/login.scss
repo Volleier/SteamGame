@@ -463,3 +463,38 @@ button:disabled {
     transform: rotate(360deg);
   }
 }
+
+/* 淡入淡出动画定义 */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+.fade-enter-to,
+.fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card-fade-enter-active,
+.card-fade-leave-active {
+    transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-fade-enter-from,
+.card-fade-leave-to {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+.card-fade-enter-to,
+.card-fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}

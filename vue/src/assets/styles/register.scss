@@ -242,3 +242,32 @@
     }
   }
 }
+
+/* 淡入淡出效果 */
+.fade-enter-to,
+.fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 350ms ease, transform 350ms ease;
+}
+
+.card-fade-enter-active,
+.card-fade-leave-active {
+    transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-fade-enter-from,
+.card-fade-leave-to {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+.card-fade-enter-to,
+.card-fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
