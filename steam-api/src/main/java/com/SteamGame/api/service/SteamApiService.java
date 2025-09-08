@@ -28,4 +28,14 @@ public interface SteamApiService {
 	 * @return 密钥有效返回true，否则返回false
 	 */
 	boolean isApiKeyValid(String apiKey) throws IOException, InterruptedException;
+
+
+	/**
+     * 调用 IPlayerService/GetOwnedGames/v1 并返回原始 JSON 响应
+     *
+     * @param steamId 64位Steam用户ID
+     * @param apiKey  API密钥
+     * @return 原始 JSON 响应作为字符串
+     */
+    String getOwnedGames(String steamId, String apiKey) throws IOException, InterruptedException;
 }

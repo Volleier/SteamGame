@@ -43,7 +43,7 @@ public class LoginController {
 
     @PostMapping
     public ResponseEntity<?> loginUsingLocalConfig() {
-        logger.info("POST /api/login - 使用本地 YAML 配置执行登录验证（合并 validate 到 login）");
+        logger.info("POST /api/login - 使用本地 YAML 配置执行登录验证");
         // 不接受前端请求体，始终使用本地 YAML 中的 steamId/apiKey 去验证
         return loginService.validateLogin();
     }

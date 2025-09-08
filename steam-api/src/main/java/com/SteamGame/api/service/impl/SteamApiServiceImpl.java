@@ -55,6 +55,24 @@ public class SteamApiServiceImpl implements SteamApiService {
 		return contains;
 	}
 
+
+    @Override
+    public String getOwnedGames(String steamId, String apiKey) throws IOException, InterruptedException {
+        if (steamId == null || steamId.isEmpty() || apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalArgumentException("steamId and apiKey are required");
+        }
+        String apiUrl = String.format(
+                "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_appinfo=1&include_played_free_games=1&format=json",
+                urlEncode(apiKey), urlEncode(steamId));
+
+        // Log the target URL to help debugging network or permission issues.
+        logger.info("SteamServiceImpl: calling GetOwnedGames: {}", apiUrl);
+        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(apiUrl)).GET().build();
+        HttpResponse<String> resp = client.send(req, BodyHandlers.ofString());
+        logger.info("SteamServiceImpl: GetOwnedGames HTTP status {}", resp.statusCode());
+        return resp.body();
+    }
+
 	private String urlEncode(String s) {
 		try {
 			return URLEncoder.encode(s, StandardCharsets.UTF_8);
