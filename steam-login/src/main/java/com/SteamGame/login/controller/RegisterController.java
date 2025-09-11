@@ -2,6 +2,8 @@ package com.SteamGame.login.controller;
 
 import com.SteamGame.login.dto.LoginDTO;
 import com.SteamGame.login.service.RegisterService;
+import com.SteamGame.util.ValidationUtil;
+import com.SteamGame.api.service.SteamApiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class RegisterController {
     private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
 
     private final RegisterService registerService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private SteamApiService steamApiService;
 
     /**
      * 构造方法注入RegisterService
@@ -52,6 +57,28 @@ public class RegisterController {
         if (loginDTO.getSteamId() == null || loginDTO.getApiKey() == null) {
             logger.warn("注册信息不完整，缺少必要字段");
             return ResponseEntity.badRequest().body(Map.of("message", "steamId 和 apiKey 为必填项"));
+        }
+
+        // 使用 ValidationUtil 验证 apiKey 格式（复用原有密码长度校验逻辑）
+        if (!ValidationUtil.isValidPassword(loginDTO.getApiKey())) {
+            logger.warn("注册 apiKey 校验失败");
+            return ResponseEntity.badRequest().body(Map.of("message", "apiKey 格式不符合要求（6-20 位）"));
+        }
+
+        // 若 steam-api 模块可用，则验证 API key
+        if (this.steamApiService != null) {
+            try {
+                boolean valid = steamApiService.isApiKeyValid(loginDTO.getApiKey());
+                if (!valid) {
+                    logger.warn("注册时 API key 无效");
+                    return ResponseEntity.status(403).body(Map.of("message", "无效的 API key"));
+                }
+            } catch (Exception e) {
+                logger.error("校验 API key 时出错", e);
+                return ResponseEntity.status(502).body(Map.of("message", "验证 API key 时发生错误"));
+            }
+        } else {
+            logger.info("SteamApiService 不可用，跳过 API key 在线校验");
         }
 
         // 保存登录信息

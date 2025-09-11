@@ -14,6 +14,11 @@ public class ValidationUtil {
     }
 
     public static boolean isValidLoginInfo(LoginDTO loginDTO) {
-        return true;
+    if (loginDTO == null) return false;
+    // require steamId and apiKey present
+    if (loginDTO.getSteamId() == null || loginDTO.getApiKey() == null) return false;
+    // 这里复用密码校验规则来校验 apiKey 的格式长度（如果你有更具体的 apiKey 校验规则，可在此替换）
+    String apiKey = loginDTO.getApiKey();
+    return isValidPassword(apiKey);
     }
 }

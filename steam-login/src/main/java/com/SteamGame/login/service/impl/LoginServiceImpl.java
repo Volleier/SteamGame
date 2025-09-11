@@ -100,12 +100,28 @@ public class LoginServiceImpl implements LoginService {
         }
 
         try {
-            // 优先使用 SteamApiService 验证 API 密钥。如果 steam-api 模块可用则使用其实现。
+            Integer gameCount = null;
+            // 使用 SteamApiService 来获取已拥有游戏
             if (this.steamApiService != null) {
-                boolean valid = steamApiService.isApiKeyValid(key);
-                if (!valid) {
-                    LoginCheckResult result = new LoginCheckResult(false, false, false, "Invalid API key", null);
+                String ownedBody = steamApiService.getOwnedGames(steamid, key);
+                // 在控制台打印返回的 JSON
+                logger.info("getOwnedGames response (via SteamApiService): {}", ownedBody);
+                if (ownedBody == null || ownedBody.isEmpty()) {
+                    LoginCheckResult result = new LoginCheckResult(false, false, false, "Invalid steamId or apiKey (no owned games response)", null);
                     return ResponseEntity.status(403).body(result); // 403 Forbidden
+                }
+
+                JsonNode ownedJson = objectMapper.readTree(ownedBody);
+                JsonNode responseNode = ownedJson.path("response");
+
+                // 解析游戏数量：优先使用 game_count，其次使用 games 数组长度；都不存在则认为返回了空结果（视为无游戏）
+                if (responseNode.has("game_count")) {
+                    gameCount = responseNode.path("game_count").asInt(0);
+                } else if (responseNode.has("games") && responseNode.path("games").isArray()) {
+                    gameCount = responseNode.path("games").size();
+                } else {
+                    // 没有明确的游戏列表或计数，仍认为请求成功但用户可能无游戏
+                    gameCount = 0;
                 }
             } else {
                 // 回退：调用 GetPlayerSummaries，确保 key/steamid 组合正确
@@ -118,16 +134,21 @@ public class LoginServiceImpl implements LoginService {
                     LoginCheckResult result = new LoginCheckResult(false, false, false, "Invalid steamId or apiKey (player not found)", null);
                     return ResponseEntity.status(404).body(result); // 404 Not Found
                 }
-            }
 
-            // API 密钥验证通过后，检查拥有的游戏数
-            String ownedUrl = String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_played_free_games=1&format=json", key, steamid);
-            String ownedBody = restTemplate.getForObject(ownedUrl, String.class);
-            JsonNode ownedJson = objectMapper.readTree(ownedBody);
-            JsonNode responseNode = ownedJson.path("response");
-            Integer gameCount = null;
-            if (responseNode.has("game_count")) {
-                gameCount = responseNode.path("game_count").asInt(0);
+                // 如果 summaries 校验通过，接着使用 API 查询拥有游戏数（与原逻辑一致）
+                String ownedUrl = String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_played_free_games=1&format=json", key, steamid);
+                String ownedBody = restTemplate.getForObject(ownedUrl, String.class);
+                // 在控制台打印返回的 JSON
+                logger.info("getOwnedGames response (via RestTemplate): {}", ownedBody);
+                JsonNode ownedJson = objectMapper.readTree(ownedBody);
+                JsonNode responseNode = ownedJson.path("response");
+                if (responseNode.has("game_count")) {
+                    gameCount = responseNode.path("game_count").asInt(0);
+                } else if (responseNode.has("games") && responseNode.path("games").isArray()) {
+                    gameCount = responseNode.path("games").size();
+                } else {
+                    gameCount = 0;
+                }
             }
 
             boolean ownsGames = gameCount != null && gameCount > 0;
