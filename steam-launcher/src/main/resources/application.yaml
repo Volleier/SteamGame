@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: steam-launcher
+server:
+  port: 8080

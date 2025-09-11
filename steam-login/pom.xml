@@ -4,9 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.steam</groupId>
+        <groupId>com.SteamGame</groupId>
         <artifactId>steam-dependencies</artifactId>
         <version>0.0.1</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>steam-login</artifactId>
@@ -17,4 +18,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <!-- 引入 steam-common 模块 -->
+        <dependency>
+            <groupId>com.SteamGame</groupId>
+            <artifactId>steam-common</artifactId>
+            <version>0.0.1</version> 
+        </dependency>
+        <!-- 引入 steam-api 模块 -->
+        <dependency>
+            <groupId>com.SteamGame</groupId>
+            <artifactId>steam-api</artifactId>
+            <version>0.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 </project>
