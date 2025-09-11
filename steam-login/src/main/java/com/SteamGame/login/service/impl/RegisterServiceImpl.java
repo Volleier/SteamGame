@@ -39,9 +39,14 @@ public class RegisterServiceImpl implements RegisterService {
 
             // 创建YAML数据结构
             Map<String, Object> authData = new HashMap<>();
-            authData.put("steamId", loginDTO.getSteamId());
-            authData.put("apiKey", loginDTO.getApiKey());
-            authData.put("time", loginDTO.getTime());
+            // 去除可能的前后空白再保存
+            String steamId = loginDTO.getSteamId() == null ? null : loginDTO.getSteamId().trim();
+            String apiKey = loginDTO.getApiKey() == null ? null : loginDTO.getApiKey().trim();
+            String time = loginDTO.getTime() == null ? null : loginDTO.getTime().trim();
+
+            authData.put("steamId", steamId);
+            authData.put("apiKey", apiKey);
+            authData.put("time", time);
 
             Map<String, Object> rootMap = new HashMap<>();
             rootMap.put("auth", authData);
