@@ -1,4 +1,4 @@
-package com.SteamGame.api.config;
+package com.SteamGame.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
