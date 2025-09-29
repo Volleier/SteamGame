@@ -76,9 +76,9 @@ export default {
       try {
         let response;
 
-  // 按新设计：始终使用本地配置来登录（仅发送空 POST），不再通过请求体提交凭据
-  console.log('发送空 POST /api/login（后端将使用本地 YAML 配置验证）');
-  response = await axios.post('/api/login');
+        // 按新设计：始终使用本地配置来登录（仅发送空 POST），不再通过请求体提交凭据
+        console.log('发送空 POST /api/login（后端将使用本地 YAML 配置验证）');
+        response = await axios.post('/api/login');
 
         console.log('登录请求返回，状态码:', response.status, '数据:', response.data);
 
@@ -235,7 +235,7 @@ export default {
         } else if (status === 502) {
           this.registerError = '上游服务（Steam API）不可用，请稍后再试';
         } else if (status === 500) {
-          this.registerError = '服务器内部错误，请联系管理员';
+          this.registerError = '服务器内部错误';
         } else {
           const statusText = error.response?.statusText || '';
           const snippet = typeof respData === 'string' ? respData : JSON.stringify(respData || {}).slice(0, 200);
@@ -271,10 +271,9 @@ export default {
       this.Steam_Id = steamId;
       this.Api_Key = apiKey;
 
-        localStorage.setItem('steamId', steamId);
-        localStorage.setItem('apiKey', apiKey);
-        console.log('已将登录凭证保存到本地存储');
-      
+      localStorage.setItem('steamId', steamId);
+      localStorage.setItem('apiKey', apiKey);
+      console.log('已将登录凭证保存到本地存储');
 
       // 启用登录表单输入框
       this.$nextTick(() => {
