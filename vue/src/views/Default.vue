@@ -28,7 +28,7 @@
     <div class="w-full max-w-[85%] h-[2px] bg-gradient-to-r from-transparent via-white to-transparent mb-12"></div>
 
     <!-- Techwear Skewed Login Button matching new reference -->
-    <router-link to="/login" class="login-btn">
+    <router-link to="/login" class="login-btn max-w-[14rem]">
 
       <!-- Cyan Slider Block: Now controlled via default.scss and _theme.scss -->
       <div class="login-slider"></div>

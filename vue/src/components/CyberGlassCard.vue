@@ -26,7 +26,10 @@
 
     <!-- Glassmorphism Card Container sits strictly above (z-10) with blur to distinct it from background -->
     <div
-      class="relative z-10 flex flex-col items-center px-12 py-12 sm:px-20 sm:py-16 rounded-2xl bg-black/[0.4] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-xl">
+      :class="[
+        'relative z-10 flex flex-col items-center rounded-2xl bg-black/[0.4] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-xl',
+        compact ? 'px-4 py-4 sm:px-6 sm:py-6' : 'px-12 py-12 sm:px-20 sm:py-16'
+      ]">
 
       <!-- Internal Duplicated Grid (Pixelation Effect Wrapper) -->
       <!-- Synchronized 1:1 with the outer global layer through absolute centering logic -->
@@ -65,7 +68,11 @@
 import { ref, onMounted } from 'vue';
 import { getTrendingGamePosters, type GamePosterData } from '@/api/game';
 
-// Encapsulate the fetching logic seamlessly into the component so users never worry about configuring it externally
+// 支持紧凑模式（用于 Login/Register 页面缩小内边距）
+const props = defineProps<{
+  compact?: boolean;
+}>();
+
 const games = ref<GamePosterData[]>([]);
 
 onMounted(async () => {

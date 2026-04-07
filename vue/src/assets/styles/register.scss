@@ -1,101 +1,19 @@
-/* 独立的渐变背景图层样式 */
-.background-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #00d5ff, #00ffd5, #00ff26);
-  background-size: 400% 400%;
-  animation: gradientRotateAnimation 10s ease infinite;
-  z-index: 0; /* 设置最底层 */
-}
+/* ==============================================
+   register.scss — 注册页面专用样式
+   参数完全对齐 login.scss，独立不引用
+   ============================================== */
 
-/* 渐变背景动画定义 */
-@keyframes gradientRotateAnimation {
-  0% {
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg);
-  }
-  25% {
-    background-position: 50% 100%;
-    filter: hue-rotate(90deg);
-  }
-  50% {
-    background-position: 100% 50%;
-    filter: hue-rotate(180deg);
-  }
-  75% {
-    background-position: 50% 0%;
-    filter: hue-rotate(270deg);
-  }
-  100% {
-    background-position: 0% 50%;
-    filter: hue-rotate(360deg);
-  }
-}
-
-.background-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* 卡片整体容器（对齐 .login-card） */
+.reg-card {
   width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.background-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 注册页容器，确保背景层有高度和定位上下文 */
-.register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100vh;
-  position: relative;
-  overflow: hidden;
-  z-index: 0; /* 底层 */
-}
-
-/* 背景图片层与遮罩（与 login.scss 保持一致） */
-.background-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.background-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.45);
-  z-index: 2;
-}
-
-/* 确保注册卡片在遮罩之上 */
-.register-card {
-  width: 100%;
-  max-width: 960px;
-  padding: 3rem 2.5rem;
-  border-radius: 10px;
-  box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1);
+  max-width: 1400px;
   position: relative;
   z-index: 5;
-  background-color: rgba(0, 0, 0, 0.7);
   color: #fff;
 }
 
-.login-card-flex {
+/* 卡片 Flex 布局（对齐 .login-card-flex） */
+.reg-card-flex {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -103,160 +21,227 @@
   height: 420px;
 }
 
-.card-left {
+/* ——— 左侧图片区（对齐 .card-left） ——— */
+.reg-left {
   display: flex;
   align-items: stretch;
   justify-content: stretch;
-  flex: 0 0 30%; /* 左边占30% */
+  flex: 0 0 50% !important;
+  width: 50% !important;
+  max-width: 50% !important;
   height: 100%;
-  aspect-ratio: 1 / 1;
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
   padding: 0;
+  margin-right: 1rem;
 }
 
-.icon {
+/* 图标容器（对齐 .icon） */
+.reg-icon {
   display: flex;
   align-items: stretch;
   justify-content: stretch;
   width: 100%;
   height: 100%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    margin: 0;
+  }
 }
 
-.icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  margin: 0;
+/* ——— 右侧内容区（对齐 .card-right） ——— */
+.reg-right {
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
 }
 
-.card-divider {
-  width: 2px;
-  min-width: 2px;
-  background: linear-gradient(to bottom, #e0e7ef 60%, #b6c2d6 100%);
-  margin: 0 0.5rem;
-  border-radius: 1px;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.04);
+/* 毛玻璃背景层（对齐 .card-right-glass） */
+.reg-right-glass {
+  position: absolute;
+  inset: 2px;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-radius: 8px;
+  z-index: 0;
 }
 
-.card-right {
-  flex: 1 1 70%; /* 右边占70% */
-  min-width: 220px;
-  padding-left: 1.5rem;
+/* 内容层（对齐 .card-right-content） */
+.reg-right-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 1.5rem;
+  height: 100%;
+  padding: 2rem 1.5rem;
 }
 
-.login-header {
+/* 注册标题（对齐 .login-header） */
+.reg-header {
   text-align: center;
-  margin-bottom: 0rem;
+  margin-bottom: 1.5rem;
 
   h1 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 600;
     color: #ffffff;
   }
 }
 
-.login-form {
-  .form-group {
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
+/* 表单（对齐 .login-form 的整体结构） */
+.reg-form {
+  display: flex;
+  flex-direction: column;
+}
 
-  .form-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #e4e4e4;
-  }
+/* 表单组（对齐 .form-group） */
+.reg-form-group {
+  margin-bottom: 1.5rem;
+}
 
-  .form-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    transition: border-color 0.15s ease;
-    background-color: rgba($color: #ffffff, $alpha: 0.75);
-    color: #000000;
+/* 表单标签（对齐 .form-label） */
+.reg-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
 
-    &::placeholder {
-      color: #9ca3af;
-      opacity: 1;
-    }
+/* 表单输入框（对齐 .form-input） */
+.reg-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  transition: border-color 0.15s ease;
+  background-color: rgba(255, 255, 255, 0.75);
+  color: #000000;
 
-    &:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-    }
-  }
-
-  .checkbox-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-
-      input[type='checkbox'] {
-        margin-right: 0.5rem;
-        cursor: pointer;
-      }
-
-      label {
-        font-size: 0.875rem;
-        color: #4b5563;
-      }
-    }
-  }
-
-  .login-button {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: #1e40af;
-    color: #fff;
+  &::placeholder {
+    color: #9ca3af;
     opacity: 1;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition:
-      background-color 0.15s ease,
-      opacity 0.15s ease;
+  }
 
-    &:hover {
-      background-color: #070052;
-      opacity: 0.85;
-    }
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
 
-    &:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+/* 按钮容器 */
+.reg-btn-wrap {
+  width: 100%;
+}
+
+/* 覆盖 default.scss 中 .login-btn 的 Default.vue 风格，
+   去掉倾斜和粉色边框，改为全宽正方形 */
+.reg-card .login-btn {
+  width: 100%;
+  transform: none;
+  border-bottom: none;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+
+  .login-text-container {
+    right: 0;
+    width: 100%;
+
+    span {
+      transform: none;
     }
   }
 }
 
-/* 淡入淡出效果 */
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-  transform: translateY(0);
+/* 加载 Spinner */
+.reg-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #000;
+  animation: reg-spin 1s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 350ms ease,
-    transform 350ms ease;
+@keyframes reg-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+/* 按钮禁用 */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ——— 错误模态 ——— */
+.reg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.reg-modal-content {
+  background: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 420px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: #000;
+  text-align: center;
+}
+
+.reg-modal-body p {
+  margin: 8px 0 0 0;
+  color: #000;
+}
+
+.reg-modal-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.reg-modal-confirm {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+}
+
+/* ——— 入场动画（对齐 login.scss 的 card-fade） ——— */
 .card-fade-enter-active,
 .card-fade-leave-active {
   transition:
@@ -274,65 +259,4 @@
 .card-fade-leave-from {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* Modal styles for Register.vue */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: #fff;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 420px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  color: #000; /* 确保字体黑色 */
-  text-align: center;
-}
-
-.modal-body p {
-  margin: 8px 0 0 0;
-  color: #000;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.submit-button {
-  background-color: #4caf50;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.submit-button:hover {
-  background-color: #45a049;
-}
-
-/* modal-slide transition matching <transition name="modal-slide"> */
-.modal-slide-enter-active,
-.modal-slide-leave-active {
-  transition: all 0.25s ease;
-}
-.modal-slide-enter-from,
-.modal-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-12px);
 }

@@ -7,67 +7,13 @@
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.04);
 }
 
-/* 登录页面容器 */
-.login-container {
-  display: flex;
-  justify-content: center; // 水平居中
-  align-items: center; // 垂直居中
-  width: 100%;
-  height: 100vh; // 占满整个视窗高度
+/* Login card layout within CyberGlassCard */
 
-  /* 背景渐变设置 */
-  position: relative; // 为渐变效果添加定位上下文
-  overflow: hidden; // 防止旋转时溢出
-  z-index: 0; /* 设置最底层 */
-}
-
-/* 独立的渐变背景图层样式 */
-.background-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #00d5ff, #00ffd5, #00ff26);
-  background-size: 400% 400%;
-  animation: gradientRotateAnimation 10s ease infinite;
-  z-index: 0; /* 设置最底层 */
-}
-
-/* 渐变背景动画定义 */
-@keyframes gradientRotateAnimation {
-  0% {
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg);
-  }
-  25% {
-    background-position: 50% 100%;
-    filter: hue-rotate(90deg);
-  }
-  50% {
-    background-position: 100% 50%;
-    filter: hue-rotate(180deg);
-  }
-  75% {
-    background-position: 50% 0%;
-    filter: hue-rotate(270deg);
-  }
-  100% {
-    background-position: 0% 50%;
-    filter: hue-rotate(360deg);
-  }
-}
-
-/* 登录卡片样式 */
 .login-card {
   width: 100%;
   max-width: 960px;
-  padding: 3rem 2.5rem;
-  border-radius: 10px;
-  box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 5;
-  background-color: rgba(0, 0, 0, 0.7);
   color: #fff;
 }
 
@@ -89,6 +35,7 @@
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
   padding: 0;
+  margin-right: 2rem; /* 拉大左右内容间距 */
 }
 
 .icon {
@@ -110,11 +57,31 @@
 .card-right {
   flex: 1 1 70%; /* 右边占70% */
   min-width: 220px;
-  padding-left: 1.5rem;
+  position: relative; /* 为毛玻璃层提供定位上下文 */
+  overflow: hidden;
+}
+
+/* 高模糊度黑色毛玻璃效果层 */
+.card-right-glass {
+  position: absolute;
+  inset: 2px; /* 与卡片边框保持极小间距，让毛玻璃紧贴内容区 */
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-radius: 8px;
+  z-index: 0;
+}
+
+/* 内容层，浮在毛玻璃层之上 */
+.card-right-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 1.5rem;
+  height: 100%;
+  padding: 2rem 1.5rem;
 }
 
 /* 登录卡片头部样式 */
@@ -191,73 +158,32 @@
   }
 
   /* 登录按钮样式 */
-  .login-button {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: #1e40af;
-    color: #fff;
-    opacity: 1;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition:
-      background-color 0.15s ease,
-      opacity 0.15s ease;
-
-    &:hover {
-      background-color: #000000;
-      opacity: 0.85;
-    }
-
-    &:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
-    }
-  }
+  /* New button style inherited from default.scss */
 }
 
-/* 临时登录按钮样式 */
-.temp-login-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: #45a049;
-  }
-}
-
-/* 按钮容器样式 */
-.button-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* ================================================
+   登录/注册页面专用按钮覆盖样式
+   覆盖 default.scss 中 .login-btn 的 Default.vue 风格，
+   去掉倾斜和粉色边框，改为全宽正方形按钮
+   ================================================ */
+.login-card .login-btn,
+.register-card .login-btn {
   width: 100%;
-  margin-bottom: 1rem;
-  align-items: stretch;
-}
+  transform: none;          /* 去掉倾斜 */
+  border-bottom: none;      /* 去掉粉色边框 */
+  font-size: 1rem;
+  letter-spacing: 0.08em;
 
-/* 注册按钮样式 */
-.register-button {
-  background-color: #2196f3;
-  color: white;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.15s ease;
+  .login-text-container {
+    right: 0;
+    width: 100%;            /* 文字容器占满全宽 */
 
-  &:hover {
-    background-color: #0b7dda;
+    span {
+      transform: none;      /* 去掉反向倾斜补偿 */
+    }
   }
 }
+
 
 /* 模态窗口相关样式 */
 /* 模态窗口遮罩层 */
