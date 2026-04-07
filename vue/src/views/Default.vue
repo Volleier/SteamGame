@@ -28,17 +28,14 @@
     <div class="w-full max-w-[85%] h-[2px] bg-gradient-to-r from-transparent via-white to-transparent mb-12"></div>
 
     <!-- Techwear Skewed Login Button matching new reference -->
-    <router-link to="/login"
-      class="group relative inline-flex items-center w-56 h-14 bg-white text-black font-extrabold text-2xl tracking-[0.1em] -skew-x-[10deg] border-b-[4px] border-[#ff00ff] overflow-hidden transition-all duration-300">
+    <router-link to="/login" class="login-btn">
 
-      <!-- Cyan Slider Block: Expands to cover the entire button and turns paler white/blue on hover -->
-      <div
-        class="absolute top-0 left-0 w-[25%] h-full bg-[#00d4ff] transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:w-full group-hover:bg-[#e0faff]">
-      </div>
+      <!-- Cyan Slider Block: Now controlled via default.scss and _theme.scss -->
+      <div class="login-slider"></div>
 
-      <!-- Text Content: Confined to the right 75% so it strictly avoids overlapping the slider initially -->
-      <div class="absolute right-0 w-[75%] h-full flex items-center justify-center z-10 pointer-events-none">
-        <span class="skew-x-[10deg] uppercase">Login</span>
+      <!-- Text Content -->
+      <div class="login-text-container">
+        <span>Login</span>
       </div>
 
     </router-link>
@@ -51,3 +48,7 @@ import CyberGlassCard from '@/components/CyberGlassCard.vue';
 import leftLogo from '@/assets/images/SteamGame_Left_Logo.png';
 import rightLogo from '@/assets/images/SteamGame_Right_Logo.png';
 </script>
+
+<style scoped lang="scss">
+@import '@/assets/styles/default.scss';
+</style>

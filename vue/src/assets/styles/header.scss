@@ -1,0 +1,50 @@
+@import './theme';
+
+/* header.scss - Top Header Navigation Styling */
+
+.header-container {
+  @apply fixed top-0 left-0 w-full h-12 flex items-center justify-between overflow-hidden shadow-sm z-50 bg-[#eef8fc];
+}
+
+.header-logo-group {
+  @apply flex items-center space-x-8 pl-8;
+
+  img {
+    @apply h-8 w-auto object-contain mix-blend-multiply opacity-90;
+  }
+}
+
+.about-btn {
+  @apply relative inline-flex items-center h-full w-48 font-extrabold text-[#006f94] text-xl tracking-[0.2em] -skew-x-[15deg] -mr-6 pr-6 cursor-pointer overflow-hidden transition-all duration-300;
+
+  // 使用主题色：正常为 $accent-glow，悬停时用 $accent-glow-hover
+  background-color: $accent-glow;
+
+  .about-slider {
+    @apply absolute top-0 left-0 w-0 h-full transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)];
+    background-color: $accent-glow;
+  }
+
+  .about-text-wrapper {
+    @apply absolute inset-0 flex items-center justify-center z-10 pointer-events-none pr-6;
+
+    span {
+      @apply skew-x-[15deg] uppercase transition-colors duration-300;
+    }
+  }
+
+  &:hover {
+    @apply brightness-105;
+
+    background-color: $accent-glow-dark;
+
+    .about-slider {
+      @apply w-full;
+      background-color: $accent-glow-dark;
+    }
+
+    .about-text-wrapper span {
+      @apply text-white;
+    }
+  }
+}

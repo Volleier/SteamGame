@@ -1,4 +1,30 @@
-/* default.scss - Parallax Pixel UI Theme Variables & Animations */
+@import './theme';
+
+.login-btn {
+  @apply relative inline-flex items-center w-56 h-14 bg-white text-black font-extrabold text-2xl tracking-[0.1em] -skew-x-[10deg] border-b-[4px] transition-all duration-300 overflow-hidden;
+  border-color: #ff00ff; // Neon Pink border
+
+  .login-slider {
+    @apply absolute top-0 left-0 h-full transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)];
+    width: 25%;
+    background-color: $accent-glow;
+  }
+
+  .login-text-container {
+    @apply absolute right-0 w-[75%] h-full flex items-center justify-center z-10 pointer-events-none;
+    
+    span {
+      @apply skew-x-[10deg] uppercase;
+    }
+  }
+
+  &:hover {
+    .login-slider {
+      @apply w-full;
+      background-color: $accent-glow-hover;
+    }
+  }
+}
 
 /* Bi-directional Infinite Scrolling Physics */
 .scroll-up {
