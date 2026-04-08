@@ -22,10 +22,10 @@ public final class SecurityConstants {
     // 统一错误码键名（后端返回中使用）
     public static final String RESPONSE_CODE_KEY = "code";
 }
-package com.SteamGame.constant;
-
-public class SecurityConstants {
-    // Remember me token的有效期(30天)
+// 额外常量：记住我相关
+// 注意：如需可在此处扩展更多安全配置常量
+public final class SecurityConstantsExtras {
+    private SecurityConstantsExtras() {}
     public static final long REMEMBER_ME_EXPIRATION_TIME = 30L * 24 * 60 * 60 * 1000;
     public static final String REMEMBER_ME_KEY = "rememberMeKey";
 }
