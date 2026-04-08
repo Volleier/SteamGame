@@ -4,6 +4,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.io.UnsupportedEncodingException;
 
+/**
+ * Md5Util 已标记为废弃。
+ *
+ * 说明：MD5 不应被用于凭据或密钥存储/加密用途。本项目中不再将 Md5Util 用于敏感凭据处理。
+ * 保留该工具仅供非敏感用途的兼容性检查。新代码应使用 `CryptoUtil`（AES-GCM）进行加解密。
+ */
+@Deprecated
 public class Md5Util {
 
     /**

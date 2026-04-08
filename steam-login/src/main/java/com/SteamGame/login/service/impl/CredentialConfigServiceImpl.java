@@ -63,10 +63,11 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
             authData.put("steamId", steamId);
             authData.put("apiKeyEncrypted", enc.cipherTextBase64);
             Map<String, Object> keyMeta = new HashMap<>();
-            keyMeta.put("algorithm", "AES/GCM/NoPadding");
-            keyMeta.put("iv", enc.ivBase64);
+            keyMeta.put(com.SteamGame.constant.SecurityConstants.AUTH_KEYMETA_ALGORITHM,
+                    com.SteamGame.constant.SecurityConstants.CIPHER_TRANSFORMATION);
+            keyMeta.put(com.SteamGame.constant.SecurityConstants.AUTH_KEYMETA_IV, enc.ivBase64);
             authData.put("keyMeta", keyMeta);
-            authData.put("version", 2);
+            authData.put("version", com.SteamGame.constant.SecurityConstants.AUTH_CONFIG_VERSION);
             authData.put("updatedAt", time);
 
             Map<String, Object> rootMap = new HashMap<>();

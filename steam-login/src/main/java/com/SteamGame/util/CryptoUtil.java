@@ -1,5 +1,7 @@
 package com.SteamGame.util;
 
+import com.SteamGame.constant.SecurityConstants;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -8,10 +10,10 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 public class CryptoUtil {
-    private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
-    private static final int IV_LENGTH = 12; // 96 bits recommended for GCM
-    private static final int TAG_LENGTH_BIT = 128;
+    private static final String ALGORITHM = SecurityConstants.CIPHER_ALGORITHM;
+    private static final String TRANSFORMATION = SecurityConstants.CIPHER_TRANSFORMATION;
+    private static final int IV_LENGTH = SecurityConstants.GCM_IV_LENGTH; // bytes
+    private static final int TAG_LENGTH_BIT = SecurityConstants.GCM_TAG_LENGTH_BIT;
 
     public static class EncryptResult {
         public final String cipherTextBase64;
