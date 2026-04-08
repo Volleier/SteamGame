@@ -14,7 +14,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.yaml.snakeyaml.Yaml;
-import com.SteamGame.api.service.SteamApiService;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -154,8 +153,8 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
                     gameCount);
             return ResponseEntity.ok(result);
 
-        } catch (IOException | InterruptedException e) {
-            logger.error("使用 SteamApiService 验证 API 密钥时出错", e);
+        } catch (IOException e) {
+            logger.error("使用 Steam API 验证 API 密钥时出错", e);
             CredentialCheckResult result = new CredentialCheckResult(false, false, false,
                     "验证 API 密钥时出错: " + e.getMessage(),
                     null);
