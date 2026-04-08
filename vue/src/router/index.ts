@@ -8,14 +8,14 @@ const routes: Array<RouteRecordRaw> = [
     component: Default,
   },
   {
-    path: '/login',
-    name: 'login',
-    component: () => import('@/views/Login.vue'),
+    path: '/credential-verify',
+    name: 'credential-verify',
+    component: () => import('@/views/CredentialVerify.vue'),
   },
   {
-    path: '/register',
-    name: 'register',
-    component: () => import('@/views/Register.vue'),
+    path: '/credential-config',
+    name: 'credential-config',
+    component: () => import('@/views/CredentialConfig.vue'),
   },
   {
     path: '/dashboard',

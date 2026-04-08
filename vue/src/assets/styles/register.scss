@@ -151,14 +151,13 @@
 
 /* 覆盖 default.scss 中 .login-btn 的 Default.vue 风格，
    去掉倾斜和粉色边框，改为全宽正方形 */
-.reg-card .login-btn {
+.reg-card .credential-btn {
   width: 100%;
   transform: none;
   border-bottom: none;
   font-size: 1rem;
   letter-spacing: 0.08em;
-
-  .login-text-container {
+  .credential-text-container {
     right: 0;
     width: 100%;
 

@@ -1,6 +1,6 @@
 package com.SteamGame.util;
 
-import com.SteamGame.login.dto.LoginDTO;
+import com.SteamGame.login.dto.CredentialDTO;
 
 public class ValidationUtil {
     // 简单的用户名验证
@@ -13,10 +13,12 @@ public class ValidationUtil {
         return password != null && password.length() >= 6 && password.length() <= 50;
     }
 
-    public static boolean isValidLoginInfo(LoginDTO loginDTO) {
-    if (loginDTO == null) return false;
-    if (loginDTO.getSteamId() == null || loginDTO.getApiKey() == null) return false;
-    String apiKey = loginDTO.getApiKey();
-    return isValidPassword(apiKey);
+    public static boolean isValidLoginInfo(CredentialDTO loginDTO) {
+        if (loginDTO == null)
+            return false;
+        if (loginDTO.getSteamId() == null || loginDTO.getApiKey() == null)
+            return false;
+        String apiKey = loginDTO.getApiKey();
+        return isValidPassword(apiKey);
     }
 }

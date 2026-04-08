@@ -1,16 +1,17 @@
 package com.SteamGame.login.dto;
 
-public class LoginCheckResult {
+public class CredentialCheckResult {
     private boolean validKeyAndUser;
     private boolean ownsGames;
     private boolean profilePrivate;
     private String message;
     private Integer gameCount;
 
-    public LoginCheckResult() {
+    public CredentialCheckResult() {
     }
 
-    public LoginCheckResult(boolean validKeyAndUser, boolean ownsGames, boolean profilePrivate, String message, Integer gameCount) {
+    public CredentialCheckResult(boolean validKeyAndUser, boolean ownsGames, boolean profilePrivate, String message,
+            Integer gameCount) {
         this.validKeyAndUser = validKeyAndUser;
         this.ownsGames = ownsGames;
         this.profilePrivate = profilePrivate;

@@ -1,7 +1,7 @@
 package com.SteamGame.steamLauncher;
 
-import com.SteamGame.login.controller.RegisterController;
-import com.SteamGame.login.controller.LoginController;
+import com.SteamGame.login.controller.CredentialConfigController;
+import com.SteamGame.login.controller.CredentialVerifyController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -34,7 +34,8 @@ public class SteamLauncherApplication {
     }
 
     @Bean
-    public CommandLineRunner initLoginModule(LoginController loginController, RegisterController registerController,
+    public CommandLineRunner initLoginModule(CredentialVerifyController loginController,
+            CredentialConfigController registerController,
             org.springframework.jdbc.core.JdbcTemplate jdbcTemplate, javax.sql.DataSource dataSource) {
         return args -> {
             // 确保H2的数据目录存在，以便可以创建H2文件数据库。

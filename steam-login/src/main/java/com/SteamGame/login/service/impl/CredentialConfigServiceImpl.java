@@ -1,7 +1,7 @@
 package com.SteamGame.login.service.impl;
 
-import com.SteamGame.login.dto.LoginDTO;
-import com.SteamGame.login.service.RegisterService;
+import com.SteamGame.login.dto.CredentialDTO;
+import com.SteamGame.login.service.CredentialConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,23 +17,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class RegisterServiceImpl implements RegisterService {
+public class CredentialConfigServiceImpl implements CredentialConfigService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RegisterServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(CredentialConfigServiceImpl.class);
 
     @Value("${login.config.path:auth.yaml}")
     private String configPath;
 
     @Override
-    public boolean receiveLoginInfo(LoginDTO loginDTO) {
+    public boolean receiveCredentialInfo(CredentialDTO loginDTO) {
         return false;
     }
 
     @Override
-    public boolean saveLoginInfo(LoginDTO loginDTO) {
+    public boolean saveCredentialInfo(CredentialDTO loginDTO) {
         try {
             // 设置当前时间
-            String currentTime = LocalDateTime.now()
+                String currentTime = LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             loginDTO.setTime(currentTime);
 

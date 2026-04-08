@@ -1,6 +1,5 @@
 <template>
   <CyberGlassCard>
-    
     <!-- LOGO Area -->
     <div class="flex items-center justify-center gap-2 mb-5">
       <!-- Left Logo: Steam (with CSS Mask & Animated Blue Gradient) -->
@@ -14,8 +13,9 @@
             maskSize: '100% 100%',
             WebkitMaskSize: '100% 100%',
             maskRepeat: 'no-repeat',
-            WebkitMaskRepeat: 'no-repeat'
-          }"></div>
+            WebkitMaskRepeat: 'no-repeat',
+          }"
+        ></div>
       </div>
 
       <!-- Right Logo: Game (pure white without glowing effects) -->
@@ -27,19 +27,16 @@
     <!-- Horizontal Divider: Thicker, centered fading line -->
     <div class="w-full max-w-[85%] h-[2px] bg-gradient-to-r from-transparent via-white to-transparent mb-12"></div>
 
-    <!-- Techwear Skewed Login Button matching new reference -->
-    <router-link to="/login" class="login-btn max-w-[14rem]">
-
+    <!-- Techwear Skewed Credential Verify Button -->
+    <router-link to="/credential-verify" class="credential-btn max-w-[14rem]">
       <!-- Cyan Slider Block: Now controlled via default.scss and _theme.scss -->
-      <div class="login-slider"></div>
+      <div class="credential-slider"></div>
 
       <!-- Text Content -->
-      <div class="login-text-container">
-        <span>Login</span>
+      <div class="credential-text-container">
+        <span>凭据验证</span>
       </div>
-
     </router-link>
-
   </CyberGlassCard>
 </template>
 

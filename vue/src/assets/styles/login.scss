@@ -9,7 +9,7 @@
 
 /* Login card layout within CyberGlassCard */
 
-.login-card {
+.credential-card {
   width: 100%;
   max-width: 960px;
   position: relative;
@@ -17,7 +17,7 @@
   color: #fff;
 }
 
-.login-card-flex {
+.credential-card-flex {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -85,7 +85,7 @@
 }
 
 /* 登录卡片头部样式 */
-.login-header {
+.credential-header {
   text-align: center;
   margin-bottom: 1.5rem;
 
@@ -102,7 +102,7 @@
 }
 
 /* 登录表单样式 */
-.login-form {
+.credential-form {
   /* 表单组样式 */
   .form-group {
     margin-bottom: 1.5rem;
@@ -161,29 +161,23 @@
   /* New button style inherited from default.scss */
 }
 
-/* ================================================
-   登录/注册页面专用按钮覆盖样式
-   覆盖 default.scss 中 .login-btn 的 Default.vue 风格，
-   去掉倾斜和粉色边框，改为全宽正方形按钮
-   ================================================ */
-.login-card .login-btn,
-.register-card .login-btn {
+.credential-card .credential-btn,
+.register-card .credential-btn {
   width: 100%;
-  transform: none;          /* 去掉倾斜 */
-  border-bottom: none;      /* 去掉粉色边框 */
+  transform: none; /* 去掉倾斜 */
+  border-bottom: none; /* 去掉粉色边框 */
   font-size: 1rem;
   letter-spacing: 0.08em;
 
-  .login-text-container {
+  .credential-text-container {
     right: 0;
-    width: 100%;            /* 文字容器占满全宽 */
+    width: 100%; /* 文字容器占满全宽 */
 
     span {
-      transform: none;      /* 去掉反向倾斜补偿 */
+      transform: none; /* 去掉反向倾斜补偿 */
     }
   }
 }
-
 
 /* 模态窗口相关样式 */
 /* 模态窗口遮罩层 */
@@ -332,7 +326,7 @@ button:disabled {
   z-index: 2;
 }
 
-.login-container {
+.credential-container {
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #00d5ff, #00ffd5, #00ff26);
@@ -363,7 +357,7 @@ button:disabled {
   object-fit: cover;
 }
 
-.login-card {
+.credential-card {
   position: relative;
   z-index: 2;
 }
@@ -393,34 +387,38 @@ button:disabled {
 /* 淡入淡出动画定义 */
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .fade-enter-from,
 .fade-leave-to {
-    opacity: 0;
-    transform: translateY(12px);
+  opacity: 0;
+  transform: translateY(12px);
 }
 
 .fade-enter-to,
 .fade-leave-from {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .card-fade-enter-active,
 .card-fade-leave-active {
-    transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .card-fade-enter-from,
 .card-fade-leave-to {
-    opacity: 0;
-    transform: translateY(12px);
+  opacity: 0;
+  transform: translateY(12px);
 }
 
 .card-fade-enter-to,
 .card-fade-leave-from {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
