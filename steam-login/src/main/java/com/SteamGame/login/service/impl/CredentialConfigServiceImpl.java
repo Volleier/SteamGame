@@ -1,15 +1,16 @@
 package com.SteamGame.login.service.impl;
 
-import com.SteamGame.login.dto.CredentialDTO;
 import com.SteamGame.login.service.CredentialConfigService;
+import com.SteamGame.login.dto.ApiResponse;
+import com.SteamGame.login.dto.ResultCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import com.SteamGame.login.dto.CredentialInputDTO;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import com.SteamGame.util.CryptoUtil;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,33 +31,30 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
     private String base64Key;
 
     @Override
-    public boolean receiveCredentialInfo(CredentialDTO loginDTO) {
-        return false;
-    }
-
-    @Override
-    public boolean saveCredentialInfo(CredentialDTO loginDTO) {
+    public ApiResponse<Object> saveCredentialInfo(CredentialInputDTO loginDTO) {
         try {
             // 设置当前时间
             String currentTime = LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            loginDTO.setTime(currentTime);
+            // Construct internal DTO for time handling
+            loginDTO.setApiKey(loginDTO.getApiKey());
+            String timeToSet = currentTime;
 
             // 创建YAML数据结构
             Map<String, Object> authData = new HashMap<>();
             // 去除可能的前后空白
             String steamId = loginDTO.getSteamId() == null ? null : loginDTO.getSteamId().trim();
             String apiKey = loginDTO.getApiKey() == null ? null : loginDTO.getApiKey().trim();
-            String time = loginDTO.getTime() == null ? null : loginDTO.getTime().trim();
+            String time = timeToSet;
 
             if (apiKey == null || apiKey.isEmpty()) {
                 logger.warn("尝试保存空的 apiKey，拒绝保存");
-                return false;
+                return ApiResponse.fail(ResultCode.CONFIG_INVALID, "apiKey 不能为空");
             }
 
             if (base64Key == null || base64Key.isEmpty()) {
                 logger.error("未配置加密密钥 login.encryption.base64Key，无法保存凭据（禁止明文存储）");
-                return false;
+                return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "服务器未配置加密密钥，无法保存凭据");
             }
 
             // 使用 CryptoUtil 加密 apiKey
@@ -87,13 +85,18 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
 
             logger.info("已成功保存登录信息到YAML - SteamID: {}, 保存时间: {}",
                     loginDTO.getSteamId(), currentTime);
-            return true;
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("steamId", steamId);
+            resp.put("updatedAt", time);
+
+            return ApiResponse.ok(ResultCode.REGISTER_OK, resp, "凭据配置保存成功");
         } catch (IOException e) {
             logger.error("保存登录信息到YAML文件时发生错误: {}", e.getMessage(), e);
-            return false;
+            return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "写入配置文件失败: " + e.getMessage());
         } catch (Exception e) {
             logger.error("处理登录信息时发生意外错误", e);
-            return false;
+            return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "处理凭据时发生异常");
         }
     }
 }

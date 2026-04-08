@@ -1,8 +1,6 @@
 package com.SteamGame.login.controller;
 
-import com.SteamGame.login.dto.CredentialDTO;
 import com.SteamGame.login.dto.ApiResponse;
-import com.SteamGame.login.dto.ResultCode;
 import com.SteamGame.login.service.CredentialVerifyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,53 +32,21 @@ public class CredentialVerifyController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<ApiResponse<CredentialDTO>> getCredentialsStatus() {
+    public ResponseEntity<ApiResponse<?>> getCredentialsStatus() {
         logger.info("发送凭据状态到前端");
-        ResponseEntity<CredentialDTO> resp = loginService.sendCredentialInfoToFrontend();
-        if (resp == null || resp.getBody() == null) {
-            return ResponseEntity.ok(ApiResponse.fail(ResultCode.CONFIG_NOT_FOUND, "未找到凭据配置"));
-        }
-        return ResponseEntity.ok(ApiResponse.ok(ResultCode.LOGIN_OK, resp.getBody(), "凭据状态已返回"));
+        ApiResponse<?> resp = loginService.sendCredentialInfoToFrontend();
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<Object>> verifyCredentialsUsingLocalConfig() {
         logger.info("POST /api/credentials/verify - 使用本地 YAML 配置执行凭据验证");
-        ResponseEntity<?> svcResp = loginService.validateCredential();
+        ApiResponse<?> svcResp = loginService.validateCredential();
         if (svcResp == null) {
-            return ResponseEntity.status(500).body(ApiResponse.fail(ResultCode.INTERNAL_ERROR, "验证服务内部错误"));
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.fail(com.SteamGame.login.dto.ResultCode.INTERNAL_ERROR, "验证服务内部错误"));
         }
-
-        Object body = svcResp.getBody();
-        int status = svcResp.getStatusCodeValue();
-
-        if (status >= 200 && status < 300) {
-            return ResponseEntity.ok(ApiResponse.ok(ResultCode.LOGIN_OK, body, "凭据验证成功"));
-        }
-
-        // Map specific statuses/messages to ResultCode
-        if (status == 404) {
-            return ResponseEntity.status(404).body(ApiResponse.fail(ResultCode.CONFIG_NOT_FOUND, "未找到凭据配置"));
-        }
-
-        if (status == 422) {
-            return ResponseEntity.status(422).body(ApiResponse.fail(ResultCode.DECRYPT_FAILED, "凭据解密失败"));
-        }
-
-        if (status == 401) {
-            return ResponseEntity.status(401)
-                    .body(ApiResponse.fail(ResultCode.INVALID_KEY_OR_USER, "apiKey 或 SteamID 无效"));
-        }
-
-        if (status == 502) {
-            return ResponseEntity.status(502)
-                    .body(ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam API 无法访问"));
-        }
-
-        if (status >= 400 && status < 500) {
-            return ResponseEntity.status(status).body(ApiResponse.fail(ResultCode.CONFIG_INVALID, "凭据验证失败"));
-        }
-
-        return ResponseEntity.status(status).body(ApiResponse.fail(ResultCode.INTERNAL_ERROR, "凭据验证过程中发生错误"));
+        // 控制器不做业务分支，直接转发统一 ApiResponse（客户端通过 code 判断行为）
+        return ResponseEntity.ok((ApiResponse<Object>) svcResp);
     }
 }

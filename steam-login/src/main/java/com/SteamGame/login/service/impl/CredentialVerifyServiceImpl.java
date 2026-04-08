@@ -1,7 +1,9 @@
 package com.SteamGame.login.service.impl;
 
-import com.SteamGame.login.dto.CredentialDTO;
+import com.SteamGame.login.dto.CredentialViewDTO;
 import com.SteamGame.login.dto.CredentialCheckResult;
+import com.SteamGame.login.dto.ApiResponse;
+import com.SteamGame.login.dto.ResultCode;
 import com.SteamGame.login.service.CredentialVerifyService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,13 +48,12 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
     }
 
     @Override
-    public CredentialDTO readCredentialFromYaml() {
+    public CredentialViewDTO readCredentialFromYaml() {
         try {
             Yaml yaml = new Yaml();
             InputStream inputStream = new FileInputStream(configPath);
             Map<String, Object> loginData = yaml.load(inputStream);
-
-            CredentialDTO loginDTO = new CredentialDTO();
+            CredentialViewDTO view = new CredentialViewDTO();
             if (loginData != null && loginData.containsKey("auth")) {
                 Map<String, Object> authData = (Map<String, Object>) loginData.get("auth");
                 Object steamIdObj = authData.get("steamId");
@@ -63,9 +64,10 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
                 String steamId = steamIdObj == null ? null : steamIdObj.toString().trim();
                 String time = timeObj == null ? null : timeObj.toString().trim();
 
-                loginDTO.setSteamId(steamId);
-                loginDTO.setTime(time);
+                view.setSteamId(steamId);
+                view.setUpdatedAt(time);
 
+                boolean hasKey = false;
                 if (apiKeyEncryptedObj != null && keyMetaObj instanceof Map) {
                     String cipherText = apiKeyEncryptedObj.toString();
                     Map<String, Object> keyMeta = (Map<String, Object>) keyMetaObj;
@@ -73,101 +75,94 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
                     String iv = ivObj == null ? null : ivObj.toString();
 
                     if (base64Key == null || base64Key.isEmpty()) {
-                        logger.error("未配置解密密钥 login.encryption.base64Key，无法解密存储的 apiKey");
-                        loginDTO.setApiKey(null);
+                        logger.warn("未配置解密密钥，标记为无可用凭据");
+                        hasKey = false;
                     } else if (iv == null) {
-                        logger.error("存储的 keyMeta 中缺少 iv，无法解密");
-                        loginDTO.setApiKey(null);
+                        logger.warn("存储的 keyMeta 中缺少 iv，标记为无可用凭据");
+                        hasKey = false;
                     } else {
-                        try {
-                            String plain = com.SteamGame.util.CryptoUtil.decrypt(cipherText, iv, base64Key);
-                            loginDTO.setApiKey(plain);
-                        } catch (Exception ex) {
-                            logger.error("解密存储的 apiKey 失败", ex);
-                            loginDTO.setApiKey(null);
-                        }
+                        // 不在此处解密，仅标记为存在密文
+                        hasKey = true;
                     }
                 }
+
+                view.setHasApiKey(hasKey);
             }
+            logger.info("从YAML文件读取的凭据信息 - SteamID: {}, hasApiKey: {}",
+                    view.getSteamId(), view.isHasApiKey());
 
-            String loggedKey = loginDTO.getApiKey();
-            String maskedKey = null;
-            if (loggedKey != null) {
-                String k = loggedKey.trim();
-                if (k.length() > 4) {
-                    maskedKey = "****" + k.substring(k.length() - 4);
-                } else {
-                    maskedKey = "****";
-                }
-            }
-
-            logger.info("从YAML文件读取的凭据信息 - SteamID: {}, API密钥: {}",
-                    loginDTO.getSteamId(), maskedKey);
-
-            return loginDTO;
+            return view;
         } catch (FileNotFoundException e) {
             logger.error("未找到凭据配置文件: {}", configPath, e);
-            return new CredentialDTO();
+            return new CredentialViewDTO();
         } catch (Exception e) {
             logger.error("读取凭据配置文件时发生错误", e);
-            return new CredentialDTO();
+            return new CredentialViewDTO();
         }
     }
 
     @Override
-    public ResponseEntity<CredentialDTO> sendCredentialInfoToFrontend() {
-        CredentialDTO loginDTO = readCredentialFromYaml();
-        logger.info("准备发送到前端的凭据信息 - SteamID: {}, API密钥: {}",
-                loginDTO.getSteamId(), loginDTO.getApiKey());
-        return ResponseEntity.ok(loginDTO);
+    public ApiResponse<CredentialViewDTO> sendCredentialInfoToFrontend() {
+        CredentialViewDTO view = readCredentialFromYaml();
+        logger.info("准备发送到前端的凭据信息 - SteamID: {}, hasApiKey: {}",
+                view.getSteamId(), view.isHasApiKey());
+        if (view.getSteamId() == null && !view.isHasApiKey()) {
+            return ApiResponse.fail(ResultCode.CONFIG_NOT_FOUND, "未找到凭据配置");
+        }
+        return ApiResponse.ok(ResultCode.LOGIN_OK, view, "凭据状态已返回");
     }
 
     @Override
-    public ResponseEntity<CredentialCheckResult> validateCredential() {
-        CredentialDTO loginDTO = readCredentialFromYaml();
-        String key = loginDTO.getApiKey();
-        String steamid = loginDTO.getSteamId();
+    public ApiResponse<CredentialCheckResult> validateCredential() {
+        CredentialViewDTO view = readCredentialFromYaml();
 
-        if (key == null || key.isEmpty() || steamid == null || steamid.isEmpty()) {
-            // Determine whether config missing or decryption failed
-            // If steamId absent and no auth file -> CONFIG_NOT_FOUND
-            try {
-                java.io.File f = new java.io.File(configPath);
-                if (!f.exists()) {
-                    CredentialCheckResult result = new CredentialCheckResult(false, false, false, "CONFIG_NOT_FOUND",
-                            null);
-                    return ResponseEntity.status(404).body(result);
-                }
-            } catch (Exception ex) {
-                CredentialCheckResult result = new CredentialCheckResult(false, false, false, "CONFIG_NOT_FOUND", null);
-                return ResponseEntity.status(404).body(result);
+        String steamid = view.getSteamId();
+        // Check presence
+        java.io.File f = new java.io.File(configPath);
+        if (!f.exists() || steamid == null || steamid.isEmpty() || !view.isHasApiKey()) {
+            return ApiResponse.fail(ResultCode.CONFIG_NOT_FOUND, "未找到凭据配置或配置不完整");
+        }
+
+        // 尝试解密并验证
+        try {
+            // 从文件中读取密文并解密
+            Yaml yaml = new Yaml();
+            InputStream inputStream = new FileInputStream(configPath);
+            Map<String, Object> loginData = yaml.load(inputStream);
+            Map<String, Object> authData = (Map<String, Object>) loginData.get("auth");
+            String cipherText = authData.get("apiKeyEncrypted").toString();
+            Map<String, Object> keyMeta = (Map<String, Object>) authData.get("keyMeta");
+            String iv = keyMeta.get("iv").toString();
+
+            if (base64Key == null || base64Key.isEmpty()) {
+                return ApiResponse.fail(ResultCode.DECRYPT_FAILED, "服务器未配置解密密钥");
             }
 
-            // If file exists but apiKey not available -> decryption failure
-            CredentialCheckResult result = new CredentialCheckResult(false, false, false, "DECRYPT_FAILED", null);
-            return ResponseEntity.status(422).body(result);
-        }
+            String plainKey;
+            try {
+                plainKey = com.SteamGame.util.CryptoUtil.decrypt(cipherText, iv, base64Key);
+            } catch (Exception ex) {
+                logger.error("解密失败", ex);
+                return ApiResponse.fail(ResultCode.DECRYPT_FAILED, "凭据解密失败");
+            }
 
-        try {
             Integer gameCount = null;
-            // 回退：使用 RestTemplate 直接调用 Steam Web API
-            {
+            // 调用 Steam API 验证
+            try {
                 String summariesUrl = String.format(
-                        "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", key,
+                        "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", plainKey,
                         steamid);
                 String summariesBody = restTemplate.getForObject(summariesUrl, String.class);
                 JsonNode summariesJson = objectMapper.readTree(summariesBody);
                 JsonNode players = summariesJson.path("response").path("players");
                 boolean playerExists = players.isArray() && players.size() == 1;
                 if (!playerExists) {
-                    CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                            "INVALID_KEY_OR_USER", null);
-                    return ResponseEntity.status(401).body(result);
+                    return ApiResponse.fail(ResultCode.INVALID_KEY_OR_USER, "apiKey 或 SteamID 无效");
                 }
 
                 String ownedUrl = String.format(
                         "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_played_free_games=1&format=json",
-                        key, steamid);
+                        plainKey, steamid);
                 String ownedBody = restTemplate.getForObject(ownedUrl, String.class);
                 logger.info("getOwnedGames response (via RestTemplate): {}", ownedBody);
                 JsonNode ownedJson = objectMapper.readTree(ownedBody);
@@ -179,38 +174,23 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
                 } else {
                     gameCount = 0;
                 }
+            } catch (IOException | RestClientException e) {
+                logger.error("调用 Steam API 失败", e);
+                return ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam API 无法访问");
             }
 
             boolean ownsGames = gameCount != null && gameCount > 0;
             boolean profilePrivate = (gameCount == null || gameCount == 0);
 
-            String message = "验证成功";
-            if (profilePrivate) {
-                message = "玩家存在但未返回拥有的游戏（可能为隐私或无游戏）";
-            }
+            String message = profilePrivate ? "玩家存在但未返回拥有的游戏（可能为隐私或无游戏）" : "验证成功";
 
             CredentialCheckResult result = new CredentialCheckResult(true, ownsGames, profilePrivate, message,
                     gameCount);
-            return ResponseEntity.ok(result);
+            return ApiResponse.ok(ResultCode.LOGIN_OK, result, "凭据验证成功");
 
-        } catch (IOException e) {
-            logger.error("使用 Steam API 验证 API 密钥时出错", e);
-            CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                    "STEAM_API_UNAVAILABLE: " + e.getMessage(),
-                    null);
-            return ResponseEntity.status(502).body(result);
-        } catch (RestClientException e) {
-            logger.error("调用 Steam API 时网络错误", e);
-            CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                    "STEAM_API_UNAVAILABLE: " + e.getMessage(),
-                    null);
-            return ResponseEntity.status(502).body(result);
         } catch (Exception e) {
-            logger.error("处理 Steam API 响应时出错", e);
-            CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                    "INTERNAL_ERROR: " + e.getMessage(),
-                    null);
-            return ResponseEntity.status(500).body(result);
+            logger.error("处理凭据验证时发生错误", e);
+            return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "凭据验证过程发生内部错误");
         }
     }
 }

@@ -1,10 +1,8 @@
 package com.SteamGame.login.controller;
 
-import com.SteamGame.login.dto.CredentialDTO;
 import com.SteamGame.login.dto.ApiResponse;
-import com.SteamGame.login.dto.ResultCode;
+import com.SteamGame.login.dto.CredentialInputDTO;
 import com.SteamGame.login.service.CredentialConfigService;
-import com.SteamGame.util.ValidationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,32 +37,14 @@ public class CredentialConfigController {
     }
 
     @PostMapping("/configure")
-    public ResponseEntity<ApiResponse<Object>> configureCredentials(@RequestBody CredentialDTO loginDTO) {
-        logger.info("收到凭据配置请求 - SteamID: {}", loginDTO.getSteamId());
-
-        if (loginDTO.getSteamId() == null || loginDTO.getApiKey() == null) {
-            logger.warn("凭据配置信息不完整，缺少必要字段");
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.fail(ResultCode.CONFIG_INVALID, "steamId 和 apiKey 为必填项"));
+    public ResponseEntity<ApiResponse<Object>> configureCredentials(@RequestBody CredentialInputDTO input) {
+        // 控制器只负责接收参数并转发给服务层，服务层返回统一 ApiResponse
+        ApiResponse<Object> resp = registerService.saveCredentialInfo(input);
+        if (resp != null && resp.isSuccess()) {
+            return ResponseEntity.status(201).body(resp);
         }
-
-        if (!ValidationUtil.isValidPassword(loginDTO.getApiKey())) {
-            logger.warn("凭据 apiKey 校验失败");
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.fail(ResultCode.INVALID_API_KEY_FORMAT, "apiKey 格式不符合要求（6-20 位）"));
-        }
-
-        // 在线校验已移除；保存凭据前可在部署环境中启用更严格的校验流程
-
-        boolean saved = registerService.saveCredentialInfo(loginDTO);
-
-        if (saved) {
-            logger.info("凭据配置保存成功");
-            return ResponseEntity.status(201)
-                    .body(ApiResponse.ok(ResultCode.REGISTER_OK, Map.of("steamId", loginDTO.getSteamId()), "凭据配置保存成功"));
-        } else {
-            logger.error("保存凭据信息失败");
-            return ResponseEntity.status(500).body(ApiResponse.fail(ResultCode.INTERNAL_ERROR, "凭据配置保存失败，请稍后重试"));
-        }
+        // 对失败情况，直接返回服务层的统一响应（HTTP 200），客户端通过 code 判断具体语义
+        return ResponseEntity
+                .ok(resp != null ? resp : ApiResponse.fail(com.SteamGame.login.dto.ResultCode.INTERNAL_ERROR, "未知错误"));
     }
 }

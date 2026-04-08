@@ -43,14 +43,14 @@ export default {
       try {
         console.log('发送 POST /api/credentials/verify');
         const response = await axios.post('/api/credentials/verify');
-        if (response.status === 200) {
-          const { token, user } = response.data || {};
-          token && localStorage.setItem('token', token);
-          user && localStorage.setItem('user', JSON.stringify(user));
+        const resp = response.data || {};
+        // 按统一 ApiResponse 结构处理
+        if (resp.success) {
           this.$store && this.$store.commit && this.$store.commit('setAuthenticated', true);
           this.$router.push('/dashboard');
         } else {
-          this.errorMessage = response.data?.message || `验证返回状态: ${response.status}`;
+          const code = resp.code;
+          this.errorMessage = resp.message || mapCodeToMessage(code) || `验证失败（code=${code})`;
         }
       } catch (err: any) {
         console.error('凭据验证失败:', err);
@@ -60,18 +60,8 @@ export default {
           this.errorMessage = '网络错误或服务器无响应（请检查网络或 CORS）';
         } else if (respData && (respData.message || respData.error || respData.msg)) {
           this.errorMessage = respData.message || respData.error || respData.msg;
-        } else if (status === 400) {
-          this.errorMessage = '错误的 SteamID 或 ApiKey 格式';
-        } else if (status === 404) {
-          this.errorMessage = '未找到用户或 API Key 无效';
-        } else if (status === 502) {
-          this.errorMessage = 'Steam 服务不可用，请稍后重试';
-        } else if (status === 500) {
-          this.errorMessage = '服务器内部错误，请联系管理员';
         } else {
-          const statusText = err.response?.statusText || '';
-          const snippet = typeof respData === 'string' ? respData : JSON.stringify(respData || {}).slice(0, 200);
-          this.errorMessage = `未知错误 (status ${status}${statusText ? ' ' + statusText : ''})${snippet ? ': ' + snippet : ''}`;
+          this.errorMessage = `验证失败（HTTP ${status}）`;
         }
       } finally {
         this.isLoading = false;
@@ -120,4 +110,22 @@ export default {
       localStorage.setItem('steamId', steamId);
     },
   },
+  function mapCodeToMessage(code) {
+    switch (String(code)) {
+      case 'LOGIN_OK':
+        return '凭据验证通过';
+      case 'CONFIG_NOT_FOUND':
+        return '未配置凭据，请先保存配置';
+      case 'DECRYPT_FAILED':
+        return '凭据解密失败，请检查加密密钥配置';
+      case 'INVALID_KEY_OR_USER':
+        return 'apiKey 或 SteamID 无效';
+      case 'STEAM_API_UNAVAILABLE':
+        return 'Steam 服务不可用，请稍后重试';
+      case 'PROFILE_PRIVATE_OR_NO_GAMES':
+        return '用户资料私密或无游戏';
+      default:
+        return '凭据验证失败';
+    }
+  }
 };
