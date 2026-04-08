@@ -56,10 +56,31 @@ public class CredentialVerifyController {
 
         if (status >= 200 && status < 300) {
             return ResponseEntity.ok(ApiResponse.ok(ResultCode.LOGIN_OK, body, "凭据验证成功"));
-        } else if (status >= 400 && status < 500) {
-            return ResponseEntity.status(status).body(ApiResponse.fail(ResultCode.CONFIG_INVALID, "凭据验证失败"));
-        } else {
-            return ResponseEntity.status(status).body(ApiResponse.fail(ResultCode.INTERNAL_ERROR, "凭据验证过程中发生错误"));
         }
+
+        // Map specific statuses/messages to ResultCode
+        if (status == 404) {
+            return ResponseEntity.status(404).body(ApiResponse.fail(ResultCode.CONFIG_NOT_FOUND, "未找到凭据配置"));
+        }
+
+        if (status == 422) {
+            return ResponseEntity.status(422).body(ApiResponse.fail(ResultCode.DECRYPT_FAILED, "凭据解密失败"));
+        }
+
+        if (status == 401) {
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.fail(ResultCode.INVALID_KEY_OR_USER, "apiKey 或 SteamID 无效"));
+        }
+
+        if (status == 502) {
+            return ResponseEntity.status(502)
+                    .body(ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam API 无法访问"));
+        }
+
+        if (status >= 400 && status < 500) {
+            return ResponseEntity.status(status).body(ApiResponse.fail(ResultCode.CONFIG_INVALID, "凭据验证失败"));
+        }
+
+        return ResponseEntity.status(status).body(ApiResponse.fail(ResultCode.INTERNAL_ERROR, "凭据验证过程中发生错误"));
     }
 }

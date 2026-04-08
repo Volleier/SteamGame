@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import com.SteamGame.util.CryptoUtil;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,6 +26,9 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
     @Value("${login.config.path:auth.yaml}")
     private String configPath;
 
+    @Value("${login.encryption.base64Key:}")
+    private String base64Key;
+
     @Override
     public boolean receiveCredentialInfo(CredentialDTO loginDTO) {
         return false;
@@ -33,20 +38,38 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
     public boolean saveCredentialInfo(CredentialDTO loginDTO) {
         try {
             // 设置当前时间
-                String currentTime = LocalDateTime.now()
+            String currentTime = LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             loginDTO.setTime(currentTime);
 
             // 创建YAML数据结构
             Map<String, Object> authData = new HashMap<>();
-            // 去除可能的前后空白再保存
+            // 去除可能的前后空白
             String steamId = loginDTO.getSteamId() == null ? null : loginDTO.getSteamId().trim();
             String apiKey = loginDTO.getApiKey() == null ? null : loginDTO.getApiKey().trim();
             String time = loginDTO.getTime() == null ? null : loginDTO.getTime().trim();
 
+            if (apiKey == null || apiKey.isEmpty()) {
+                logger.warn("尝试保存空的 apiKey，拒绝保存");
+                return false;
+            }
+
+            if (base64Key == null || base64Key.isEmpty()) {
+                logger.error("未配置加密密钥 login.encryption.base64Key，无法保存凭据（禁止明文存储）");
+                return false;
+            }
+
+            // 使用 CryptoUtil 加密 apiKey
+            CryptoUtil.EncryptResult enc = CryptoUtil.encrypt(apiKey, base64Key);
+
             authData.put("steamId", steamId);
-            authData.put("apiKey", apiKey);
-            authData.put("time", time);
+            authData.put("apiKeyEncrypted", enc.cipherTextBase64);
+            Map<String, Object> keyMeta = new HashMap<>();
+            keyMeta.put("algorithm", "AES/GCM/NoPadding");
+            keyMeta.put("iv", enc.ivBase64);
+            authData.put("keyMeta", keyMeta);
+            authData.put("version", 2);
+            authData.put("updatedAt", time);
 
             Map<String, Object> rootMap = new HashMap<>();
             rootMap.put("auth", authData);

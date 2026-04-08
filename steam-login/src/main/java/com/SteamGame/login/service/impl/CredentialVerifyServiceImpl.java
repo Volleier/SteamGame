@@ -29,6 +29,9 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
     @Value("${login.config.path:auth.yaml}")
     private String configPath;
 
+    @Value("${login.encryption.base64Key:}")
+    private String base64Key;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,16 +56,38 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
             if (loginData != null && loginData.containsKey("auth")) {
                 Map<String, Object> authData = (Map<String, Object>) loginData.get("auth");
                 Object steamIdObj = authData.get("steamId");
-                Object apiKeyObj = authData.get("apiKey");
-                Object timeObj = authData.get("time");
+                Object apiKeyEncryptedObj = authData.get("apiKeyEncrypted");
+                Object keyMetaObj = authData.get("keyMeta");
+                Object timeObj = authData.get("updatedAt");
 
                 String steamId = steamIdObj == null ? null : steamIdObj.toString().trim();
-                String apiKey = apiKeyObj == null ? null : apiKeyObj.toString().trim();
                 String time = timeObj == null ? null : timeObj.toString().trim();
 
                 loginDTO.setSteamId(steamId);
-                loginDTO.setApiKey(apiKey);
                 loginDTO.setTime(time);
+
+                if (apiKeyEncryptedObj != null && keyMetaObj instanceof Map) {
+                    String cipherText = apiKeyEncryptedObj.toString();
+                    Map<String, Object> keyMeta = (Map<String, Object>) keyMetaObj;
+                    Object ivObj = keyMeta.get("iv");
+                    String iv = ivObj == null ? null : ivObj.toString();
+
+                    if (base64Key == null || base64Key.isEmpty()) {
+                        logger.error("未配置解密密钥 login.encryption.base64Key，无法解密存储的 apiKey");
+                        loginDTO.setApiKey(null);
+                    } else if (iv == null) {
+                        logger.error("存储的 keyMeta 中缺少 iv，无法解密");
+                        loginDTO.setApiKey(null);
+                    } else {
+                        try {
+                            String plain = com.SteamGame.util.CryptoUtil.decrypt(cipherText, iv, base64Key);
+                            loginDTO.setApiKey(plain);
+                        } catch (Exception ex) {
+                            logger.error("解密存储的 apiKey 失败", ex);
+                            loginDTO.setApiKey(null);
+                        }
+                    }
+                }
             }
 
             String loggedKey = loginDTO.getApiKey();
@@ -104,8 +129,23 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
         String steamid = loginDTO.getSteamId();
 
         if (key == null || key.isEmpty() || steamid == null || steamid.isEmpty()) {
-            CredentialCheckResult result = new CredentialCheckResult(false, false, false, "请求中缺少steamId或apiKey", null);
-            return ResponseEntity.badRequest().body(result);
+            // Determine whether config missing or decryption failed
+            // If steamId absent and no auth file -> CONFIG_NOT_FOUND
+            try {
+                java.io.File f = new java.io.File(configPath);
+                if (!f.exists()) {
+                    CredentialCheckResult result = new CredentialCheckResult(false, false, false, "CONFIG_NOT_FOUND",
+                            null);
+                    return ResponseEntity.status(404).body(result);
+                }
+            } catch (Exception ex) {
+                CredentialCheckResult result = new CredentialCheckResult(false, false, false, "CONFIG_NOT_FOUND", null);
+                return ResponseEntity.status(404).body(result);
+            }
+
+            // If file exists but apiKey not available -> decryption failure
+            CredentialCheckResult result = new CredentialCheckResult(false, false, false, "DECRYPT_FAILED", null);
+            return ResponseEntity.status(422).body(result);
         }
 
         try {
@@ -121,8 +161,8 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
                 boolean playerExists = players.isArray() && players.size() == 1;
                 if (!playerExists) {
                     CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                            "Invalid steamId or apiKey (player not found)", null);
-                    return ResponseEntity.status(404).body(result);
+                            "INVALID_KEY_OR_USER", null);
+                    return ResponseEntity.status(401).body(result);
                 }
 
                 String ownedUrl = String.format(
@@ -156,19 +196,19 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
         } catch (IOException e) {
             logger.error("使用 Steam API 验证 API 密钥时出错", e);
             CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                    "验证 API 密钥时出错: " + e.getMessage(),
+                    "STEAM_API_UNAVAILABLE: " + e.getMessage(),
                     null);
             return ResponseEntity.status(502).body(result);
         } catch (RestClientException e) {
             logger.error("调用 Steam API 时网络错误", e);
             CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                    "调用 Steam API 时网络错误: " + e.getMessage(),
+                    "STEAM_API_UNAVAILABLE: " + e.getMessage(),
                     null);
             return ResponseEntity.status(502).body(result);
         } catch (Exception e) {
             logger.error("处理 Steam API 响应时出错", e);
             CredentialCheckResult result = new CredentialCheckResult(false, false, false,
-                    "解析 Steam API 响应时出错: " + e.getMessage(),
+                    "INTERNAL_ERROR: " + e.getMessage(),
                     null);
             return ResponseEntity.status(500).body(result);
         }
