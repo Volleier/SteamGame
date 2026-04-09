@@ -16,6 +16,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 public class YamlCredentialRepository implements CredentialRepository {
     private final String filePath;
@@ -171,7 +174,47 @@ public class YamlCredentialRepository implements CredentialRepository {
 
     @Override
     public List<CredentialRecord> findDueForRevalidation(long nowEpochMillis) {
-        // 简化实现：返回空列表（后续由 scheduler 实现更复杂逻辑）
-        return new ArrayList<>();
+        List<CredentialRecord> due = new ArrayList<>();
+        try {
+            File f = new File(filePath);
+            if (!f.exists())
+                return due;
+            InputStream is = Files.newInputStream(f.toPath());
+            Yaml yaml = new Yaml();
+            Object loaded = yaml.load(is);
+            is.close();
+            if (!(loaded instanceof Map))
+                return due;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> root = (Map<String, Object>) loaded;
+            Object auth = root.get("auth");
+            if (auth instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> authMap = (Map<String, Object>) auth;
+                Object usersObj = authMap.get("users");
+                if (usersObj instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> users = (List<Map<String, Object>>) usersObj;
+                    DateTimeFormatter tf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    for (Map<String, Object> u : users) {
+                        CredentialRecord r = mapToRecord((String) u.get("userId"), u);
+                        if (r != null && r.getValidation() != null && r.getValidation().getNextRevalidateAt() != null) {
+                            try {
+                                LocalDateTime next = LocalDateTime.parse(r.getValidation().getNextRevalidateAt(), tf);
+                                long epoch = next.toInstant(ZoneOffset.UTC).toEpochMilli();
+                                if (epoch <= nowEpochMillis) {
+                                    due.add(r);
+                                }
+                            } catch (Exception ex) {
+                                // ignore parse errors and continue
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("读取 auth.yaml 失败", e);
+        }
+        return due;
     }
 }

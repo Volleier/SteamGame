@@ -16,6 +16,16 @@ public class CredentialProperties {
      */
     private long failRetryHours = 1;
 
+    /**
+     * 每次调度最多处理的记录数
+     */
+    private int maxPerRun = 50;
+
+    /**
+     * 调度器重入保护标志（保留，启用 by default）
+     */
+    private boolean schedulerEnabled = true;
+
     public long getRevalidateHours() {
         return revalidateHours;
     }
@@ -30,5 +40,21 @@ public class CredentialProperties {
 
     public void setFailRetryHours(long failRetryHours) {
         this.failRetryHours = failRetryHours;
+    }
+
+    public int getMaxPerRun() {
+        return maxPerRun;
+    }
+
+    public void setMaxPerRun(int maxPerRun) {
+        this.maxPerRun = maxPerRun;
+    }
+
+    public boolean isSchedulerEnabled() {
+        return schedulerEnabled;
+    }
+
+    public void setSchedulerEnabled(boolean schedulerEnabled) {
+        this.schedulerEnabled = schedulerEnabled;
     }
 }
