@@ -1,7 +1,8 @@
 package com.SteamGame.constant;
 
 public final class SecurityConstants {
-    private SecurityConstants() {}
+    private SecurityConstants() {
+    }
 
     // 加密相关
     public static final String CIPHER_ALGORITHM = "AES";
@@ -22,10 +23,4 @@ public final class SecurityConstants {
     // 统一错误码键名（后端返回中使用）
     public static final String RESPONSE_CODE_KEY = "code";
 }
-// 额外常量：记住我相关
-// 注意：如需可在此处扩展更多安全配置常量
-public final class SecurityConstantsExtras {
-    private SecurityConstantsExtras() {}
-    public static final long REMEMBER_ME_EXPIRATION_TIME = 30L * 24 * 60 * 60 * 1000;
-    public static final String REMEMBER_ME_KEY = "rememberMeKey";
-}
+// 额外安全常量请置于单独文件 SecurityConstantsExtras.java
