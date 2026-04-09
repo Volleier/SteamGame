@@ -7,7 +7,7 @@
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.04);
 }
 
-/* Login card layout within CyberGlassCard */
+/* 凭据验证卡片布局（继承并替代原 Login 样式注释） */
 
 .credential-card {
   width: 100%;
@@ -84,7 +84,7 @@
   padding: 2rem 1.5rem;
 }
 
-/* 登录卡片头部样式 */
+/* 凭据验证卡片头部样式 */
 .credential-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -101,7 +101,7 @@
   }
 }
 
-/* 登录表单样式 */
+/* 凭据验证表单样式 */
 .credential-form {
   /* 表单组样式 */
   .form-group {

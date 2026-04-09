@@ -49,13 +49,13 @@ public class SteamLauncherApplication {
             } catch (Exception e) {
                 logger.warn("在启动时尝试创建 data 目录失败: {}", e.getMessage());
             }
-            logger.info("正在初始化登录模块...");
-            loginController.login();
-            logger.info("登录模块初始化完成");
+            logger.info("正在初始化凭据验证模块...");
+            loginController.init();
+            logger.info("凭据验证模块初始化完成");
 
-            logger.info("正在初始化注册模块...");
-            registerController.register();
-            logger.info("注册模块初始化完成");
+            logger.info("正在初始化凭据配置模块...");
+            registerController.init();
+            logger.info("凭据配置模块初始化完成");
 
             // 打印实际 DataSource 信息以便调试
             try {

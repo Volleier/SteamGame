@@ -32,7 +32,7 @@ export default {
   },
   methods: {
     logout() {
-      // 处理退出登录逻辑
+      // 处理退出凭据验证逻辑
       this.$store.dispatch('logout');
       this.$router.push('/credential-verify');
     },

@@ -26,11 +26,6 @@ public class CredentialVerifyController {
         // 应用初始化时的凭据相关初始化逻辑，可以调用 service
     }
 
-    // 保留兼容方法，供启动时调用
-    public void login() {
-        init();
-    }
-
     @GetMapping("/status")
     public ResponseEntity<ApiResponse<?>> getCredentialsStatus() {
         logger.info("发送凭据状态到前端");
