@@ -23,13 +23,16 @@ public class CredentialConfigController {
 
     private static final Logger logger = LoggerFactory.getLogger(CredentialConfigController.class);
 
-    private final CredentialConfigService credentialConfigService;
+    private final com.SteamGame.login.service.CredentialConfigService credentialConfigService;
+    private final com.SteamGame.login.service.CredentialService credentialService;
 
     // SteamApiService 可选，暂不直接依赖；若需要在线校验可通过 RestTemplate 实现
 
     @Autowired
-    public CredentialConfigController(CredentialConfigService credentialConfigService) {
+    public CredentialConfigController(CredentialConfigService credentialConfigService,
+            com.SteamGame.login.service.CredentialService credentialService) {
         this.credentialConfigService = credentialConfigService;
+        this.credentialService = credentialService;
     }
 
     public void init() {
@@ -38,12 +41,11 @@ public class CredentialConfigController {
 
     @PostMapping("/configure")
     public ResponseEntity<ApiResponse<Object>> configureCredentials(@RequestBody CredentialInputDTO input) {
-        // 控制器只负责接收参数并转发给服务层，服务层返回统一 ApiResponse
-        ApiResponse<Object> resp = credentialConfigService.saveCredentialInfo(input);
+        // 控制器只负责接收参数并委托到编排服务进行保存并立即校验
+        ApiResponse<Object> resp = credentialService.registerAndValidate(input);
         if (resp != null && resp.isSuccess()) {
             return ResponseEntity.status(201).body(resp);
         }
-        // 对失败情况，直接返回服务层的统一响应（HTTP 200），客户端通过 code 判断具体语义
         return ResponseEntity
                 .ok(resp != null ? resp : ApiResponse.fail(com.SteamGame.login.dto.ResultCode.INTERNAL_ERROR, "未知错误"));
     }

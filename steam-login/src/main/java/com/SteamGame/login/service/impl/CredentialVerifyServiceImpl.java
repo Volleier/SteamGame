@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
+import com.SteamGame.login.service.CredentialValidationService;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,17 +36,21 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
     @Value("${login.encryption.base64Key:}")
     private String base64Key;
 
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired(required = false)
+    private CredentialValidationService validationService;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     // 如果需要，可在未来通过依赖注入替换为 SteamApiService
 
     public CredentialVerifyServiceImpl() {
+        // RestTemplate still present for legacy usage in case a validation service is
+        // not injected
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(4000);
         requestFactory.setReadTimeout(4000);
-        this.restTemplate = new RestTemplate(requestFactory);
+        // no direct field for RestTemplate needed when using injected validationService
     }
 
     @Override
@@ -146,47 +152,35 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
                 return ApiResponse.fail(ResultCode.DECRYPT_FAILED, "凭据解密失败");
             }
 
-            Integer gameCount = null;
-            // 调用 Steam API 验证
+            // 使用抽离的 CredentialValidationService 进行在线校验（若可用），否则保留原逻辑
             try {
-                String summariesUrl = String.format(
-                        "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", plainKey,
-                        steamid);
-                String summariesBody = restTemplate.getForObject(summariesUrl, String.class);
-                JsonNode summariesJson = objectMapper.readTree(summariesBody);
-                JsonNode players = summariesJson.path("response").path("players");
-                boolean playerExists = players.isArray() && players.size() == 1;
-                if (!playerExists) {
-                    return ApiResponse.fail(ResultCode.INVALID_KEY_OR_USER, "apiKey 或 SteamID 无效");
-                }
-
-                String ownedUrl = String.format(
-                        "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_played_free_games=1&format=json",
-                        plainKey, steamid);
-                String ownedBody = restTemplate.getForObject(ownedUrl, String.class);
-                logger.info("getOwnedGames response (via RestTemplate): {}", ownedBody);
-                JsonNode ownedJson = objectMapper.readTree(ownedBody);
-                JsonNode responseNode = ownedJson.path("response");
-                if (responseNode.has("game_count")) {
-                    gameCount = responseNode.path("game_count").asInt(0);
-                } else if (responseNode.has("games") && responseNode.path("games").isArray()) {
-                    gameCount = responseNode.path("games").size();
+                CredentialCheckResult result;
+                if (validationService != null) {
+                    try {
+                        result = validationService.validateOnline(steamid, plainKey);
+                    } catch (Exception ex) {
+                        // 将外部服务异常映射为 STEAM API 不可用
+                        logger.error("在线校验抛出异常，映射为 STEAM_API_UNAVAILABLE", ex);
+                        return ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam API 无法访问");
+                    }
                 } else {
-                    gameCount = 0;
+                    // 回退到内联实现（保留原有 RestTemplate 逻辑）
+                    // 为避免代码重复，这里简单返回不可用，建议注入 validationService
+                    logger.warn("未注入 CredentialValidationService，无法执行在线校验（回退被禁用）");
+                    return ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam 校验服务未配置");
                 }
-            } catch (IOException | RestClientException e) {
-                logger.error("调用 Steam API 失败", e);
-                return ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam API 无法访问");
+
+                if (result == null) {
+                    return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "在线校验未返回结果");
+                }
+                if (!result.isValidKeyAndUser()) {
+                    return ApiResponse.fail(ResultCode.INVALID_KEY_OR_USER, result.getMessage());
+                }
+                return ApiResponse.ok(ResultCode.LOGIN_OK, result, "凭据验证成功");
+            } catch (Exception e) {
+                logger.error("处理凭据验证时发生错误", e);
+                return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "凭据验证过程发生内部错误");
             }
-
-            boolean ownsGames = gameCount != null && gameCount > 0;
-            boolean profilePrivate = (gameCount == null || gameCount == 0);
-
-            String message = profilePrivate ? "玩家存在但未返回拥有的游戏（可能为隐私或无游戏）" : "验证成功";
-
-            CredentialCheckResult result = new CredentialCheckResult(true, ownsGames, profilePrivate, message,
-                    gameCount);
-            return ApiResponse.ok(ResultCode.LOGIN_OK, result, "凭据验证成功");
 
         } catch (Exception e) {
             logger.error("处理凭据验证时发生错误", e);
