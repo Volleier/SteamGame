@@ -31,6 +31,12 @@ public class CredentialServiceImpl implements CredentialService {
     private CredentialVerifyService verifyService;
 
     @Autowired(required = false)
+    private com.SteamGame.login.service.CredentialCachePolicy cachePolicy;
+
+    @Autowired(required = false)
+    private com.SteamGame.login.config.CredentialProperties credentialProperties;
+
+    @Autowired(required = false)
     private CredentialRepository credentialRepository;
 
     private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -58,20 +64,18 @@ public class CredentialServiceImpl implements CredentialService {
                 r.setApiKey(null);
 
                 CredentialValidationMeta meta = new CredentialValidationMeta();
-                if (validateResp != null && validateResp.isSuccess()) {
-                    meta.setStatus("VALID");
-                    meta.setLastValidatedAt(LocalDateTime.now(ZoneOffset.UTC).format(TF));
-                    // 简单策略：6 小时后重校验
-                    meta.setNextRevalidateAt(LocalDateTime.now(ZoneOffset.UTC).plusHours(6).format(TF));
-                    meta.setFailCount(0);
-                    meta.setLastErrorCode("");
+                boolean success = validateResp != null && validateResp.isSuccess();
+                meta.setStatus(success ? "VALID" : "INVALID");
+                meta.setLastValidatedAt(LocalDateTime.now(ZoneOffset.UTC).format(TF));
+                if (cachePolicy != null) {
+                    meta.setNextRevalidateAt(cachePolicy.computeNextRevalidateAt(success));
                 } else {
-                    meta.setStatus("INVALID");
-                    meta.setLastValidatedAt(LocalDateTime.now(ZoneOffset.UTC).format(TF));
-                    meta.setNextRevalidateAt(LocalDateTime.now(ZoneOffset.UTC).plusHours(1).format(TF));
-                    meta.setFailCount(1);
-                    meta.setLastErrorCode(validateResp == null ? "UNKNOWN" : String.valueOf(validateResp.getCode()));
+                    // fallback defaults
+                    meta.setNextRevalidateAt(LocalDateTime.now(ZoneOffset.UTC).plusHours(success ? 6 : 1).format(TF));
                 }
+                meta.setFailCount(success ? 0 : 1);
+                meta.setLastErrorCode(
+                        success ? "" : (validateResp == null ? "UNKNOWN" : String.valueOf(validateResp.getCode())));
                 r.setValidation(meta);
                 try {
                     credentialRepository.upsert(r);
@@ -100,19 +104,24 @@ public class CredentialServiceImpl implements CredentialService {
                 if (or.isPresent()) {
                     com.SteamGame.login.model.CredentialRecord r = or.get();
                     CredentialValidationMeta m = r.getValidation();
-                    // 若有元信息且 nextRevalidateAt 晚于当前时间，则直接返回通过
-                    if (m != null && m.getNextRevalidateAt() != null) {
-                        try {
-                            java.time.LocalDateTime next = java.time.LocalDateTime.parse(m.getNextRevalidateAt(), TF);
-                            if (next.isAfter(java.time.LocalDateTime.now(ZoneOffset.UTC))) {
-                                // 返回一个简单成功结果（无需再次访问 Steam）
-                                CredentialCheckResult simple = new CredentialCheckResult(true, true, false,
-                                        "缓存校验通过", 0);
-                                return ApiResponse.ok(ResultCode.LOGIN_OK, simple, "缓存命中：凭据有效");
+                    // 使用 cachePolicy 判断是否新鲜
+                    if (m != null) {
+                        boolean fresh = false;
+                        if (cachePolicy != null) {
+                            fresh = cachePolicy.isValidationFresh(m);
+                        } else {
+                            try {
+                                java.time.LocalDateTime next = java.time.LocalDateTime.parse(m.getNextRevalidateAt(),
+                                        TF);
+                                fresh = next.isAfter(java.time.LocalDateTime.now(ZoneOffset.UTC));
+                            } catch (Exception ex) {
+                                fresh = false;
                             }
-                        } catch (Exception ex) {
-                            // 解析失败，继续触发在线校验
-                            logger.debug("解析 nextRevalidateAt 失败，将触发在线校验: {}", ex.getMessage());
+                        }
+                        if (fresh) {
+                            CredentialCheckResult simple = new CredentialCheckResult(true, true, false,
+                                    "缓存校验通过", 0);
+                            return ApiResponse.ok(ResultCode.LOGIN_OK, simple, "缓存命中：凭据有效");
                         }
                     }
                 }
