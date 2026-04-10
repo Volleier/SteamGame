@@ -42,8 +42,12 @@ public class CredentialServiceImpl implements CredentialService {
     private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public ApiResponse<Object> registerAndValidate(CredentialInputDTO dto) {
+    public ApiResponse<Object> registerAndValidate(com.SteamGame.login.dto.RegisterCredentialRequest req) {
         // 保存到配置（delegation to existing implementation）
+        // map request to existing CredentialInputDTO for backward-compatible save
+        CredentialInputDTO dto = new CredentialInputDTO();
+        dto.setSteamId(req.getSteamId());
+        dto.setApiKey(req.getApiKey());
         ApiResponse<Object> saveResp = configService.saveCredentialInfo(dto);
         if (saveResp == null || !saveResp.isSuccess()) {
             logger.warn("保存凭据失败，直接返回失败响应");
@@ -57,8 +61,7 @@ public class CredentialServiceImpl implements CredentialService {
         try {
             if (credentialRepository != null) {
                 CredentialRecord r = new CredentialRecord();
-                // current DTO does not carry userId in this iteration; use default placeholder
-                r.setUserId("default");
+                r.setUserId(req.getUserId() == null ? "default" : req.getUserId());
                 r.setSteamId(dto.getSteamId());
                 // 源凭据已被 configService 加密存储，repository 在现阶段保存占位或明文视实现而定
                 r.setApiKey(null);
@@ -161,5 +164,29 @@ public class CredentialServiceImpl implements CredentialService {
             return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "在线校验未返回结果");
         }
         return validateResp;
+    }
+
+    @Override
+    public ApiResponse<com.SteamGame.login.dto.CredentialViewDTO> getCredentialStatus(String userId) {
+        // 尝试通过 repository 获取（优先），回退到基于单文件的读取
+        try {
+            if (credentialRepository != null) {
+                java.util.Optional<com.SteamGame.login.model.CredentialRecord> or = credentialRepository
+                        .findByUserId(userId);
+                if (or.isPresent()) {
+                    com.SteamGame.login.model.CredentialRecord r = or.get();
+                    com.SteamGame.login.dto.CredentialViewDTO view = new com.SteamGame.login.dto.CredentialViewDTO();
+                    view.setSteamId(r.getSteamId());
+                    view.setUpdatedAt(r.getValidation() == null ? null : r.getValidation().getLastValidatedAt());
+                    view.setHasApiKey(r.getApiKey() != null);
+                    return ApiResponse.ok(ResultCode.LOGIN_OK, view, "凭据状态返回");
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("从 repository 获取凭据状态时失败，回退到文件读取: {}", e.getMessage());
+        }
+        // 回退到原有单文件读取接口
+        ApiResponse<com.SteamGame.login.dto.CredentialViewDTO> resp = verifyService.sendCredentialInfoToFrontend();
+        return resp;
     }
 }

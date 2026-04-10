@@ -109,23 +109,24 @@ export default {
       this.Steam_Id = steamId;
       localStorage.setItem('steamId', steamId);
     },
+
+    mapCodeToMessage(code) {
+      switch (String(code)) {
+        case 'LOGIN_OK':
+          return '凭据验证通过';
+        case 'CONFIG_NOT_FOUND':
+          return '未配置凭据，请先保存配置';
+        case 'DECRYPT_FAILED':
+          return '凭据解密失败，请检查加密密钥配置';
+        case 'INVALID_KEY_OR_USER':
+          return 'apiKey 或 SteamID 无效';
+        case 'STEAM_API_UNAVAILABLE':
+          return 'Steam 服务不可用，请稍后重试';
+        case 'PROFILE_PRIVATE_OR_NO_GAMES':
+          return '用户资料私密或无游戏';
+        default:
+          return '凭据验证失败';
+      }
+    },
   },
-  function mapCodeToMessage(code) {
-    switch (String(code)) {
-      case 'LOGIN_OK':
-        return '凭据验证通过';
-      case 'CONFIG_NOT_FOUND':
-        return '未配置凭据，请先保存配置';
-      case 'DECRYPT_FAILED':
-        return '凭据解密失败，请检查加密密钥配置';
-      case 'INVALID_KEY_OR_USER':
-        return 'apiKey 或 SteamID 无效';
-      case 'STEAM_API_UNAVAILABLE':
-        return 'Steam 服务不可用，请稍后重试';
-      case 'PROFILE_PRIVATE_OR_NO_GAMES':
-        return '用户资料私密或无游戏';
-      default:
-        return '凭据验证失败';
-    }
-  }
 };

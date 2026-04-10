@@ -3,13 +3,17 @@
 echo ==== Build backend: Maven ====
 call steam-api\mvnw.cmd -f pom.xml -DskipTests package
 if %ERRORLEVEL% NEQ 0 (
-  echo 后端构建失败，停止。
+  echo Build Failed!
   pause
   exit /b 1
 )
 
+echo Stopping any running steam-launcher java processes (if present)...
+powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -and $_.CommandLine -match 'steam-launcher-0.0.1.jar' } | ForEach-Object { Write-Host 'Stopping PID:' $_.ProcessId; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+
 echo ==== Start Backend ====
-start "SteamLauncher" cmd /k "java -jar steam-launcher\target\steam-launcher-0.0.1.jar"
+echo Starting SteamLauncher in UTF-8 console
+start "SteamLauncher" cmd /k "chcp 65001>nul & java -Dfile.encoding=UTF-8 -jar steam-launcher\target\steam-launcher-0.0.1.jar"
 
 echo ==== Start Frontend ====
 start "Vite" cmd /k "cd vue && npm run dev"
