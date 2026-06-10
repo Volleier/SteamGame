@@ -13,5 +13,5 @@ import TheHeader from '@/components/TheHeader.vue';
 </script>
 
 <style lang="scss">
-@import '@/assets/styles/global.scss';
+@use '@/assets/styles/global' as *;
 </style>

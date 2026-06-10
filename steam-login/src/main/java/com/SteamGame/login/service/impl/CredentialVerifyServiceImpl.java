@@ -41,9 +41,6 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
     @Autowired(required = false)
     private CredentialValidationService validationService;
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    // 如果需要，可在未来通过依赖注入替换为 SteamApiService
-
     public CredentialVerifyServiceImpl() {
         // RestTemplate still present for legacy usage in case a validation service is
         // not injected
@@ -99,7 +96,7 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
 
             return view;
         } catch (FileNotFoundException e) {
-            logger.error("未找到凭据配置文件: {}", configPath, e);
+            logger.warn("未找到凭据配置文件: {}（首次启动或尚未配置凭据）", configPath);
             return new CredentialViewDTO();
         } catch (Exception e) {
             logger.error("读取凭据配置文件时发生错误", e);

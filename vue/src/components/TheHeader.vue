@@ -33,5 +33,5 @@
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/header.scss';
+@use '@/assets/styles/header' as *;
 </style>

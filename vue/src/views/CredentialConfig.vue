@@ -70,6 +70,6 @@ const { configSteamId, configApiKey, rememberMe, isConfigLoading, configError, c
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/default.scss';
+@use '@/assets/styles/default' as *;
 @import url('@/assets/styles/register.scss');
 </style>

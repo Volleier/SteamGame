@@ -64,6 +64,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/default.scss';
+@use '@/assets/styles/default' as *;
 @import url('@/assets/styles/login.scss');
 </style>

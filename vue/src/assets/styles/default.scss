@@ -1,4 +1,4 @@
-@import './theme';
+@use './theme' as *;
 
 .credential-btn {
   position: relative;
