@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import axios, { AxiosResponse } from 'axios';
+import http from '@/api/http';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 
@@ -28,7 +28,7 @@ export function useCredentialConfig() {
       if (import.meta.env.DEV) {
         console.log('准备发送凭据配置请求:', payload);
       }
-      const response: AxiosResponse<any> = await axios.post('/api/credentials/configure', payload);
+      const response = await http.post('/credentials/configure', payload);
       if (import.meta.env.DEV) {
         console.log('配置保存并验证响应:', response.data);
       }

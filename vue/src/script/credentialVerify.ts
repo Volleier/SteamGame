@@ -1,4 +1,4 @@
-import axios from 'axios';
+import http from '@/api/http';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -28,7 +28,7 @@ export default defineComponent({
   methods: {
     async loadCredentialStatus() {
       try {
-        const response = await axios.get('/api/credentials/status');
+        const response = await http.get('/credentials/status');
         const data = response.data || {};
         this.Steam_Id = data.steamId || data.steam_id || data.SteamId || '';
         // 不在前端保留明文 apiKey
@@ -45,7 +45,7 @@ export default defineComponent({
         if (import.meta.env.DEV) {
           console.log('发送 POST /api/credentials/verify');
         }
-        const response = await axios.post('/api/credentials/verify');
+        const response = await http.post('/credentials/verify');
         const resp = response.data || {};
         // 按统一 ApiResponse 结构处理
         if (resp.success) {
@@ -81,7 +81,7 @@ export default defineComponent({
         this.configError = '';
         this.isConfigLoading = true;
         const payload = { steamId: this.configSteamId, apiKey: this.configApiKey };
-        const response = await axios.post('/api/credentials/configure', payload);
+        const response = await http.post('/credentials/configure', payload);
         if (response.status === 200) {
           this.closeConfigModal();
           this.showConfigSuccess = true;

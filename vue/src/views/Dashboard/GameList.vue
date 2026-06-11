@@ -92,6 +92,8 @@
 </template>
 
 <script>
+import http from '@/api/http';
+
 export default {
   name: 'GameList',
   data() {
@@ -141,12 +143,10 @@ export default {
       this.isLoading = true;
       this.errorMessage = '';
 
-      fetch('/api/ownedgames/list')
+      http.get('/ownedgames/list')
         .then((res) => {
-          if (!res.ok) {
-            throw new Error(`服务器返回错误状态 ${res.status}`);
-          }
-          return res.json();
+          const data = res.data || res;
+          return data;
         })
         .then((data) => {
           this.games = data.map((g) => ({

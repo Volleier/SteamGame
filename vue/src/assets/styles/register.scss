@@ -1,11 +1,11 @@
-/* ==============================================
-  register.scss — 凭据配置页面专用样式（原注册页面样式）
-  布局由 _credential-panel.scss 统一提供
-  ============================================== */
+// ==============================================
+//  register.scss — 凭据配置页面专用样式
+//  共享样式见 _credential-panel.scss
+// ==============================================
 
 @use '_credential-panel' as *;
 
-/* 凭据配置标题（对齐 .credential-header） */
+/* 凭据配置标题 */
 .reg-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -17,18 +17,18 @@
   }
 }
 
-/* 表单（对齐 .login-form 的整体结构） */
+/* 表单 */
 .reg-form {
   display: flex;
   flex-direction: column;
 }
 
-/* 表单组（对齐 .form-group） */
+/* 表单组 */
 .reg-form-group {
   margin-bottom: 1.5rem;
 }
 
-/* 表单标签（对齐 .form-label） */
+/* 表单标签 */
 .reg-label {
   display: block;
   margin-bottom: 0.5rem;
@@ -36,7 +36,7 @@
   color: #374151;
 }
 
-/* 表单输入框（对齐 .form-input） */
+/* 表单输入框 */
 .reg-input {
   width: 100%;
   padding: 0.75rem;
@@ -68,25 +68,15 @@
   width: 100%;
 }
 
-/* 覆盖 default.scss 中 .login-btn 的 Default.vue 风格，
-   去掉倾斜和粉色边框，改为全宽正方形 */
+/* 面板内按钮 — 覆盖 _credential-panel 的部分属性 */
 .credential-panel .credential-btn {
   width: 100%;
   transform: none;
-  border-bottom: none;
   font-size: 1rem;
   letter-spacing: 0.08em;
-  .credential-text-container {
-    right: 0;
-    width: 100%;
-
-    span {
-      transform: none;
-    }
-  }
 }
 
-/* 加载 Spinner */
+/* 加载 Spinner（黑色主题，用于白色按钮内） */
 .reg-spinner {
   display: inline-block;
   width: 16px;
@@ -105,13 +95,8 @@
   }
 }
 
-/* 按钮禁用 */
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
+/* ==== 错误模态 ==== */
 
-/* ——— 错误模态 ——— */
 .reg-modal-overlay {
   position: fixed;
   inset: 0;
@@ -157,24 +142,4 @@ button:disabled {
   &:hover {
     background-color: #2563eb;
   }
-}
-
-/* ——— 入场动画（对齐 login.scss 的 card-fade） ——— */
-.card-fade-enter-active,
-.card-fade-leave-active {
-  transition:
-    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.card-fade-enter-from,
-.card-fade-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-.card-fade-enter-to,
-.card-fade-leave-from {
-  opacity: 1;
-  transform: translateY(0);
 }

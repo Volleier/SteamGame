@@ -123,3 +123,30 @@
 .animate-gradient-flow {
   animation: gradient-flow 3s ease infinite;
 }
+
+// ======= 无障碍：尊重用户 "减少动效" 系统设置 =======
+@media (prefers-reduced-motion: reduce) {
+  .scroll-up,
+  .scroll-down {
+    animation: none !important;
+  }
+
+  .animate-gradient-flow {
+    animation: none !important;
+  }
+
+  .moving-pixels {
+    filter: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  // 停止所有关键帧动画
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

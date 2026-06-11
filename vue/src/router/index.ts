@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Default from '@/views/Default.vue';
-// 简单路由守卫：未配置凭据时禁止进入 /dashboard
+import store from '@/store';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -37,9 +37,19 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.path === '/dashboard') {
-    const hasSteamId = !!localStorage.getItem('steamId');
-    if (!hasSteamId) {
-      // 未配置凭据，重定向到凭据验证页引导用户先配置/验证
+    // 优先检查 store 中的认证状态，其次检查 localStorage
+    const storeAuthenticated = store.state.authenticated;
+    const storeSteamId = store.state.steamId;
+    const localSteamId = localStorage.getItem('steamId');
+    const hasCredential = storeAuthenticated || !!storeSteamId || !!localSteamId;
+
+    // 同步 localStorage → store（单向补偿）
+    if (!storeSteamId && localSteamId) {
+      store.commit('setSteamId', localSteamId);
+    }
+
+    if (!hasCredential) {
+      // 未配置凭据，重定向到凭据验证页
       return next({ path: '/credential-verify' });
     }
   }
