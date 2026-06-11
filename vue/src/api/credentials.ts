@@ -1,11 +1,18 @@
 /**
- * 凭据相关 API 调用
+ * 凭据相关 API 调用 — 前后端契约对齐
  */
 
 import http from './http';
 
+// ===== 契约类型（对齐 DevList §6） =====
+
 export interface CredentialStatus {
   steamId: string;
+  hasApiKey: boolean;
+  persisted: boolean;
+  validationStatus?: 'VALID' | 'INVALID' | 'UNKNOWN';
+  updatedAt?: string;
+  lastValidatedAt?: string;
 }
 
 export interface CredentialConfigPayload {
@@ -14,19 +21,37 @@ export interface CredentialConfigPayload {
   rememberMe: boolean;
 }
 
+export interface CredentialLoginResult {
+  steamId: string;
+  persisted: boolean;
+  validKeyAndUser: boolean;
+  ownsGames: boolean;
+  profilePrivate: boolean;
+  gameCount: number;
+  validatedAt?: string;
+}
+
 export interface CredentialVerifyResult {
   success: boolean;
   code?: string;
   message?: string;
-  data?: unknown;
+  data?: CredentialLoginResult | null;
 }
+
+// ===== API 函数 =====
 
 /** 获取当前凭据状态 */
 export async function getCredentialStatus(): Promise<CredentialStatus> {
   const response = await http.get('/credentials/status');
-  const data = response.data || {};
+  const body = response.data || {};          // ApiResponse wrapper
+  const data = body.data || {};              // actual payload
   return {
-    steamId: data.steamId || data.steam_id || data.SteamId || '',
+    steamId: data.steamId || data.steam_id || '',
+    hasApiKey: !!data.hasApiKey,
+    persisted: !!data.persisted,
+    validationStatus: data.validationStatus,
+    updatedAt: data.updatedAt,
+    lastValidatedAt: data.lastValidatedAt,
   };
 }
 

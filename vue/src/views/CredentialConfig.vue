@@ -49,10 +49,10 @@
                   </div>
                 </button>
 
-                <button v-else type="button" class="credential-btn" @click="handleReturnToVerify">
+                <button v-else type="button" class="credential-btn" @click="handleReturnToDashboard">
                   <div class="credential-slider"></div>
                   <div class="credential-text-container">
-                    <span>返回凭据验证</span>
+                    <span>进入 Dashboard</span>
                   </div>
                 </button>
               </div>
@@ -80,7 +80,7 @@ import { ref } from 'vue';
 import CyberGlassCard from '@/components/CyberGlassCard.vue';
 import { useCredentialConfig } from '@/composables/useCredentialConfig';
 
-const { configSteamId, configApiKey, rememberMe, isConfigLoading, configError, configured, handleConfigure, handleReturnToVerify, clearConfigError } = useCredentialConfig();
+const { configSteamId, configApiKey, rememberMe, isConfigLoading, configError, configured, handleConfigure, handleReturnToDashboard, clearConfigError } = useCredentialConfig();
 
 const showApiKey = ref(false);
 </script>
