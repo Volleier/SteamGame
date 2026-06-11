@@ -42,7 +42,9 @@ export default defineComponent({
       this.errorMessage = '';
 
       try {
-        console.log('发送 POST /api/credentials/verify');
+        if (import.meta.env.DEV) {
+          console.log('发送 POST /api/credentials/verify');
+        }
         const response = await axios.post('/api/credentials/verify');
         const resp = response.data || {};
         // 按统一 ApiResponse 结构处理

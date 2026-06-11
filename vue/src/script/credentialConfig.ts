@@ -25,9 +25,13 @@ export function useCredentialConfig() {
         rememberMe: rememberMe.value,
       };
 
-      console.log('准备发送凭据配置请求:', payload);
+      if (import.meta.env.DEV) {
+        console.log('准备发送凭据配置请求:', payload);
+      }
       const response: AxiosResponse<any> = await axios.post('/api/credentials/configure', payload);
-      console.log('配置保存并验证响应:', response.data);
+      if (import.meta.env.DEV) {
+        console.log('配置保存并验证响应:', response.data);
+      }
 
       // 统一响应：{ success, code, message, data }
       const resp = response.data || {};

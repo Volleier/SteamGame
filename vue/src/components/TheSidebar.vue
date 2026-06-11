@@ -13,9 +13,9 @@
     </nav>
 
     <div class="sidebar-footer">
-      <button class="logout-button" @click="logout">
+      <button type="button" class="logout-button" @click="logout">
         <i class="icon logout-icon"></i>
-        <router-link to="/credential-verify" @click.native.prevent class="text link-style">返回凭据验证</router-link>
+        <span class="text">返回凭据验证</span>
       </button>
     </div>
   </div>
@@ -145,5 +145,19 @@ export default {
   font-size: 1rem;
   font-weight: 500;
   color: #000000;
+}
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+  }
 }
 </style>

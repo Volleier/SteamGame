@@ -1,7 +1,6 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <!-- 顶部栏 -->
-    <!-- 增加上下内边距（py-6），保持左右内边距 px-4 -->
     <div class="bg-white shadow rounded-lg mb-6">
       <div class="flex flex-col sm:flex-row items-center justify-between py-6 px-4 space-y-3 sm:space-y-0">
         <div class="flex items-center space-x-3">
@@ -17,7 +16,7 @@
           />
         </div>
 
-        <!-- 操作区域：始终垂直排列，排序横向按钮在上，导出按钮固定在下方 -->
+        <!-- 操作区域 -->
         <div class="flex flex-col items-end space-y-2">
           <div class="flex items-center space-x-2">
             <span class="text-sm text-gray-600 mr-2">排序：</span>
@@ -38,7 +37,30 @@
       </div>
     </div>
 
-    <div class="overflow-x-auto rounded-lg shadow">
+    <!-- 加载状态 -->
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20">
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-200 border-t-indigo-600 mb-4"></div>
+      <p class="text-gray-500 text-sm">正在加载游戏列表...</p>
+    </div>
+
+    <!-- 错误状态 -->
+    <div v-else-if="errorMessage" class="flex flex-col items-center justify-center py-20 bg-white rounded-lg shadow">
+      <div class="text-4xl mb-4">😵</div>
+      <p class="text-red-500 text-sm mb-4">{{ errorMessage }}</p>
+      <button @click="loadGames" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-500 transition-colors">
+        重新加载
+      </button>
+    </div>
+
+    <!-- 空状态（已加载但接口返回为空） -->
+    <div v-else-if="games.length === 0" class="flex flex-col items-center justify-center py-20 bg-white rounded-lg shadow">
+      <div class="text-4xl mb-4">🎮</div>
+      <p class="text-gray-500 text-sm mb-2">暂无游戏数据</p>
+      <p class="text-gray-400 text-xs">您的 Steam 账户中可能没有公开的游戏，或尚未同步。</p>
+    </div>
+
+    <!-- 表格 -->
+    <div v-else class="overflow-x-auto rounded-lg shadow">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -48,7 +70,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="game in filteredAndSortedGames" :key="game.app_id" class="hover:bg-gray-100">
+          <tr v-for="game in filteredAndSortedGames" :key="game.app_id" class="hover:bg-gray-100 transition-colors">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
               {{ game.app_id }}
             </td>
@@ -57,9 +79,11 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ (Number(game.app_time) || 0).toFixed(2) }} 小时</td>
           </tr>
-          <!-- 没有数据时显示 -->
-          <tr v-if="filteredAndSortedGames.length === 0">
-            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">暂无游戏数据</td>
+          <!-- 搜索无匹配 -->
+          <tr v-if="filteredAndSortedGames.length === 0 && games.length > 0">
+            <td colspan="3" class="px-6 py-8 text-center text-sm text-gray-400">
+              没有匹配 "{{ searchQuery }}" 的游戏
+            </td>
           </tr>
         </tbody>
       </table>
@@ -71,33 +95,17 @@
 export default {
   name: 'GameList',
   data() {
-    // 页面顶部包含三个区域：左侧标题，中间搜索框，右侧操作按钮（导出 CSV 与排序）。
-    // 搜索与排序均在前端执行
     return {
       games: [],
+      isLoading: false,
+      errorMessage: '',
       searchQuery: '',
       sortKey: '',
-      sortOrder: 'asc', // or 'desc'
+      sortOrder: 'asc',
     };
   },
   mounted() {
-    // 从后端获取已保存的 owned games
-    fetch('/api/ownedgames/list')
-      .then((res) => res.json())
-      .then((data) => {
-        // 后端返回字段: appid, name, playtimeForever
-        // 页面的搜索输入支持按游戏ID或名称进行模糊匹配（大小写不敏感）。
-        this.games = data.map((g) => ({
-          app_id: g.appid,
-          app_name: g.name,
-          // 转换分钟为小时并保留两位小数
-          // 使用 Number(toFixed(2)) 将字符串转换回数字以便排序和显示一致
-          app_time: Number(((g.playtimeForever || 0) / 60).toFixed(2)),
-        }));
-      })
-      .catch((err) => {
-        console.error('Failed to load games', err);
-      });
+    this.loadGames();
   },
   computed: {
     filteredAndSortedGames() {
@@ -118,7 +126,6 @@ export default {
           if (va == null && vb == null) return 0;
           if (va == null) return -1 * order;
           if (vb == null) return 1 * order;
-          // 数字比较优先
           if (!isNaN(Number(va)) && !isNaN(Number(vb))) {
             return (Number(va) - Number(vb)) * order;
           }
@@ -130,6 +137,35 @@ export default {
     },
   },
   methods: {
+    loadGames() {
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      fetch('/api/ownedgames/list')
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`服务器返回错误状态 ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          this.games = data.map((g) => ({
+            app_id: g.appid,
+            app_name: g.name,
+            app_time: Number(((g.playtimeForever || 0) / 60).toFixed(2)),
+          }));
+        })
+        .catch((err) => {
+          if (import.meta.env.DEV) {
+            console.error('Failed to load games', err);
+          }
+          this.errorMessage = err.message || '加载游戏列表失败，请检查网络连接';
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
+    },
+
     setSort(key) {
       if (this.sortKey === key) {
         this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
@@ -138,10 +174,10 @@ export default {
         this.sortOrder = 'asc';
       }
     },
+
     exportCSV() {
       const rows = this.filteredAndSortedGames;
       if (!rows || rows.length === 0) {
-        // 可以考虑提示用户无数据
         return;
       }
       const header = ['游戏ID', '游戏名称', '游戏时长(小时)'];
