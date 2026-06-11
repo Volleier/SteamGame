@@ -7,8 +7,6 @@ server:
 login:
   config:
     path: auth.yaml
-  encryption:
-    base64Key: ${STEAMGAME_CREDENTIAL_KEY:}
   cache:
     revalidateHours: 6
     failRetryHours: 1

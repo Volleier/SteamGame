@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
@@ -242,11 +242,11 @@ public class CredentialServiceImpl implements CredentialService {
                 CredentialValidationMeta meta = new CredentialValidationMeta();
                 boolean success = result != null && result.isValidKeyAndUser();
                 meta.setStatus(success ? "VALID" : "INVALID");
-                meta.setLastValidatedAt(LocalDateTime.now(ZoneOffset.UTC).format(TF));
+                meta.setLastValidatedAt(OffsetDateTime.now(ZoneOffset.UTC).format(TF));
                 if (cachePolicy != null) {
                     meta.setNextRevalidateAt(cachePolicy.computeNextRevalidateAt(success));
                 } else {
-                    meta.setNextRevalidateAt(LocalDateTime.now(ZoneOffset.UTC).plusHours(success ? 6 : 1).format(TF));
+                    meta.setNextRevalidateAt(OffsetDateTime.now(ZoneOffset.UTC).plusHours(success ? 6 : 1).format(TF));
                 }
                 meta.setFailCount(success ? 0 : 1);
                 meta.setLastErrorCode(success ? "" : "INVALID_KEY_OR_USER");

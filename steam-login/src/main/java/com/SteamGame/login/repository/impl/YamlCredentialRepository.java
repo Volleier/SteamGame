@@ -104,37 +104,27 @@ public class YamlCredentialRepository implements CredentialRepository {
     public void upsert(CredentialRecord record) {
         try {
             File f = new File(filePath);
-            Map<String, Object> root = new LinkedHashMap<>();
+            Map<String, Object> root = loadExistingRoot(f);
             Map<String, Object> auth = new LinkedHashMap<>();
             List<Map<String, Object>> users = new ArrayList<>();
 
-            // load existing users if present
-            if (f.exists()) {
-                InputStream is = Files.newInputStream(f.toPath());
-                Yaml yaml = new Yaml();
-                Object loaded = yaml.load(is);
-                is.close();
-                if (loaded instanceof Map) {
+            // load existing users from current root
+            Object a = root.get("auth");
+            if (a instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> aMap = (Map<String, Object>) a;
+                Object usersObj = aMap.get("users");
+                if (usersObj instanceof List) {
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> loadedMap = (Map<String, Object>) loaded;
-                    Object a = loadedMap.get("auth");
-                    if (a instanceof Map) {
-                        @SuppressWarnings("unchecked")
-                        Map<String, Object> aMap = (Map<String, Object>) a;
-                        Object usersObj = aMap.get("users");
-                        if (usersObj instanceof List) {
-                            @SuppressWarnings("unchecked")
-                            List<Map<String, Object>> existing = (List<Map<String, Object>>) usersObj;
-                            users.addAll(existing);
-                        } else {
-                            // legacy single-user -> migrate
-                            Map<String, Object> migrated = new LinkedHashMap<>();
-                            migrated.put("userId", "default");
-                            migrated.put("steamId", aMap.get("steamId"));
-                            migrated.put("apiKey", aMap.get("apiKey"));
-                            users.add(migrated);
-                        }
-                    }
+                    List<Map<String, Object>> existing = (List<Map<String, Object>>) usersObj;
+                    users.addAll(existing);
+                } else {
+                    // legacy single-user -> migrate
+                    Map<String, Object> migrated = new LinkedHashMap<>();
+                    migrated.put("userId", "default");
+                    migrated.put("steamId", aMap.get("steamId"));
+                    migrated.put("apiKey", aMap.get("apiKey"));
+                    users.add(migrated);
                 }
             }
 
@@ -170,6 +160,21 @@ public class YamlCredentialRepository implements CredentialRepository {
         } catch (Exception e) {
             throw new RuntimeException("写入 auth.yaml 失败", e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> loadExistingRoot(File f) {
+        if (!f.exists()) return new LinkedHashMap<>();
+        try (InputStream is = Files.newInputStream(f.toPath())) {
+            Yaml yaml = new Yaml();
+            Object loaded = yaml.load(is);
+            if (loaded instanceof Map) {
+                return (Map<String, Object>) loaded;
+            }
+        } catch (Exception e) {
+            // fall through
+        }
+        return new LinkedHashMap<>();
     }
 
     @Override

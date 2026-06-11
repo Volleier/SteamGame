@@ -63,12 +63,20 @@
     </transition>
 
     <div v-if="configError" class="reg-modal-overlay" @click.self="clearConfigError">
-      <div class="reg-modal-content" role="dialog" aria-modal="true">
+      <div class="reg-modal-content" role="dialog" aria-modal="true" aria-labelledby="credential-error-title">
+        <div class="reg-modal-header">
+          <h2 id="credential-error-title">配置失败</h2>
+        </div>
         <div class="reg-modal-body">
-          <p>{{ configError }}</p>
+          <pre>{{ configError }}</pre>
         </div>
         <div class="reg-modal-buttons">
-          <button class="reg-modal-confirm" @click="clearConfigError">确定</button>
+          <button type="button" class="credential-btn reg-modal-confirm" @click="clearConfigError">
+            <div class="credential-slider"></div>
+            <div class="credential-text-container">
+              <span>确定</span>
+            </div>
+          </button>
         </div>
       </div>
     </div>
