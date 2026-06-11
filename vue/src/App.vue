@@ -1,24 +1,17 @@
 <template>
-  <router-view></router-view>
+  <div class="relative w-full min-h-screen">
+    <!-- Header floats globally at the top -->
+    <TheHeader />
+    <!-- Dynamic Route Content Space -->
+    <router-view></router-view>
+  </div>
 </template>
 
 <script setup lang="ts">
-// App.vue 作为根组件，主要负责路由视图的渲染
+import { defineAsyncComponent } from 'vue';
+import TheHeader from '@/components/TheHeader.vue';
 </script>
 
-<style>
-html,
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-#app {
-  min-height: 100vh;
-}
+<style lang="scss">
+@use '@/assets/styles/base/global' as *;
 </style>

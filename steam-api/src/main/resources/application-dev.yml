@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    # 持久化到 steam-api 模块下的 data/steamdb 文件（相对于应用启动目录），重启不会丢失数据
+    # 使用 AUTO_SERVER=TRUE 允许单机场景下通过不同进程短暂访问同一文件
+    # AUTO_SERVER=TRUE 保持单机可用；去掉 DB_CLOSE_ON_EXIT 因为在当前 H2 版本下与 AUTO_SERVER 组合可能不被支持
+    url: jdbc:h2:file:./steam-api/data/steamdb;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: root
+    # explicit empty password
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: false # 在开发中禁用以避免暴露 /h2-console
+logging:
+  level:
+    root: INFO
+    org.springframework.jdbc.core: DEBUG

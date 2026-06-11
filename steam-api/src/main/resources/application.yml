@@ -1,6 +1,5 @@
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/SteamGame
-    username: root
-    password: root
+  profiles:
+    active: dev
+
+# 默认本地开发使用 H2 内存数据库，配合 application-dev.yml

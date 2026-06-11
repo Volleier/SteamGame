@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.SteamGame.login.dto.LoginDTO;
+import com.SteamGame.login.dto.CredentialDTO;
 import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -18,7 +18,7 @@ public class YamlUtil {
     private static final String filePath = projectRoot + "/auth.yaml";
 
     // 写入YAML文件
-    public static void writeYaml(LoginDTO dto) {
+    public static void writeYaml(CredentialDTO dto) {
         try {
             // 创建文件对象
             File file = new File(filePath);
@@ -68,7 +68,7 @@ public class YamlUtil {
 
     // 读取YAML文件 - 通过文件路径
     @NotNull
-    public static LoginDTO readAuthYaml() {
+    public static CredentialDTO readAuthYaml() {
         try {
             File file = new File(filePath);
             InputStream inputStream = Files.newInputStream(file.toPath());
@@ -90,10 +90,13 @@ public class YamlUtil {
             }
 
             // 创建并填充LoginDTO对象
-            LoginDTO dto = new LoginDTO();
-            if (yamlMap != null && yamlMap.containsKey("time")) dto.setTime((String) yamlMap.get("time"));
-            if (yamlMap != null && yamlMap.containsKey("steamId")) dto.setSteamId((String) yamlMap.get("steamId"));
-            if (yamlMap != null && yamlMap.containsKey("apiKey")) dto.setApiKey((String) yamlMap.get("apiKey"));
+            CredentialDTO dto = new CredentialDTO();
+            if (yamlMap != null && yamlMap.containsKey("time"))
+                dto.setTime((String) yamlMap.get("time"));
+            if (yamlMap != null && yamlMap.containsKey("steamId"))
+                dto.setSteamId((String) yamlMap.get("steamId"));
+            if (yamlMap != null && yamlMap.containsKey("apiKey"))
+                dto.setApiKey((String) yamlMap.get("apiKey"));
 
             return dto;
         } catch (IOException e) {
@@ -102,11 +105,14 @@ public class YamlUtil {
     }
 
     // 抽取构建DTO的公共方法
-    private static LoginDTO buildLoginDTO(Map<String, Object> yamlMap) {
-        LoginDTO dto = new LoginDTO();
-        if (yamlMap.containsKey("time")) dto.setTime((String) yamlMap.get("time"));
-        if (yamlMap.containsKey("steamId")) dto.setSteamId((String) yamlMap.get("steamId"));
-        if (yamlMap.containsKey("apiKey")) dto.setApiKey((String) yamlMap.get("apiKey"));
+    private static CredentialDTO buildLoginDTO(Map<String, Object> yamlMap) {
+        CredentialDTO dto = new CredentialDTO();
+        if (yamlMap.containsKey("time"))
+            dto.setTime((String) yamlMap.get("time"));
+        if (yamlMap.containsKey("steamId"))
+            dto.setSteamId((String) yamlMap.get("steamId"));
+        if (yamlMap.containsKey("apiKey"))
+            dto.setApiKey((String) yamlMap.get("apiKey"));
         return dto;
     }
 }

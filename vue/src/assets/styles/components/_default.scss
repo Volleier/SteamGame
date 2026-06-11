@@ -1,0 +1,152 @@
+@use '../tokens/theme' as *;
+
+.credential-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 14rem; /* 固定宽度，仅用于 Default.vue 的单按钮场景 */
+  height: 3.5rem; /* 56px */
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  transform: skewX(-10deg);
+  border-bottom: 4px solid #ff00ff; /* Neon Pink 底部边框 */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  text-decoration: none;
+
+  .credential-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 25%;
+    background-color: $accent-glow;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .credential-text-container {
+    position: absolute;
+    right: 0;
+    width: 75%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+
+    span {
+      transform: skewX(10deg); /* 反向倾斜，使文字看起来正常 */
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+  }
+
+  &:hover {
+    .credential-slider {
+      width: 100%;
+      background-color: $accent-glow-hover;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+/* Bi-directional Infinite Scrolling Physics */
+.scroll-up {
+  animation: slide-up 40s linear infinite;
+  will-change: transform;
+}
+
+.scroll-down {
+  /* Starts at negative bound to scroll down natively in flow */
+  animation: slide-down 40s linear infinite;
+  will-change: transform;
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes slide-down {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Authentic Hardware LED Sub-Pixel Simulation rendering dynamically attached to the flowing images */
+.moving-pixels {
+  /* Using radial-gradient to generate incredibly dense, perfect circular dots (halftone style) that attach directly to the graphic */
+  -webkit-mask-image: radial-gradient(circle at center, black 55%, transparent 55%);
+  -webkit-mask-composite: source-in;
+  -webkit-mask-size: 3px 3px;
+  mask-image: radial-gradient(circle at center, black 55%, transparent 55%);
+  mask-composite: intersect;
+  mask-size: 3px 3px;
+
+  /* Blurring the underlying image to restore the missing Glassmorphism vibe, while retaining the sharp edges of the dots */
+  /* This creates a mesmerizing hologram/frosted LED effect */
+  filter: blur(4px) saturate(1.8) contrast(1.2);
+}
+
+/* Gradient Flow Animation for specific Neon Text/Logos */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  animation: gradient-flow 3s ease infinite;
+}
+
+// ======= 无障碍：尊重用户 "减少动效" 系统设置 =======
+@media (prefers-reduced-motion: reduce) {
+  .scroll-up,
+  .scroll-down {
+    animation: none !important;
+  }
+
+  .animate-gradient-flow {
+    animation: none !important;
+  }
+
+  .moving-pixels {
+    filter: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  // 停止所有关键帧动画
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

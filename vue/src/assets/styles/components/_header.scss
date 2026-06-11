@@ -1,0 +1,65 @@
+@use '../tokens/theme' as *;
+
+/* header.scss - Top Header Navigation Styling */
+
+.header-container {
+  @apply fixed top-0 left-0 w-full h-12 flex items-center justify-between overflow-hidden shadow-sm z-50 bg-[#191b1d];
+}
+
+.header-logo-group {
+  @apply flex items-center space-x-4 pl-4;
+  cursor: pointer;
+  text-decoration: none;
+
+  img {
+    @apply h-8 w-auto object-contain mix-blend-normal opacity-90;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .logo-separator {
+    width: 1px;
+    height: 24px;
+    background-color: #ffffff;
+    opacity: 0.9;
+    margin: 0 6px;
+  }
+}
+
+.about-btn {
+  @apply relative inline-flex items-center h-full w-48 font-extrabold text-[#e5e7eb] text-xl tracking-[0.2em] -skew-x-[15deg] -mr-6 pr-6 cursor-pointer overflow-hidden transition-all duration-300;
+
+  // 使用主题色：正常为 $accent-glow，悬停时用 $accent-glow-hover
+  background-color: $accent-glow-dark;
+
+  .about-slider {
+    @apply absolute top-0 left-0 w-0 h-full transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)];
+    background-color: $accent-glow-dark;
+  }
+
+  .about-text-wrapper {
+    @apply absolute inset-0 flex items-center justify-center z-10 pointer-events-none pr-6;
+
+    span {
+      @apply skew-x-[15deg] uppercase transition-colors duration-300;
+    }
+  }
+
+  &:hover {
+    @apply brightness-105;
+
+    background-color: $accent-glow;
+
+    .about-slider {
+      @apply w-full;
+      background-color: $accent-glow;
+    }
+
+    .about-text-wrapper span {
+      @apply text-[#006f94];
+    }
+  }
+}
