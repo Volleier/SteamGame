@@ -1,6 +1,7 @@
 package com.SteamGame.login.service;
 
 import com.SteamGame.login.dto.ApiResponse;
+import com.SteamGame.login.dto.CredentialCheckResult;
 import com.SteamGame.login.dto.CredentialInputDTO;
 
 public interface CredentialConfigService {
@@ -10,4 +11,8 @@ public interface CredentialConfigService {
      */
     ApiResponse<Object> saveCredentialInfo(CredentialInputDTO credentialDTO);
 
+    /**
+     * 在线验证通过后保存凭据 + 校验元数据到 YAML 文件。
+     */
+    ApiResponse<Object> saveCredentialWithValidation(CredentialInputDTO credentialDTO, CredentialCheckResult validationResult);
 }

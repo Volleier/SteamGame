@@ -41,6 +41,9 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
     @Autowired(required = false)
     private CredentialValidationService validationService;
 
+    @Autowired(required = false)
+    private com.SteamGame.login.service.CredentialSessionStore sessionStore;
+
     public CredentialVerifyServiceImpl() {
         // RestTemplate still present for legacy usage in case a validation service is
         // not injected
@@ -106,6 +109,19 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
 
     @Override
     public ApiResponse<CredentialViewDTO> sendCredentialInfoToFrontend() {
+        // 1) check session store first
+        if (sessionStore != null && sessionStore.hasCredential("default")) {
+            var session = sessionStore.get("default");
+            if (session.isPresent()) {
+                CredentialViewDTO view = new CredentialViewDTO();
+                view.setSteamId(session.get().steamId);
+                view.setHasApiKey(true);
+                view.setUpdatedAt(null);
+                return ApiResponse.ok(ResultCode.LOGIN_OK, view, "凭据状态返回（内存会话）");
+            }
+        }
+
+        // 2) fallback to YAML
         CredentialViewDTO view = readCredentialFromYaml();
         logger.info("准备发送到前端的凭据信息 - SteamID: {}, hasApiKey: {}",
                 view.getSteamId(), view.isHasApiKey());
@@ -117,6 +133,21 @@ public class CredentialVerifyServiceImpl implements CredentialVerifyService {
 
     @Override
     public ApiResponse<CredentialCheckResult> validateCredential() {
+        // 1) check session store for in-memory credentials (rememberMe=false case)
+        if (sessionStore != null && sessionStore.hasCredential("default")) {
+            var session = sessionStore.get("default");
+            if (session.isPresent()) {
+                var entry = session.get();
+                if (entry.authenticated && entry.validKeyAndUser) {
+                    CredentialCheckResult result = new CredentialCheckResult(
+                            entry.validKeyAndUser, entry.ownsGames,
+                            entry.profilePrivate, "内存会话：凭据有效", entry.gameCount);
+                    return ApiResponse.ok(ResultCode.LOGIN_OK, result, "凭据有效（内存会话）");
+                }
+            }
+        }
+
+        // 2) fallback to YAML
         CredentialViewDTO view = readCredentialFromYaml();
 
         String steamid = view.getSteamId();

@@ -4,6 +4,7 @@ public class RegisterCredentialRequest {
     private String userId;
     private String steamId;
     private String apiKey;
+    private boolean rememberMe;
 
     public RegisterCredentialRequest() {
     }
@@ -30,5 +31,13 @@ public class RegisterCredentialRequest {
 
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    public boolean isRememberMe() {
+        return rememberMe;
+    }
+
+    public void setRememberMe(boolean rememberMe) {
+        this.rememberMe = rememberMe;
     }
 }

@@ -3,6 +3,7 @@ package com.SteamGame.login.service.impl;
 import com.SteamGame.login.service.CredentialConfigService;
 import com.SteamGame.login.dto.ApiResponse;
 import com.SteamGame.login.dto.ResultCode;
+import com.SteamGame.login.dto.CredentialCheckResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,11 +13,15 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import com.SteamGame.util.CryptoUtil;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
@@ -30,22 +35,19 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
     @Value("${login.encryption.base64Key:}")
     private String base64Key;
 
+    private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+
     @Override
     public ApiResponse<Object> saveCredentialInfo(CredentialInputDTO loginDTO) {
-        try {
-            // 设置当前时间
-            String currentTime = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            // Construct internal DTO for time handling
-            loginDTO.setApiKey(loginDTO.getApiKey());
-            String timeToSet = currentTime;
+        return saveCredentialWithValidation(loginDTO, null);
+    }
 
-            // 创建YAML数据结构
-            Map<String, Object> authData = new HashMap<>();
-            // 去除可能的前后空白
+    @Override
+    public ApiResponse<Object> saveCredentialWithValidation(CredentialInputDTO loginDTO, CredentialCheckResult validationResult) {
+        try {
+            String now = LocalDateTime.now(ZoneOffset.UTC).format(TF);
             String steamId = loginDTO.getSteamId() == null ? null : loginDTO.getSteamId().trim();
             String apiKey = loginDTO.getApiKey() == null ? null : loginDTO.getApiKey().trim();
-            String time = timeToSet;
 
             if (apiKey == null || apiKey.isEmpty()) {
                 logger.warn("尝试保存空的 apiKey，拒绝保存");
@@ -57,46 +59,70 @@ public class CredentialConfigServiceImpl implements CredentialConfigService {
                 return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "服务器未配置加密密钥，无法保存凭据");
             }
 
-            // 使用 CryptoUtil 加密 apiKey
+            // encrypt apiKey
             CryptoUtil.EncryptResult enc = CryptoUtil.encrypt(apiKey, base64Key);
 
-            authData.put("steamId", steamId);
-            authData.put("apiKeyEncrypted", enc.cipherTextBase64);
-            Map<String, Object> keyMeta = new HashMap<>();
-            keyMeta.put(com.SteamGame.constant.SecurityConstants.AUTH_KEYMETA_ALGORITHM,
-                    com.SteamGame.constant.SecurityConstants.CIPHER_TRANSFORMATION);
-            keyMeta.put(com.SteamGame.constant.SecurityConstants.AUTH_KEYMETA_IV, enc.ivBase64);
-            authData.put("keyMeta", keyMeta);
-            authData.put("version", com.SteamGame.constant.SecurityConstants.AUTH_CONFIG_VERSION);
-            authData.put("updatedAt", time);
+            // build auth map
+            Map<String, Object> auth = new LinkedHashMap<>();
+            auth.put("steamId", steamId);
+            auth.put("apiKeyEncrypted", enc.cipherTextBase64);
 
-            Map<String, Object> rootMap = new HashMap<>();
-            rootMap.put("auth", authData);
+            Map<String, Object> keyMeta = new LinkedHashMap<>();
+            keyMeta.put("algorithm", com.SteamGame.constant.SecurityConstants.CIPHER_TRANSFORMATION);
+            keyMeta.put("iv", enc.ivBase64);
+            auth.put("keyMeta", keyMeta);
 
-            // 配置YAML输出格式
+            // validation metadata
+            Map<String, Object> valMeta = new LinkedHashMap<>();
+            if (validationResult != null) {
+                valMeta.put("status", validationResult.isValidKeyAndUser() ? "VALID" : "INVALID");
+                valMeta.put("lastValidatedAt", now);
+                valMeta.put("nextRevalidateAt",
+                        LocalDateTime.now(ZoneOffset.UTC).plusHours(6).format(TF));
+                valMeta.put("failCount", validationResult.isValidKeyAndUser() ? 0 : 1);
+                valMeta.put("lastErrorCode", validationResult.isValidKeyAndUser() ? "" : "INVALID_KEY_OR_USER");
+            } else {
+                valMeta.put("status", "UNKNOWN");
+                valMeta.put("lastValidatedAt", now);
+                valMeta.put("nextRevalidateAt",
+                        LocalDateTime.now(ZoneOffset.UTC).plusHours(6).format(TF));
+                valMeta.put("failCount", 0);
+                valMeta.put("lastErrorCode", "");
+            }
+            auth.put("validation", valMeta);
+
+            auth.put("version", com.SteamGame.constant.SecurityConstants.AUTH_CONFIG_VERSION);
+            auth.put("updatedAt", now);
+
+            Map<String, Object> rootMap = new LinkedHashMap<>();
+            rootMap.put("auth", auth);
+
+            // write atomically via temp file
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setPrettyFlow(true);
-
-            // 写入YAML文件
             Yaml yaml = new Yaml(options);
-            try (FileWriter writer = new FileWriter(configPath)) {
+
+            File target = new File(configPath);
+            File tmp = new File(configPath + ".tmp");
+            try (FileWriter writer = new FileWriter(tmp)) {
                 yaml.dump(rootMap, writer);
             }
+            Files.move(tmp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 
-            logger.info("已成功保存登录信息到YAML - SteamID: {}, 保存时间: {}",
-                    loginDTO.getSteamId(), currentTime);
+            logger.info("已保存加密凭据到 {} — SteamID: {}, updatedAt: {}", configPath, steamId, now);
 
-            Map<String, Object> resp = new HashMap<>();
+            Map<String, Object> resp = new LinkedHashMap<>();
             resp.put("steamId", steamId);
-            resp.put("updatedAt", time);
+            resp.put("updatedAt", now);
+            resp.put("persisted", true);
 
             return ApiResponse.ok(ResultCode.REGISTER_OK, resp, "凭据配置保存成功");
         } catch (IOException e) {
-            logger.error("保存登录信息到YAML文件时发生错误: {}", e.getMessage(), e);
+            logger.error("保存凭据到 YAML 文件时发生 I/O 错误: {}", e.getMessage(), e);
             return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "写入配置文件失败: " + e.getMessage());
         } catch (Exception e) {
-            logger.error("处理登录信息时发生意外错误", e);
+            logger.error("处理凭据信息时发生意外错误", e);
             return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "处理凭据时发生异常");
         }
     }

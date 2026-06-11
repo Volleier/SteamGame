@@ -25,7 +25,7 @@ public class CredentialConfigController {
         this.credentialService = credentialService;
     }
 
-    @PostMapping
+    @PostMapping("/configure")
     public ResponseEntity<ApiResponse<?>> configure(
             @RequestBody com.SteamGame.login.dto.RegisterCredentialRequest req) {
         logger.info("POST /api/credentials/configure - userId={}", req.getUserId());
