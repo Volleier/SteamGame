@@ -1,17 +1,17 @@
 <template>
   <CyberGlassCard compact>
     <transition name="card-fade" appear>
-      <div class="credential-card credential-card-flex">
-        <div class="card-left">
-          <div class="icon">
+      <div class="credential-panel credential-panel-flex">
+        <div class="credential-panel-left">
+          <div class="credential-panel-icon">
             <img src="@/assets/images/SteamGame_Icon.png" alt="Icon" />
           </div>
         </div>
-        <div class="card-right">
-          <div class="card-right-glass"></div>
+        <div class="credential-panel-right">
+          <div class="credential-panel-glass"></div>
 
-          <div class="card-right-content">
-            <div class="credential-header">
+          <div class="credential-panel-content">
+            <div class="credential-panel-header">
               <h1>凭据验证</h1>
               <p>使用本地配置的 Steam API 验证凭据（不展示明文 apiKey）</p>
             </div>
@@ -65,5 +65,5 @@ export default {
 
 <style scoped lang="scss">
 @use '@/assets/styles/default' as *;
-@import url('@/assets/styles/login.scss');
+@use '@/assets/styles/login' as *;
 </style>

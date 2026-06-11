@@ -1,18 +1,18 @@
 <template>
   <CyberGlassCard compact>
     <transition name="card-fade" appear>
-      <div class="reg-card reg-card-flex">
-        <div class="reg-left">
-          <div class="reg-icon">
+      <div class="credential-panel credential-panel-flex">
+        <div class="credential-panel-left">
+          <div class="credential-panel-icon">
             <img src="@/assets/images/SteamGame_Icon.png" alt="Icon" />
           </div>
         </div>
 
-        <div class="reg-right">
-          <div class="reg-right-glass"></div>
+        <div class="credential-panel-right">
+          <div class="credential-panel-glass"></div>
 
-          <div class="reg-right-content">
-            <div class="reg-header">
+          <div class="credential-panel-content">
+            <div class="credential-panel-header">
               <h1>凭据配置</h1>
             </div>
 
@@ -71,5 +71,5 @@ const { configSteamId, configApiKey, rememberMe, isConfigLoading, configError, c
 
 <style scoped lang="scss">
 @use '@/assets/styles/default' as *;
-@import url('@/assets/styles/register.scss');
+@use '@/assets/styles/register' as *;
 </style>

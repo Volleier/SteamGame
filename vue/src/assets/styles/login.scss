@@ -1,3 +1,5 @@
+@use '_credential-panel' as *;
+
 .card-divider {
   width: 2px;
   min-width: 2px;
@@ -5,83 +7,6 @@
   margin: 0 0.5rem;
   border-radius: 1px;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.04);
-}
-
-/* 凭据验证卡片布局（继承并替代原 Login 样式注释） */
-
-.credential-card {
-  width: 100%;
-  max-width: 960px;
-  position: relative;
-  z-index: 5;
-  color: #fff;
-}
-
-.credential-card-flex {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  min-height: 320px;
-  height: 420px;
-}
-
-.card-left {
-  display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-  flex: 0 0 30%; /* 左边占30% */
-  height: 100%;
-  aspect-ratio: 1 / 1;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-  padding: 0;
-  margin-right: 2rem; /* 拉大左右内容间距 */
-}
-
-.icon {
-  display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-  width: 100%;
-  height: 100%;
-}
-
-.icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  margin: 0;
-}
-
-.card-right {
-  flex: 1 1 70%; /* 右边占70% */
-  min-width: 220px;
-  position: relative; /* 为毛玻璃层提供定位上下文 */
-  overflow: hidden;
-}
-
-/* 高模糊度黑色毛玻璃效果层 */
-.card-right-glass {
-  position: absolute;
-  inset: 2px; /* 与卡片边框保持极小间距，让毛玻璃紧贴内容区 */
-  background-color: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-radius: 8px;
-  z-index: 0;
-}
-
-/* 内容层，浮在毛玻璃层之上 */
-.card-right-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1.5rem;
-  height: 100%;
-  padding: 2rem 1.5rem;
 }
 
 /* 凭据验证卡片头部样式 */
@@ -161,8 +86,7 @@
   /* New button style inherited from default.scss */
 }
 
-.credential-card .credential-btn,
-.register-card .credential-btn {
+.credential-panel .credential-btn {
   width: 100%;
   transform: none; /* 去掉倾斜 */
   border-bottom: none; /* 去掉粉色边框 */
@@ -355,11 +279,6 @@ button:disabled {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.credential-card {
-  position: relative;
-  z-index: 2;
 }
 
 .loading-spinner {
