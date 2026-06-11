@@ -23,6 +23,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'dashboard',
     component: () => import('@/views/Dashboard.vue'),
   },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('@/views/About.vue'),
+  },
 ];
 
 const router = createRouter({

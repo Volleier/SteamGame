@@ -50,9 +50,9 @@ export function useCredentialConfig() {
         const msg = resp.message || mapCodeToMessage(code) || '验证失败，请检查您的凭据';
         configError.value = msg;
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('凭据配置失败:', error);
-      configError.value = error.response?.data?.message || '配置失败，请稍后再试';
+      configError.value = (error as any).response?.data?.message || '配置失败，请稍后再试';
     } finally {
       isConfigLoading.value = false;
     }
