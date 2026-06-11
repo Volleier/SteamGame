@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { defineComponent } from 'vue';
 
-export default {
+export default defineComponent({
   name: 'CredentialVerifyPage',
   data() {
     return {
@@ -50,13 +51,14 @@ export default {
           this.$router.push('/dashboard');
         } else {
           const code = resp.code;
-          this.errorMessage = resp.message || mapCodeToMessage(code) || `验证失败（code=${code})`;
+          this.errorMessage = resp.message || this.mapCodeToMessage(code) || `验证失败（code=${code})`;
         }
-      } catch (err: any) {
-        console.error('凭据验证失败:', err);
-        const status = err?.response?.status;
-        const respData = err?.response?.data;
-        if (!err?.response) {
+      } catch (err) {
+        const e = err as any;
+        console.error('凭据验证失败:', e);
+        const status = e?.response?.status;
+        const respData = e?.response?.data;
+        if (!e?.response) {
           this.errorMessage = '网络错误或服务器无响应（请检查网络或 CORS）';
         } else if (respData && (respData.message || respData.error || respData.msg)) {
           this.errorMessage = respData.message || respData.error || respData.msg;
@@ -89,9 +91,9 @@ export default {
         } else {
           this.configError = response.data?.message || `配置返回状态: ${response.status}`;
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error('配置失败:', error);
-        this.configError = error?.response?.data?.message || '配置失败';
+        this.configError = (error as any)?.response?.data?.message || '配置失败';
       } finally {
         this.isConfigLoading = false;
       }
@@ -104,7 +106,7 @@ export default {
       this.isConfigLoading = false;
     },
 
-    syncConfigData(steamId, apiKey) {
+    syncConfigData(steamId: string, apiKey: string) {
       if (!steamId || !apiKey) return;
       this.Steam_Id = steamId;
       localStorage.setItem('steamId', steamId);
@@ -129,4 +131,4 @@ export default {
       }
     },
   },
-};
+});
