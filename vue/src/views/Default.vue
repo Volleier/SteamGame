@@ -47,5 +47,5 @@ import rightLogo from '@/assets/images/SteamGame_Right_Logo.png';
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/default' as *;
+@use '@/assets/styles/components/default' as *;
 </style>

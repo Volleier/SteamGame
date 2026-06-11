@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getTrendingGamePosters, type GamePosterData } from '@/api/game';
+import { getTrendingGamePosters, type GamePosterData } from '@/api/posters';
 
 // 支持紧凑模式（用于 凭据配置/凭据验证 页面缩小内边距）
 const props = defineProps<{
@@ -80,5 +80,5 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@import url('@/assets/styles/default.scss');
+@use '@/assets/styles/components/default' as *;
 </style>

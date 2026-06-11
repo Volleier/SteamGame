@@ -1,11 +1,14 @@
 /**
- * Mock API for fetching Steam games data.
- * Once the backend is ready, this file will be integrated with Axios or Fetch.
+ * 背景海报墙数据 — Steam 游戏封面 URL 生成
  */
 
-// A collection of popular Steam App IDs for our poster wall
+export interface GamePosterData {
+  id: number;
+  imageUrl: string;
+}
+
 const TRENDING_GAME_IDS = [
-  730,      // CS:GO / CS2
+  730,      // CS2
   570,      // Dota 2
   578080,   // PUBG
   1172470,  // Apex Legends
@@ -19,24 +22,13 @@ const TRENDING_GAME_IDS = [
   814380,   // Sekiro
   1245620,  // Elden Ring
   230410,   // Warframe
-  359550    // Rainbow Six Siege
+  359550,   // Rainbow Six Siege
 ];
 
-export interface GamePosterData {
-  id: number;
-  imageUrl: string;
-}
-
-/**
- * Returns a list of game poster URLs.
- * Simulates a network delay for realism.
- */
 export async function getTrendingGamePosters(): Promise<GamePosterData[]> {
-  // Simulate network fetch
   await new Promise(resolve => setTimeout(resolve, 500));
-  
   return TRENDING_GAME_IDS.map(id => ({
     id,
-    imageUrl: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/library_600x900.jpg`
+    imageUrl: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/library_600x900.jpg`,
   }));
 }

@@ -1,4 +1,10 @@
-// 扩展 Vue 全局属性类型，解决 this.$store / this.$router 的 TS 报错
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue';
+  const component: DefineComponent<object, object, unknown>;
+  export default component;
+}
+
+// 扩展 Vue 全局属性类型
 import type { Router } from 'vue-router';
 import type { Store } from 'vuex';
 

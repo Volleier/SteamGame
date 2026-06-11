@@ -78,7 +78,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import CyberGlassCard from '@/components/CyberGlassCard.vue';
-import { useCredentialConfig } from '@/script/credentialConfig';
+import { useCredentialConfig } from '@/composables/useCredentialConfig';
 
 const { configSteamId, configApiKey, rememberMe, isConfigLoading, configError, configured, handleConfigure, handleReturnToVerify, clearConfigError } = useCredentialConfig();
 
@@ -86,8 +86,8 @@ const showApiKey = ref(false);
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/default' as *;
-@use '@/assets/styles/register' as *;
+@use '@/assets/styles/components/default' as *;
+@use '@/assets/styles/pages/credential-config' as *;
 
 .reg-password-wrap {
   position: relative;

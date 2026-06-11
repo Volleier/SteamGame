@@ -28,7 +28,7 @@ import CyberGlassCard from '@/components/CyberGlassCard.vue';
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/default' as *;
+@use '@/assets/styles/components/default' as *;
 
 .about-content {
   text-align: center;

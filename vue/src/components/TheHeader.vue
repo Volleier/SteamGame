@@ -33,5 +33,5 @@
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/header' as *;
+@use '@/assets/styles/components/header' as *;
 </style>

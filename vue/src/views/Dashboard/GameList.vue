@@ -91,110 +91,19 @@
   </div>
 </template>
 
-<script>
-import http from '@/api/http';
+<script setup lang="ts">
+import { useGameList } from '@/composables/useGameList';
 
-export default {
-  name: 'GameList',
-  data() {
-    return {
-      games: [],
-      isLoading: false,
-      errorMessage: '',
-      searchQuery: '',
-      sortKey: '',
-      sortOrder: 'asc',
-    };
-  },
-  mounted() {
-    this.loadGames();
-  },
-  computed: {
-    filteredAndSortedGames() {
-      const q = (this.searchQuery || '').trim().toLowerCase();
-      let list = this.games;
-      if (q) {
-        list = list.filter((g) => {
-          return String(g.app_id).toLowerCase().includes(q) || (g.app_name || '').toLowerCase().includes(q);
-        });
-      }
-
-      if (this.sortKey) {
-        const key = this.sortKey;
-        const order = this.sortOrder === 'asc' ? 1 : -1;
-        list = list.slice().sort((a, b) => {
-          const va = a[key];
-          const vb = b[key];
-          if (va == null && vb == null) return 0;
-          if (va == null) return -1 * order;
-          if (vb == null) return 1 * order;
-          if (!isNaN(Number(va)) && !isNaN(Number(vb))) {
-            return (Number(va) - Number(vb)) * order;
-          }
-          return String(va).localeCompare(String(vb)) * order;
-        });
-      }
-
-      return list;
-    },
-  },
-  methods: {
-    loadGames() {
-      this.isLoading = true;
-      this.errorMessage = '';
-
-      http.get('/ownedgames/list')
-        .then((res) => {
-          const data = res.data || res;
-          return data;
-        })
-        .then((data) => {
-          this.games = data.map((g) => ({
-            app_id: g.appid,
-            app_name: g.name,
-            app_time: Number(((g.playtimeForever || 0) / 60).toFixed(2)),
-          }));
-        })
-        .catch((err) => {
-          if (import.meta.env.DEV) {
-            console.error('Failed to load games', err);
-          }
-          this.errorMessage = err.message || '加载游戏列表失败，请检查网络连接';
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
-    },
-
-    setSort(key) {
-      if (this.sortKey === key) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-      } else {
-        this.sortKey = key;
-        this.sortOrder = 'asc';
-      }
-    },
-
-    exportCSV() {
-      const rows = this.filteredAndSortedGames;
-      if (!rows || rows.length === 0) {
-        return;
-      }
-      const header = ['游戏ID', '游戏名称', '游戏时长(小时)'];
-      const csv = [header.join(',')]
-        .concat(rows.map((r) => `${r.app_id},"${(r.app_name || '').replace(/"/g, '""')}",${typeof r.app_time === 'number' ? r.app_time.toFixed(2) : r.app_time}`))
-        .join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'games_export.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    },
-  },
-};
+const {
+  isLoading,
+  errorMessage,
+  searchQuery,
+  sortKey,
+  sortOrder,
+  filteredAndSortedGames,
+  games,
+  loadGames,
+  setSort,
+  exportCSV,
+} = useGameList();
 </script>

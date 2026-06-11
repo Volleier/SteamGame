@@ -17,11 +17,11 @@
             </div>
 
             <!-- 无配置状态：引导用户先去配置 -->
-            <div v-if="!Steam_Id" class="no-credential-guide">
+            <div v-if="!steamId" class="no-credential-guide">
               <div class="guide-icon">⚠️</div>
               <p class="guide-title">尚未配置凭据</p>
               <p class="guide-desc">您需要先配置 Steam ID 和 API Key 才能进行凭据验证。</p>
-              <button type="button" class="credential-btn" @click="$router.push('/credential-config')">
+              <button type="button" class="credential-btn" @click="goToConfig">
                 <div class="credential-slider"></div>
                 <div class="credential-text-container">
                   <span>前往配置</span>
@@ -33,7 +33,7 @@
             <form v-else class="credential-form" @submit.prevent="handleVerify">
               <div class="form-group">
                 <label class="steam-id-label">已配置的 Steam ID</label>
-                <input id="Steam_Id" type="text" v-model="Steam_Id" disabled readonly class="form-input readonly-input" placeholder="暂无 Steam ID 数据" />
+                <input id="Steam_Id" type="text" v-model="steamId" disabled readonly class="form-input readonly-input" placeholder="暂无 Steam ID 数据" />
                 <span class="steam-id-status">✅ 已加载</span>
               </div>
               <div class="button-container flex flex-col items-center gap-4 w-full">
@@ -45,7 +45,7 @@
                   </div>
                 </button>
 
-                <button type="button" class="credential-btn" @click="$router.push('/credential-config')">
+                <button type="button" class="credential-btn" @click="goToConfig">
                   <div class="credential-slider"></div>
                   <div class="credential-text-container">
                     <span>凭据配置</span>
@@ -63,23 +63,16 @@
   </CyberGlassCard>
 </template>
 
-<script>
+<script setup lang="ts">
 import CyberGlassCard from '@/components/CyberGlassCard.vue';
-import credentialVerifyScript from '@/script/credentialVerify.ts';
-export default {
-  components: {
-    CyberGlassCard,
-  },
-  ...credentialVerifyScript,
-  methods: {
-    ...credentialVerifyScript.methods,
-  },
-};
+import { useCredentialVerify } from '@/composables/useCredentialVerify';
+
+const { steamId, isLoading, errorMessage, handleVerify, goToConfig } = useCredentialVerify();
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/default' as *;
-@use '@/assets/styles/login' as *;
+@use '@/assets/styles/components/default' as *;
+@use '@/assets/styles/pages/credential-verify' as *;
 
 .no-credential-guide {
   display: flex;

@@ -1,15 +1,20 @@
+/**
+ * 凭据配置逻辑 — Composition API
+ */
+
 import { ref } from 'vue';
-import http from '@/api/http';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { configureCredential } from '@/api/credentials';
+import { getCredentialMessage } from '@/services/credentialMessages';
 
 export function useCredentialConfig() {
-  const configSteamId = ref<string>('');
-  const configApiKey = ref<string>('');
-  const rememberMe = ref<boolean>(false);
-  const isConfigLoading = ref<boolean>(false);
-  const configError = ref<string>('');
-  const configured = ref<boolean>(false);
+  const configSteamId = ref('');
+  const configApiKey = ref('');
+  const rememberMe = ref(false);
+  const isConfigLoading = ref(false);
+  const configError = ref('');
+  const configured = ref(false);
 
   const router = useRouter();
   const store = useStore();
@@ -28,20 +33,19 @@ export function useCredentialConfig() {
       if (import.meta.env.DEV) {
         console.log('准备发送凭据配置请求:', payload);
       }
-      const response = await http.post('/credentials/configure', payload);
+
+      const resp = await configureCredential(payload);
+
       if (import.meta.env.DEV) {
-        console.log('配置保存并验证响应:', response.data);
+        console.log('配置保存并验证响应:', resp);
       }
 
-      // 统一响应：{ success, code, message, data }
-      const resp = response.data || {};
-      const code = resp.code;
       if (resp.success) {
         configured.value = true;
-        store.commit && store.commit('setAuthenticated', true);
-        // 不在本地存明文 apiKey；可保存 steamId 用于展示
+        store.commit('setAuthenticated', true);
         if (payload.steamId) {
           localStorage.setItem('steamId', payload.steamId);
+          store.commit('setSteamId', payload.steamId);
         }
         setTimeout(() => {
           router.push('/credential-verify');
@@ -50,8 +54,7 @@ export function useCredentialConfig() {
           }, 1000);
         }, 900);
       } else {
-        // 根据 code 映射更友好的中文提示
-        const msg = resp.message || mapCodeToMessage(code) || '验证失败，请检查您的凭据';
+        const msg = resp.message || getCredentialMessage(resp.code, '验证失败，请检查您的凭据');
         configError.value = msg;
       }
     } catch (error) {
@@ -61,25 +64,6 @@ export function useCredentialConfig() {
       isConfigLoading.value = false;
     }
   };
-
-  function mapCodeToMessage(code: any): string {
-    switch (String(code)) {
-      case 'REGISTER_OK':
-        return '凭据已保存并验证成功';
-      case 'INVALID_STEAM_ID':
-        return '无效的 SteamID';
-      case 'INVALID_API_KEY_FORMAT':
-        return 'ApiKey 格式不正确';
-      case 'CONFIG_INVALID':
-        return '配置内容不完整或格式错误';
-      case 'INTERNAL_ERROR':
-        return '服务器内部错误，请联系管理员';
-      case 'STEAM_API_UNAVAILABLE':
-        return 'Steam 服务不可用，请稍后重试';
-      default:
-        return '';
-    }
-  }
 
   const handleReturnToVerify = (): void => {
     router.push('/credential-verify');
