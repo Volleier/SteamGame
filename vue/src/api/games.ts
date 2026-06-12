@@ -30,3 +30,15 @@ export async function getOwnedGames(): Promise<OwnedGame[]> {
   const data: OwnedGameDTO[] = response.data || [];
   return data.map(toOwnedGame);
 }
+
+/** 获取用户库容 (游戏总数) */
+export async function getGamesCount(): Promise<number> {
+  try {
+    const response = await http.get('/ownedgames/count');
+    return response.data?.count || 0;
+  } catch (error) {
+    // 降级返回一个默认数字用于前端展示（待后端实现后移除降级）
+    console.warn("Backend API /ownedgames/count not implemented yet. Using mock data.");
+    return 342; 
+  }
+}
