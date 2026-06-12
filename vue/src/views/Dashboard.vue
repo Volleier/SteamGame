@@ -63,7 +63,7 @@ export default {
             <MainPage @toggle-fullscreen="toggleAppFullscreen" :is-fullscreen="isAppFullscreen" />
           </div>
 
-          <div v-else-if="currentView === 'games'" key="games" class="view-content flex-1 h-full flex flex-col relative pt-[60px]">
+          <div v-else-if="currentView === 'games'" key="games" class="view-content flex-1 h-full flex flex-col relative pt-12">
             <GameList />
           </div>
         </transition>

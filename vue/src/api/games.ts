@@ -27,8 +27,14 @@ export function toOwnedGame(dto: OwnedGameDTO): OwnedGame {
 /** 获取用户拥有的游戏列表 */
 export async function getOwnedGames(): Promise<OwnedGame[]> {
   const response = await http.get('/ownedgames/list');
-  const data: OwnedGameDTO[] = response.data || [];
-  return data.map(toOwnedGame);
+  // 兼容格式：直接返回数组，或包装在 { data: [...] } 内
+  let list: OwnedGameDTO[] = [];
+  if (Array.isArray(response.data)) {
+    list = response.data;
+  } else if (response.data && Array.isArray(response.data.data)) {
+    list = response.data.data;
+  }
+  return list.map(toOwnedGame);
 }
 
 /** 获取用户库容 (游戏总数) */
