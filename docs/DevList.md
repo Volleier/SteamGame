@@ -1,510 +1,600 @@
-# Steam 玩家游戏库后端开发清单
+# SteamGame 第一阶段开发清单
 
-## 目标
+本文档定义当前项目的第一阶段开发目标：先在现有模块结构上完成可运行、可验收的 Steam 游戏库 MVP。完成本文档后，再执行 `docs/OptimizeList.md` 中的推荐架构重构。
 
-根据 `docs/api.md` 实现玩家游戏库后端闭环：
-
-1. 后端从本地凭证中获取 `steamId` 和 Steam Web API Key。
-2. 调用 Steam `IPlayerService/GetOwnedGames/v1` 获取玩家游戏列表。
-3. 将游戏列表保存到本地数据库。
-4. 同步完成后返回最新游戏列表给前端。
-5. 支持前端查询游戏列表和游戏总数。
-
-## 当前项目现状
-
-- 前端 API 基地址为 `/api`，Vite 代理到 `http://localhost:8080`。
-- 前端已调用：
-  - `GET /api/ownedgames/list`
-  - `GET /api/ownedgames/count`
-- `steam-api` 已存在 `OwnedGamesController`、`SteamApiServiceImpl`、`OwnedGameMapper`、`OwnedGame`。
-- 当前 `SteamApiServiceImpl.getOwnedGames()` 已能请求 Steam 并解析 `response.games`。
-- 当前 `owned_game` 表没有用户维度。
-- 当前 `/api/ownedgames/fetch` 需要传 `steamId` 和 `apiKey`，不适合作为正式接口。
-- 当前 `/api/ownedgames/count` 尚未实现。
-- `steam-login` 已有本地凭证保存、加密、解密、校验逻辑。
-
-## 推荐总体架构
+执行顺序：
 
 ```text
-Frontend
-  |
-  | POST /api/ownedgames/sync
-  | GET  /api/ownedgames/list
-  | GET  /api/ownedgames/count
-  v
-OwnedGamesController
-  v
-OwnedGameService
-  |-- CredentialProvider: 读取 steamId 和解密后的 apiKey
-  |-- SteamApiClient: 调用 Steam GetOwnedGames
-  |-- OwnedGameMapper: 写入和查询本地数据库
-  v
-Local Database
+1. DevList.md
+   -> 先跑通当前项目 MVP
+   -> 少做模块大搬迁
+   -> 保证前后端真实可用
+
+2. OptimizeList.md
+   -> 再按 ModuleIntro.md 做推荐架构重构
+   -> 调整模块边界
+   -> 增加 admin 和公共基础设施
 ```
 
-## 接口设计
+## 一、第一阶段目标
 
-### 1. 同步玩家游戏库
+第一阶段只解决“平台能获取 Steam 游戏库并展示”的核心闭环。
 
-```http
-POST /api/ownedgames/sync
-```
+必须完成：
 
-职责：
+- 后端通过 `steam-launcher` 启动。
+- 前端能配置 Steam 凭据。
+- 后端能从本地凭据读取 `steamId` 和解密后的 API Key。
+- 后端能调用 Steam `IPlayerService/GetOwnedGames/v1`。
+- 后端能把游戏库写入 H2 本地数据库。
+- 前端能显示游戏数量和游戏列表。
+- 重复同步不产生重复数据。
+- Steam API 失败时不清空本地已有数据。
 
-- 从本地凭证模块读取当前用户 `steamId` 和解密后的 `apiKey`。
-- 调用 Steam Web API 获取玩家游戏列表。
-- 将游戏列表 upsert 到本地数据库。
-- 返回同步后的最新游戏列表给前端。
+第一阶段暂不做：
 
-推荐响应：
+- 不重构五模块最终依赖关系。
+- 不移动 `CredentialProvider` 到 `steam-common`。
+- 不建设完整 `steam-admin`。
+- 不删除所有模块启动类。
+- 不实现真实多用户权限系统。
+- 不把所有公共错误体系一次性重构到 `steam-common`。
 
-```json
-{
-  "code": 200,
-  "msg": "success",
-  "data": [
-    {
-      "appid": 730,
-      "name": "Counter-Strike 2",
-      "playtimeForever": 12845
-    }
-  ]
-}
-```
+这些内容进入第二阶段 `docs/OptimizeList.md`。
 
-### 2. 查询本地游戏列表
+## 二、当前项目状态
 
-```http
-GET /api/ownedgames/list
-```
+### 已存在接口
 
-职责：
-
-- 从本地数据库读取当前用户已同步的游戏列表。
-- 不直接依赖前端传 `steamId` 或 `apiKey`。
-
-推荐响应：
-
-```json
-{
-  "code": 200,
-  "msg": "success",
-  "data": [
-    {
-      "appid": 730,
-      "name": "Counter-Strike 2",
-      "playtimeForever": 12845
-    }
-  ]
-}
-```
-
-### 3. 查询本地游戏总数
-
-```http
-GET /api/ownedgames/count
-```
-
-职责：
-
-- 从本地数据库统计当前用户游戏数量。
-
-推荐响应：
-
-```json
-{
-  "code": 200,
-  "msg": "success",
-  "data": {
-    "count": 342
-  }
-}
-```
-
-## 数据库设计
-
-默认使用 H2 文件数据库作为项目自带数据库，部署时无需用户额外安装或配置 MySQL。数据库文件由应用自动创建并持久化到本地目录。
-
-推荐本地数据库路径：
+文件：
 
 ```text
-./data/steamdb.mv.db
+steam-api/src/main/java/com/SteamGame/api/controller/OwnedGamesController.java
 ```
 
-推荐 Spring Profile：
+已有接口：
 
-| Profile | 数据库 | 用途 |
-| :--- | :--- | :--- |
-| `local` | H2 File DB | 默认部署方案，项目自带数据库，无需配置 |
-| `mysql` | MySQL | 可选服务器部署方案，多用户或正式服务场景使用 |
+- `POST /api/ownedgames/sync`
+- `GET /api/ownedgames/list`
+- `GET /api/ownedgames/count`
+- `GET /api/ownedgames/fetch` 调试接口
 
-建议将当前 `owned_game` 表升级为带用户维度的结构，并通过 `schema.sql` 自动初始化。
+### 已存在前端调用
 
-```sql
-CREATE TABLE owned_game (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id VARCHAR(64) NOT NULL DEFAULT 'default',
-  steam_id VARCHAR(32) NOT NULL,
-  appid BIGINT NOT NULL,
-  name VARCHAR(512),
-  playtime_forever INT NOT NULL DEFAULT 0,
-  last_synced_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_owned_game_user_app (user_id, appid)
-);
+文件：
+
+```text
+vue/src/api/games.ts
 ```
 
-字段说明：
+已有方法：
 
-| 字段               | 说明                                |
-| :----------------- | :---------------------------------- |
-| `user_id`          | 本地用户 ID。当前可先使用 `default` |
-| `steam_id`         | Steam 64 位用户 ID                  |
-| `appid`            | Steam 游戏 AppID                    |
-| `name`             | 游戏名称                            |
-| `playtime_forever` | 总游玩时长，单位分钟                |
-| `last_synced_at`   | 最近一次从 Steam 同步的时间         |
+- `getOwnedGames()`
+- `getGamesCount()`
+- `syncOwnedGames()`
 
-## 后端开发步骤
+前端 `baseURL` 是 `/api`，Vite 代理到 `http://localhost:8080`。
 
-### Step 1. 统一后端启动入口
+### 已存在 Steam 拉取能力
 
-目标：确保前端代理到 `localhost:8080` 后，以下接口都能访问：
+文件：
 
-- `/api/credentials/*`
-- `/api/ownedgames/*`
+```text
+steam-api/src/main/java/com/SteamGame/api/client/impl/SteamApiClientImpl.java
+```
 
-建议：
+已有能力：
 
-- 以 `steam-login` 或一个聚合启动模块作为主 Spring Boot 应用。
-- 确保扫描范围覆盖 `com.SteamGame.login`、`com.SteamGame.api`、`com.SteamGame.common`。
-- 如有需要，在启动类增加：
+- 调用 Steam `GetOwnedGames`。
+- 解析 `appid`、`name`、`playtime_forever`。
+- 调用 Steam Store `appdetails` 补全开发商、发行商、发行日期、标签。
+
+### 已存在入库能力
+
+文件：
+
+```text
+steam-api/src/main/java/com/SteamGame/api/mapper/OwnedGameMapper.java
+steam-api/src/main/resources/schema.sql
+```
+
+已有能力：
+
+- H2 `owned_game` 表。
+- `MERGE INTO` upsert。
+- 按 `user_id` 查询列表。
+- 按 `user_id` 统计数量。
+- 更新详情字段。
+
+### 当前主要问题
+
+- `OwnedGameServiceImpl` 当前在 `steam-login`，模块边界不理想，但第一阶段可以先不移动。
+- `/fetch?steamId=&apiKey=` 暴露敏感参数，应限制或删除。
+- 返回实体包含内部字段，建议第一阶段先通过 DTO 收敛。
+- `updateDetails()` 只按 `appid` 更新，后续多用户会串数据。
+- `listMissingDetails()` 扫全表，后续数据量大时有风险。
+- 后台详情补全使用裸 `CompletableFuture.runAsync()`，不受 Spring 管理。
+- 没有端到端验收记录。
+
+## 三、第一阶段架构边界
+
+第一阶段接受当前聚合启动方式：
+
+```text
+vue
+  -> steam-launcher
+       -> steam-login
+       -> steam-api
+       -> steam-common
+```
+
+第一阶段明确：
+
+- `steam-launcher` 是唯一正式启动入口。
+- `steam-api` 单独启动不作为验收目标。
+- `steam-admin` 暂不参与核心闭环。
+- `steam-test` 暂不处理，第二阶段再迁移或删除。
+
+## 四、开发步骤
+
+### Step 1. 固定 steam-launcher 为唯一启动入口
+
+目标：
+
+- 开发和验收都通过 `steam-launcher` 启动后端。
+- 避免纠结 `steam-api` 单独启动时 Bean 不完整的问题。
+
+涉及文件：
+
+```text
+Build.bat
+steam-launcher/src/main/java/com/SteamGame/steamLauncher/SteamLauncherApplication.java
+steam-launcher/src/main/resources/application.yaml
+Readme.md
+docs/DevList.md
+```
+
+实现内容：
+
+- 确认 `Build.bat` 启动的是：
+
+```text
+steam-launcher/target/steam-launcher-0.0.1.jar
+```
+
+- 保持 `SteamLauncherApplication` 中：
 
 ```java
 @ComponentScan("com.SteamGame")
 @MapperScan("com.SteamGame.api.mapper")
 ```
 
-### Step 2. 配置项目自带 H2 文件数据库
+- 在 `Readme.md` 中补充启动方式：
 
-目标：部署时默认使用 H2 文件数据库，让项目开箱即用，不要求用户安装或配置 MySQL。
-
-建议新增或调整配置文件：
-
-```text
-steam-api/src/main/resources/application-local.yml
+```bash
+steam-api\mvnw.cmd -f pom.xml -DskipTests package
+java -Dfile.encoding=UTF-8 -jar steam-launcher\target\steam-launcher-0.0.1.jar
 ```
 
-推荐配置：
+验收：
+
+- 后端启动后监听 `8080`。
+- `GET /api/ownedgames/count` 能返回 JSON。
+
+### Step 2. 确认 H2 数据库配置稳定
+
+目标：
+
+- 项目开箱即用，不依赖用户安装 MySQL。
+- H2 数据库文件固定保存到项目 `data` 目录。
+
+涉及文件：
+
+```text
+steam-launcher/src/main/resources/application.yaml
+steam-api/src/main/resources/application.yml
+steam-api/src/main/resources/application-local.yml
+steam-api/src/main/resources/schema.sql
+```
+
+实现内容：
+
+- 第一阶段主配置以 `steam-launcher/src/main/resources/application.yaml` 为准。
+- 配置：
 
 ```yaml
 spring:
   datasource:
-    url: jdbc:h2:file:./data/steamdb;MODE=MySQL;DATABASE_TO_UPPER=false;AUTO_SERVER=TRUE
+    url: jdbc:h2:file:./data/steamdb;DATABASE_TO_UPPER=false;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
   sql:
     init:
       mode: always
-  h2:
-    console:
-      enabled: false
 ```
 
-建议将默认 profile 从 `dev` 调整为 `local`：
+- 保留 `schema.sql` 自动建表。
+- 确认启动时 `data` 目录存在。
 
-```yaml
-spring:
-  profiles:
-    active: local
-```
+验收：
 
-说明：
+- 首次启动能自动创建 `data/steamdb.mv.db`。
+- `owned_game` 表存在。
 
-- `jdbc:h2:file` 表示使用文件数据库，应用重启后数据不会丢失。
-- `./data/steamdb` 会在运行目录下生成数据库文件。
-- `MODE=MySQL` 用于提高 H2 对 MySQL 语法的兼容性。
-- `DATABASE_TO_UPPER=false` 避免 H2 自动将表名和字段名转成大写。
-- `AUTO_SERVER=TRUE` 允许本机多进程短暂访问同一数据库文件。
-- 部署包只需要携带应用本身，数据库文件可在首次启动时自动创建。
+### Step 3. 收敛 Owned Games 返回 DTO
 
-### Step 3. 使用 schema.sql 自动建表
+目标：
 
-目标：由 Spring Boot 在启动时初始化数据库结构，避免在 Mapper 中执行 `CREATE TABLE`。
+- `/api/ownedgames/list` 和 `/sync` 返回字段严格匹配 `docs/Api.md`。
+- 不直接返回数据库实体内部字段。
 
-建议新增：
+新增文件：
 
 ```text
-steam-api/src/main/resources/schema.sql
+steam-api/src/main/java/com/SteamGame/api/dto/OwnedGameDTO.java
+steam-api/src/main/java/com/SteamGame/api/dto/OwnedGameDtoConverter.java
+steam-api/src/main/java/com/SteamGame/api/dto/OwnedGameCountDTO.java
 ```
 
-内容：
+`OwnedGameDTO` 实现字段：
 
-```sql
-CREATE TABLE IF NOT EXISTS owned_game (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id VARCHAR(64) NOT NULL DEFAULT 'default',
-  steam_id VARCHAR(32) NOT NULL,
-  appid BIGINT NOT NULL,
-  name VARCHAR(512),
-  playtime_forever INT NOT NULL DEFAULT 0,
-  last_synced_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT uk_owned_game_user_app UNIQUE (user_id, appid)
+```java
+private Long appid;
+private String name;
+private Integer playtimeForever;
+private String developer;
+private String publisher;
+private String releaseDate;
+private String tags;
+```
+
+`OwnedGameCountDTO` 实现字段：
+
+```java
+private int count;
+```
+
+`OwnedGameDtoConverter` 实现方法：
+
+```java
+public OwnedGameDTO toDto(OwnedGame game)
+public List<OwnedGameDTO> toDtoList(List<OwnedGame> games)
+```
+
+修改文件：
+
+```text
+steam-api/src/main/java/com/SteamGame/api/controller/OwnedGamesController.java
+```
+
+修改内容：
+
+- `/sync` 返回 `ApiResponse<List<OwnedGameDTO>>`。
+- `/list` 返回 `ApiResponse<List<OwnedGameDTO>>`。
+- `/count` 返回 `ApiResponse<OwnedGameCountDTO>` 或继续返回 `Map.of("count", count)`，二者前端都兼容；推荐使用 DTO。
+
+验收：
+
+- `/api/ownedgames/list` 不再返回 `id`、`userId`、`steamId`、`createdAt`、`updatedAt`。
+- 前端游戏列表仍能正常渲染。
+
+### Step 4. 限制或删除 `/fetch` 调试接口
+
+目标：
+
+- 避免通过 URL 传递 Steam API Key。
+
+涉及文件：
+
+```text
+steam-api/src/main/java/com/SteamGame/api/controller/OwnedGamesController.java
+```
+
+推荐实现：
+
+- 第一阶段直接删除 `fetchAndList()`。
+
+可接受实现：
+
+- 加 `@Profile("dev")`。
+- 日志中不能打印包含 API Key 的完整 URL。
+
+验收：
+
+- 默认启动时 `/api/ownedgames/fetch` 不作为正式接口使用。
+- 前端不依赖该接口。
+
+### Step 5. 修正 SteamApiClient 日志和 userId 职责
+
+目标：
+
+- Steam Client 只负责请求和解析，不负责用户归属。
+- 日志不泄露 API Key。
+
+涉及文件：
+
+```text
+steam-api/src/main/java/com/SteamGame/api/client/impl/SteamApiClientImpl.java
+```
+
+实现内容：
+
+- 不打印完整 Steam URL，至少不要打印 `key` 参数。
+- `parseGamesFromJson()` 不再固定：
+
+```java
+game.setUserId("default");
+```
+
+- `userId` 由业务服务统一设置。
+- HTTP 非 200 时记录状态码，并返回明确异常或空列表策略。
+
+验收：
+
+- 日志中搜索不到明文 API Key。
+- 同步后 `owned_game.user_id` 仍正确写入 `default`。
+
+### Step 6. 修正 OwnedGameServiceImpl 的用户赋值
+
+目标：
+
+- 第一阶段不移动文件，但修正业务行为。
+
+当前文件：
+
+```text
+steam-login/src/main/java/com/SteamGame/login/service/impl/OwnedGameServiceImpl.java
+```
+
+实现内容：
+
+- 在 `syncOwnedGames(String userId)` 中统一设置：
+
+```java
+game.setUserId(uid);
+game.setSteamId(credential.getSteamId());
+game.setLastSyncedAt(now);
+```
+
+- Steam API 失败时保留当前策略：
+
+```text
+返回本地已有数据，不清空数据库
+```
+
+- 无有效凭据时推荐抛出明确异常；若暂不引入统一异常，至少返回空列表并在 Controller msg 中体现原因。
+
+验收：
+
+- 同步写入的记录 `user_id = default`。
+- 重复同步不新增重复记录。
+
+### Step 7. 修正详情补全的 userId 维度
+
+目标：
+
+- 防止未来多用户时详情更新串数据。
+
+涉及文件：
+
+```text
+steam-api/src/main/java/com/SteamGame/api/mapper/OwnedGameMapper.java
+steam-login/src/main/java/com/SteamGame/login/service/impl/OwnedGameServiceImpl.java
+```
+
+修改 Mapper：
+
+```java
+List<OwnedGame> listMissingDetailsByUserId(String userId, int limit);
+
+void updateDetails(
+    String userId,
+    Long appid,
+    String developer,
+    String publisher,
+    String releaseDate,
+    String tags
 );
 ```
 
-处理建议：
+SQL 要求：
 
-- 删除或废弃 `OwnedGameMapper.createTableIfNotExists()`。
-- 删除或废弃 `OwnedGameMapper.countTable()`。
-- 表结构统一交给 `schema.sql` 或后续迁移工具维护。
-
-### Step 4. 抽出 Steam API 客户端
-
-目标：让 Steam 请求逻辑只负责网络请求和响应解析，不负责落库。
-
-建议新增或改造：
-
-```java
-public interface SteamApiClient {
-    List<OwnedGame> fetchOwnedGames(String steamId, String apiKey);
-}
+```sql
+WHERE user_id = #{userId}
+  AND appid = #{appid}
 ```
 
-实现逻辑：
+修改 Service：
 
-- 请求地址：`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/`
-- 请求参数：
-  - `key`
-  - `steamid`
-  - `include_appinfo=1`
-  - `include_played_free_games=1`
-  - `format=json`
-- 解析路径：`response.games`
-- 字段映射：
-  - `appid` -> `appid`
-  - `name` -> `name`
-  - `playtime_forever` -> `playtimeForever`
+- `triggerBackgroundDetailsFetch()` 接收 `userId`。
+- 只补全当前用户缺失详情。
+- 设置 limit，例如 `100`。
 
-### Step 5. 增加凭证提供服务
+验收：
 
-目标：后端内部获取 `steamId` 和解密后的 `apiKey`，避免前端传敏感信息。
+- `updateDetails` 不再只按 `appid` 更新。
+- `listMissingDetails` 不再扫全表。
 
-建议新增：
+### Step 8. 让详情补全任务可控
 
-```java
-public interface CredentialProvider {
-    SteamCredential getCurrentCredential(String userId);
-}
-```
+目标：
 
-```java
-public class SteamCredential {
-    private String userId;
-    private String steamId;
-    private String apiKey;
-}
-```
+- 第一阶段可以不完整重构线程池，但要避免重复无限任务和扫全表。
 
-实现来源：
-
-- 优先读取内存会话凭证。
-- 其次读取 `auth.yaml`，用现有 `CredentialKeyService` 和 `CryptoUtil.decrypt()` 解密。
-
-注意事项：
-
-- 当前 `rememberMe=false` 分支没有保存真实 apiKey，只保存空字符串。
-- 若要支持非持久化凭证同步游戏库，需要将内存会话改成保存加密 apiKey 和 iv。
-- MVP 阶段可先要求 `rememberMe=true`，从 `auth.yaml` 解密获取 apiKey。
-
-### Step 6. 新增 OwnedGameService
-
-目标：承接完整业务流程。
-
-建议接口：
-
-```java
-public interface OwnedGameService {
-    List<OwnedGame> syncOwnedGames(String userId);
-    List<OwnedGame> listOwnedGames(String userId);
-    int countOwnedGames(String userId);
-}
-```
-
-`syncOwnedGames()` 流程：
+涉及文件：
 
 ```text
-读取当前用户凭证
--> 校验 steamId/apiKey 是否存在
--> 调用 SteamApiClient.fetchOwnedGames()
--> 对返回游戏列表执行批量 upsert
--> 查询数据库最新列表
--> 返回给 Controller
+steam-login/src/main/java/com/SteamGame/login/service/impl/OwnedGameServiceImpl.java
 ```
 
-### Step 7. 改造 OwnedGameMapper
+实现内容：
 
-目标：支持用户维度查询、统计、upsert。
+- 保留 `AtomicBoolean isFetchingDetails`。
+- `triggerBackgroundDetailsFetch(userId)` 每次只处理有限数量。
+- 每个 appdetails 请求之间保留延迟。
+- 捕获异常，不影响 `/sync` 主链路。
 
-建议方法：
+可选新增文件：
 
-```java
-List<OwnedGame> listByUserId(String userId);
-
-int countByUserId(String userId);
-
-void upsert(OwnedGame game);
-
-void batchUpsert(List<OwnedGame> games);
+```text
+steam-api/src/main/java/com/SteamGame/api/config/GameTaskConfig.java
 ```
 
-默认 H2 文件数据库推荐使用 `MERGE INTO` 或先查后写。
+如果第一阶段有时间，可引入 Spring `ThreadPoolTaskExecutor`；如果时间紧，留到 `OptimizeList.md`。
 
-H2 兼容方案：
+验收：
 
-```sql
-MERGE INTO owned_game (
-  user_id,
-  steam_id,
-  appid,
-  name,
-  playtime_forever,
-  last_synced_at
-)
-KEY (user_id, appid)
-VALUES (?, ?, ?, ?, ?, ?);
+- 同步接口不会因为详情补全阻塞过久。
+- 详情补全失败不影响基础游戏列表展示。
+
+### Step 9. 明确 `/sync` 第一阶段响应策略
+
+目标：
+
+- 统一文档和实际行为。
+
+涉及文件：
+
+```text
+docs/Api.md
+docs/DevList.md
+vue/src/components/SyncModal.vue
+vue/src/views/Dashboard/Settings.vue
 ```
 
-如果启用 MySQL profile，可使用：
+第一阶段策略：
 
-```sql
-INSERT INTO owned_game(user_id, steam_id, appid, name, playtime_forever, last_synced_at)
-VALUES(?, ?, ?, ?, ?, ?)
-ON DUPLICATE KEY UPDATE
-  steam_id = VALUES(steam_id),
-  name = VALUES(name),
-  playtime_forever = VALUES(playtime_forever),
-  last_synced_at = VALUES(last_synced_at),
-  updated_at = CURRENT_TIMESTAMP;
+- `/sync` 必须同步基础游戏库。
+- `/sync` 返回同步后的本地列表。
+- `developer`、`publisher`、`releaseDate`、`tags` 允许为空。
+- 详情字段由后台任务补全。
+- 前端继续显示 `Unknown`。
+
+验收：
+
+- 文档说明详情可能异步补全。
+- 前端不因详情为空报错。
+
+### Step 10. 端到端验收
+
+目标：
+
+- 证明第一阶段真的可用。
+
+前置条件：
+
+- `auth.yaml` 中存在有效 `steamId` 和加密后的 API Key。
+
+构建：
+
+```bash
+steam-api\mvnw.cmd -f pom.xml -DskipTests package
 ```
 
-### Step 8. 改造 OwnedGamesController
+启动后端：
 
-目标：移除正式链路中需要前端传 `apiKey` 的接口。
-
-建议接口：
-
-```java
-@PostMapping("/sync")
-public ApiResponse<List<OwnedGameDTO>> sync()
-
-@GetMapping("/list")
-public ApiResponse<List<OwnedGameDTO>> list()
-
-@GetMapping("/count")
-public ApiResponse<Map<String, Integer>> count()
+```bash
+java -Dfile.encoding=UTF-8 -jar steam-launcher\target\steam-launcher-0.0.1.jar
 ```
 
-处理建议：
+启动前端：
 
-- `/sync`：从 Steam 同步，写入数据库，返回最新列表。
-- `/list`：只读数据库。
-- `/count`：只统计数据库。
-- 原 `/fetch?steamId=&apiKey=` 可以保留为开发调试接口，但不要给前端正式使用。
-
-### Step 9. 统一响应结构
-
-目标：和 `docs/api.md` 保持一致。
-
-推荐将 `ApiResponse<T>` 放到 `steam-common`，供 `steam-login` 和 `steam-api` 共用。
-
-结构：
-
-```java
-public class ApiResponse<T> {
-    private int code;
-    private String msg;
-    private T data;
-}
+```bash
+cd vue
+npm run dev
 ```
 
-成功示例：
+接口验收：
 
-```json
-{
-  "code": 200,
-  "msg": "success",
-  "data": {}
-}
+```bash
+curl -X POST http://localhost:8080/api/ownedgames/sync
+curl http://localhost:8080/api/ownedgames/list
+curl http://localhost:8080/api/ownedgames/count
 ```
 
-错误示例：
+前端验收：
 
-```json
-{
-  "code": 401,
-  "msg": "未授权或 Token 已过期",
-  "data": null
-}
+- Dashboard `04_INVENTORY` 显示真实游戏数量。
+- 游戏列表页显示真实游戏。
+- 设置页手动同步可用。
+
+### Step 11. 补充第一阶段最小测试
+
+目标：
+
+- 不追求完整测试体系，但覆盖最容易回归的点。
+
+新增测试：
+
+```text
+steam-api/src/test/java/com/SteamGame/api/client/SteamApiClientImplTest.java
+steam-api/src/test/java/com/SteamGame/api/mapper/OwnedGameMapperTest.java
+steam-launcher/src/test/java/com/SteamGame/steamLauncher/SteamLauncherApplicationTests.java
 ```
 
-### Step 10. 前端适配
+测试内容：
 
-当前 `getOwnedGames()` 已兼容包装格式和直接数组格式，暂时可不改。
+- Steam JSON 能解析出 `appid/name/playtime_forever`。
+- 同一 `user_id + appid` upsert 不重复。
+- `updateDetails` 必须带 `user_id`。
+- Spring context 能启动。
 
-当前 `getGamesCount()` 需要兼容文档中的包装格式：
+验收：
 
-```ts
-return response.data?.data?.count ?? response.data?.count ?? 0;
+```bash
+steam-api\mvnw.cmd -f pom.xml test
 ```
 
-建议新增同步调用：
+通过或至少记录无法通过的原因。
 
-```ts
-export async function syncOwnedGames(): Promise<OwnedGame[]> {
-  const response = await http.post("/ownedgames/sync");
-  const list = response.data?.data ?? response.data ?? [];
-  return list.map(toOwnedGame);
-}
+## 五、第一阶段完成标准
+
+满足以下条件后，才进入 `docs/OptimizeList.md`：
+
+- `steam-launcher` 能启动完整后端。
+- 前端能完成 Steam 凭据配置。
+- `POST /api/ownedgames/sync` 能从 Steam 拉取游戏。
+- 游戏能写入 H2 `owned_game` 表。
+- `GET /api/ownedgames/list` 能返回本地游戏列表。
+- `GET /api/ownedgames/count` 能返回本地游戏数量。
+- 前端 Dashboard 和游戏列表页能展示真实数据。
+- 返回给前端的是 DTO，不暴露实体内部字段。
+- 日志不输出明文 API Key。
+- 默认正式接口不暴露 `/fetch?apiKey=`。
+- 重复同步不产生重复记录。
+- 详情字段为空时前端正常显示。
+- Steam API 失败时本地已有数据不被清空。
+
+## 六、进入 OptimizeList 前的保留问题
+
+以下问题第一阶段可以不彻底解决，但必须记录，进入 `OptimizeList.md`：
+
+- `OwnedGameServiceImpl` 仍在 `steam-login`，需要迁回 `steam-api`。
+- `CredentialProvider` 和 `SteamCredential` 仍可能在 `steam-api`，需要下沉到 `steam-common`。
+- `steam-login` 对 `steam-api` 的依赖需要解除。
+- `steam-admin` 需要修正包名和职责。
+- `steam-launcher` 需要简化为纯启动模块。
+- 重复 `ApiResponse` 需要统一。
+- 旧启动类需要清理。
+- `steam-test` 需要迁移有价值测试后删除。
+- 详情补全任务需要改为 Spring 管理线程池。
+- 需要建立完整单元测试和集成测试体系。
+
+## 七、与 OptimizeList 的关系
+
+`DevList.md` 是第一阶段：
+
+```text
+目标：当前项目可运行、可同步、可展示
+策略：少改模块结构，优先闭环
 ```
 
-## 异常处理清单
+`OptimizeList.md` 是第二阶段：
 
-- 未配置 Steam 凭证：返回 `401` 或业务码 `CONFIG_NOT_FOUND`。
-- apiKey 解密失败：返回 `500` 或业务码 `DECRYPT_FAILED`。
-- Steam API 超时：返回 `503` 或业务码 `STEAM_API_TIMEOUT`。
-- Steam API 返回非 200：返回 `503` 或业务码 `STEAM_API_UNAVAILABLE`。
-- 玩家资料私密或无游戏：返回空列表，并给出明确 `msg`。
-- 数据库写入失败：返回 `500`，日志记录 appid 和 userId。
-- Steam 返回列表为空：允许保存同步时间，并返回空数组。
+```text
+目标：调整到最推荐长期架构
+策略：重构模块边界，统一 common，建设 admin，清理历史代码
+```
 
-## MVP 开发优先级
-
-1. 统一 Spring Boot 启动入口和扫描范围。
-2. 配置默认 `local` profile，使用 H2 文件数据库作为项目自带数据库。
-3. 新增 `schema.sql`，应用启动时自动创建 `owned_game` 表。
-4. 新增 `CredentialProvider`，从 `auth.yaml` 解密获得 `steamId/apiKey`。
-5. 抽出 `SteamApiClient.fetchOwnedGames()`。
-6. 实现 `OwnedGameService.syncOwnedGames()`。
-7. 实现 `POST /api/ownedgames/sync`，完成同步后返回前端。
-8. 实现 `GET /api/ownedgames/list`。
-9. 实现 `GET /api/ownedgames/count`。
-10. 前端调整 `getGamesCount()` 包装格式读取。
-11. 增加基本测试：Steam 响应解析、Mapper upsert、Controller 返回格式。
-
-## 验收标准
-
-- 配置 Steam 凭证后，后端可以不依赖前端传 `apiKey` 调用 Steam。
-- 调用 `POST /api/ownedgames/sync` 后，本地数据库写入玩家游戏列表。
-- 同步接口返回最新游戏列表。
-- 调用 `GET /api/ownedgames/list` 能从本地数据库返回游戏列表。
-- 调用 `GET /api/ownedgames/count` 能返回本地数据库中的游戏数量。
-- 前端 Dashboard 和游戏列表页面能正常显示真实数据。
-- 重复同步同一个游戏不会产生重复记录。
-- Steam API 不可用时不会清空本地已有数据。
-- 默认部署不需要安装或配置 MySQL，首次启动会自动创建 H2 数据库文件和表结构。
+不要跳过 `DevList.md` 直接执行 `OptimizeList.md`。否则容易在基础闭环尚未稳定时引入大量模块迁移风险。
