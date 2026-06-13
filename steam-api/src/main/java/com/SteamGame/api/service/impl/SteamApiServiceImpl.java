@@ -123,33 +123,22 @@ public class SteamApiServiceImpl implements SteamApiService {
 			return null;
 
 		try {
-			// 确保表存在
-			try {
-				Integer cnt = ownedGameMapper.countTable();
-				if (cnt == null || cnt == 0) {
-					ownedGameMapper.createTableIfNotExists();
-				}
-			} catch (Exception ignore) {
-				// 某些数据库可能不支持 INFORMATION_SCHEMA 查询，上面方法已经尽力检查
-				try {
-					ownedGameMapper.createTableIfNotExists();
-				} catch (Exception e) {
-					logger.warn("无法创建或确认 owned_game 表: {}", e.getMessage());
-				}
-			}
-
 			JsonNode root = objectMapper.readTree(body);
 			// 响应结构：{ response: { games: [ { appid, name, playtime_forever }, ... ] } }
 			JsonNode responseNode = root.path("response");
 			JsonNode gamesNode = responseNode.path("games");
+			java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
 			if (gamesNode.isArray()) {
 				Iterator<JsonNode> it = gamesNode.elements();
 				while (it.hasNext()) {
 					JsonNode g = it.next();
 					OwnedGame game = new OwnedGame();
+					game.setUserId("default");
+					game.setSteamId(steamId);
 					game.setAppid(g.path("appid").asLong());
 					game.setName(g.path("name").asText(null));
 					game.setPlaytimeForever(g.path("playtime_forever").asInt(0));
+					game.setLastSyncedAt(now);
 					try {
 						// 检查是否已存在该 appid
 						java.util.List<OwnedGame> existing = ownedGameMapper.findByAppid(game.getAppid());

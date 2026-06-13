@@ -11,25 +11,25 @@ import java.util.List;
 @Mapper
 public interface OwnedGameMapper {
 
-    @Insert("INSERT INTO owned_game(appid, name, playtime_forever) VALUES(#{appid}, #{name}, #{playtimeForever})")
+    @Insert("INSERT INTO owned_game(user_id, steam_id, appid, name, playtime_forever, last_synced_at) " +
+            "VALUES(#{userId}, #{steamId}, #{appid}, #{name}, #{playtimeForever}, #{lastSyncedAt})")
     void insert(OwnedGame game);
 
-    // 用于检查表是否存在
-    @Select("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'OWNED_GAME'")
-    Integer countTable();
-
-    // 创建表
-    @Insert("CREATE TABLE IF NOT EXISTS owned_game( id BIGINT AUTO_INCREMENT PRIMARY KEY, appid BIGINT, name VARCHAR(512), playtime_forever INT )")
-    void createTableIfNotExists();
-
     // 根据 appid 查询游戏
-    @Select("SELECT id, appid, name, playtime_forever AS playtimeForever FROM owned_game WHERE appid = #{appid}")
+    @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
+            "playtime_forever AS playtimeForever, last_synced_at AS lastSyncedAt, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM owned_game WHERE appid = #{appid}")
     List<OwnedGame> findByAppid(@Param("appid") Long appid);
 
     // 根据 appid 更新游戏记录
-    @org.apache.ibatis.annotations.Update("UPDATE owned_game SET name = #{name}, playtime_forever = #{playtimeForever} WHERE appid = #{appid}")
+    @org.apache.ibatis.annotations.Update("UPDATE owned_game SET name = #{name}, " +
+            "playtime_forever = #{playtimeForever}, last_synced_at = #{lastSyncedAt}, " +
+            "updated_at = CURRENT_TIMESTAMP WHERE appid = #{appid}")
     void updateByAppid(OwnedGame game);
 
-    @Select("SELECT id, appid, name, playtime_forever AS playtimeForever FROM owned_game")
+    @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
+            "playtime_forever AS playtimeForever, last_synced_at AS lastSyncedAt, " +
+            "created_at AS createdAt, updated_at AS updatedAt FROM owned_game")
     List<OwnedGame> listAll();
 }
