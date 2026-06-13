@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import jakarta.annotation.PostConstruct;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * OwnedGameService 默认实现 —— 编排凭证获取、Steam 同步、数据库持久化。
@@ -71,6 +74,9 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         }
         logger.info("同步完成 — userId={}, 获取 {} 款游戏, 成功 upsert {} 款", uid, games.size(), savedCount);
 
+        // 异步触发后台拉取开发商和发行商真实数据
+        triggerBackgroundDetailsFetch();
+
         // 4) 返回数据库最新列表
         return listOwnedGames(uid);
     }
@@ -87,5 +93,51 @@ public class OwnedGameServiceImpl implements OwnedGameService {
 
     private String userIdOrDefault(String userId) {
         return userId != null && !userId.isEmpty() ? userId : "default";
+    }
+
+    private final AtomicBoolean isFetchingDetails = new AtomicBoolean(false);
+
+    @PostConstruct
+    public void init() {
+        // 项目启动时自动触发后台拉取缺失的开发商/发行商数据
+        triggerBackgroundDetailsFetch();
+    }
+
+    private void triggerBackgroundDetailsFetch() {
+        if (isFetchingDetails.compareAndSet(false, true)) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    logger.info("开始后台拉取游戏详细信息（开发商/发行商）...");
+                    List<OwnedGame> missing = ownedGameMapper.listMissingDetails();
+                    logger.info("发现 {} 款游戏缺失详细信息", missing.size());
+                    for (OwnedGame game : missing) {
+                        try {
+                            steamApiClient.fillGameDetails(game);
+                            if (game.getDeveloper() != null || game.getPublisher() != null) {
+                                ownedGameMapper.updateDetails(
+                                    game.getAppid(), 
+                                    game.getDeveloper(), 
+                                    game.getPublisher(),
+                                    game.getReleaseDate(),
+                                    game.getTags()
+                                );
+                                logger.info("成功更新游戏 (appid={}) 的开发商为 [{}]，发行商为 [{}]",
+                                        game.getAppid(), game.getDeveloper(), game.getPublisher());
+                            }
+                            // 每次请求后休眠 1.5 秒，防频率限制
+                            Thread.sleep(1500);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        } catch (Exception e) {
+                            logger.warn("拉取游戏详情失败 (appid={}): {}", game.getAppid(), e.getMessage());
+                        }
+                    }
+                } finally {
+                    isFetchingDetails.set(false);
+                    logger.info("后台游戏详细信息拉取任务结束。");
+                }
+            });
+        }
     }
 }

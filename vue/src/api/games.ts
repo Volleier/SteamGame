@@ -8,19 +8,35 @@ export interface OwnedGameDTO {
   appid: number;
   name: string;
   playtimeForever: number;
+  developer?: string;
+  publisher?: string;
+  releaseDate?: string;
+  tags?: string;
 }
 
 export interface OwnedGame {
   app_id: number;
   app_name: string;
   app_time: number; // 小时
+  developer?: string;
+  publisher?: string;
+  release_date?: string;
+  tags?: string[];
 }
 
 export function toOwnedGame(dto: OwnedGameDTO): OwnedGame {
+  let tagsArray: string[] = [];
+  if (dto.tags) {
+    tagsArray = dto.tags.split(',').map(t => t.trim()).filter(Boolean);
+  }
   return {
     app_id: dto.appid,
     app_name: dto.name,
     app_time: Number(((dto.playtimeForever || 0) / 60).toFixed(2)),
+    developer: dto.developer,
+    publisher: dto.publisher,
+    release_date: dto.releaseDate,
+    tags: tagsArray,
   };
 }
 

@@ -20,4 +20,11 @@ public interface SteamApiClient {
      * @throws InterruptedException 线程中断
      */
     List<OwnedGame> fetchOwnedGames(String steamId, String apiKey) throws IOException, InterruptedException;
+
+    /**
+     * 调用 Steam store API 获取游戏的开发商和发行商等详细信息。
+     *
+     * @param game 游戏对象，将被填充属性
+     */
+    void fillGameDetails(OwnedGame game);
 }

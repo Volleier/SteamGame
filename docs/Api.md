@@ -122,6 +122,51 @@
 | `name` | `String` | 游戏的 Steam 名称 |
 | `playtimeForever` | `Number` | 总游戏时长，单位为分钟。前端会自动除以 60 折算为小时并保留两位小数 |
 
+## 同步用户游戏库
+
+强制同步当前用户的 Steam 游戏库。后端将连接 Steam 官方 API，拉取最新的游戏信息和游玩时间，将其写入数据库更新，并返回同步后的完整游戏列表。
+
+**接口地址**：`/api/ownedgames/sync`
+
+**请求方法**：`POST`
+
+### 请求参数
+
+无。
+
+### 响应格式
+
+成功状态下，后端应返回包含同步后最新游戏列表的标准包装格式：
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": [
+    {
+      "appid": 359550,
+      "name": "Tom Clancy's Rainbow Six Siege",
+      "playtimeForever": 3840
+    },
+    {
+      "appid": 730,
+      "name": "Counter-Strike 2",
+      "playtimeForever": 12845
+    }
+  ]
+}
+```
+
+### 字段说明
+
+字段与“获取用户拥有的游戏列表”接口一致：
+
+| 字段名 | 类型 | 说明 |
+| :--- | :--- | :--- |
+| `appid` | `Number` | 游戏的 Steam AppID |
+| `name` | `String` | 游戏的 Steam 名称 |
+| `playtimeForever` | `Number` | 总游戏时长，单位为分钟。前端会自动除以 60 折算为小时并保留两位小数 |
+
 ## 前端调用说明
 
 前端已在 `src/api/games.ts` 中声明以下方法：
@@ -130,3 +175,5 @@
 | :--- | :--- | :--- |
 | `getGamesCount()` | `/api/ownedgames/count` | 获取玩家游戏总数。在后端实现前，前端会暂时使用 mock 数据展示 |
 | `getOwnedGames()` | `/api/ownedgames/list` | 获取玩家游戏列表，并兼容标准包装格式和直接数组格式 |
+| `syncOwnedGames()` | `/api/ownedgames/sync` | 触发游戏库同步，并返回同步后的游戏列表 |
+

@@ -4,6 +4,7 @@ import TheSidebar from '@/components/TheSidebar.vue'
 import TheFooter from '@/components/TheFooter.vue'
 import MainPage from '@/views/Dashboard/MainPage.vue'
 import GameList from '@/views/Dashboard/GameList.vue'
+import Settings from '@/views/Dashboard/Settings.vue'
 
 export default {
   name: "Dashboard",
@@ -13,6 +14,7 @@ export default {
     TheFooter,
     MainPage,
     GameList,
+    Settings,
   },
   data() {
     return {
@@ -65,6 +67,10 @@ export default {
 
           <div v-else-if="currentView === 'games'" key="games" class="view-content flex-1 h-full flex flex-col relative pt-12">
             <GameList />
+          </div>
+
+          <div v-else-if="currentView === 'settings'" key="settings" class="view-content flex-1 h-full flex flex-col relative pt-12">
+            <Settings />
           </div>
         </transition>
       </main>

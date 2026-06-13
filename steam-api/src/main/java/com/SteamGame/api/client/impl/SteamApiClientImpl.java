@@ -122,4 +122,70 @@ public class SteamApiClientImpl implements SteamApiClient {
             return s;
         }
     }
+
+    @Override
+    public void fillGameDetails(OwnedGame game) {
+        String url = String.format("https://store.steampowered.com/api/appdetails?appids=%d&l=zh-cn", game.getAppid());
+        logger.info("SteamApiClient: calling store appdetails: {}", url);
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .timeout(Duration.ofSeconds(6))
+                    .build();
+            HttpResponse<String> resp = client.send(req, BodyHandlers.ofString());
+            if (resp.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(resp.body());
+                JsonNode appNode = root.path(String.valueOf(game.getAppid()));
+                if (appNode.path("success").asBoolean()) {
+                    JsonNode dataNode = appNode.path("data");
+                    
+                    // 解析 developers
+                    JsonNode devs = dataNode.path("developers");
+                    if (devs.isArray() && devs.size() > 0) {
+                        game.setDeveloper(devs.get(0).asText());
+                    }
+                    
+                    // 解析 publishers
+                    JsonNode pubs = dataNode.path("publishers");
+                    if (pubs.isArray() && pubs.size() > 0) {
+                        game.setPublisher(pubs.get(0).asText());
+                    }
+
+                    // 解析 release_date
+                    JsonNode relDateNode = dataNode.path("release_date");
+                    if (relDateNode.isObject()) {
+                        game.setReleaseDate(relDateNode.path("date").asText());
+                    }
+
+                    // 解析 categories 和 genres 作为 tags 逗号拼接存入
+                    java.util.List<String> tagList = new java.util.ArrayList<>();
+                    JsonNode categories = dataNode.path("categories");
+                    if (categories.isArray()) {
+                        for (JsonNode cat : categories) {
+                            String desc = cat.path("description").asText();
+                            if (!desc.isEmpty()) {
+                                tagList.add(desc);
+                            }
+                        }
+                    }
+                    JsonNode genres = dataNode.path("genres");
+                    if (genres.isArray()) {
+                        for (JsonNode gen : genres) {
+                            String desc = gen.path("description").asText();
+                            if (!desc.isEmpty() && !tagList.contains(desc)) {
+                                tagList.add(desc);
+                            }
+                        }
+                    }
+                    if (!tagList.isEmpty()) {
+                        game.setTags(String.join(",", tagList));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to fetch game details for appid {}: {}", game.getAppid(), e.getMessage());
+        }
+    }
 }
