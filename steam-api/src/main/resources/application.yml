@@ -1,6 +1,3 @@
-spring:
-  profiles:
-    active: local
-
-# 默认 profile 为 local，使用 H2 文件数据库开箱即用
-# 可选 profile：dev（开发调试）
+# steam-api 模块默认配置
+# 运行时的主配置以 steam-launcher/src/main/resources/application.yaml 为准
+# 本文件仅作为模块独立测试时的 fallback
