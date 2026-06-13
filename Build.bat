@@ -1,7 +1,7 @@
 @echo off
 
 echo ==== Build backend: Maven ====
-call steam-api\mvnw.cmd -f pom.xml -DskipTests package
+call steam-api\mvnw.cmd -f pom.xml -DskipTests clean package
 if %ERRORLEVEL% NEQ 0 (
   echo Build Failed!
   pause

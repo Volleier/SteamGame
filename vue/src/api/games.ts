@@ -27,7 +27,7 @@ export function toOwnedGame(dto: OwnedGameDTO): OwnedGame {
 /** 获取用户拥有的游戏列表 */
 export async function getOwnedGames(): Promise<OwnedGame[]> {
   const response = await http.get('/ownedgames/list');
-  // 兼容格式：直接返回数组，或包装在 { data: [...] } 内
+  // 兼容标准包装格式 { code, msg, data: [...] } 和直接数组格式
   let list: OwnedGameDTO[] = [];
   if (Array.isArray(response.data)) {
     list = response.data;
@@ -37,14 +37,22 @@ export async function getOwnedGames(): Promise<OwnedGame[]> {
   return list.map(toOwnedGame);
 }
 
-/** 获取用户库容 (游戏总数) */
+/** 获取用户库存 (游戏总数) */
 export async function getGamesCount(): Promise<number> {
   try {
     const response = await http.get('/ownedgames/count');
-    return response.data?.count || 0;
+    // 兼容标准包装格式 { data: { count } } 和直接 { count } 格式
+    return response.data?.data?.count ?? response.data?.count ?? 0;
   } catch (error) {
-    // 降级返回一个默认数字用于前端展示（待后端实现后移除降级）
-    console.warn("Backend API /ownedgames/count not implemented yet. Using mock data.");
-    return 342; 
+    console.warn('获取游戏总数失败:', error);
+    return 0;
   }
+}
+
+/** 触发游戏库同步 (POST /api/ownedgames/sync) */
+export async function syncOwnedGames(): Promise<OwnedGame[]> {
+  const response = await http.post('/ownedgames/sync');
+  // 兼容标准包装格式 { data: [...] } 和直接数组格式
+  const list = response.data?.data ?? response.data ?? [];
+  return (Array.isArray(list) ? list : []).map(toOwnedGame);
 }
