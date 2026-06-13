@@ -47,7 +47,7 @@ public class SteamApiClientImpl implements SteamApiClient {
                 "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=%s&steamid=%s&include_appinfo=1&include_played_free_games=1&format=json",
                 urlEncode(apiKey), urlEncode(steamId));
 
-        logger.info("SteamApiClient: calling GetOwnedGames: {}", apiUrl);
+        logger.info("SteamApiClient: calling GetOwnedGames for steamId={}", steamId);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .GET()
@@ -74,39 +74,42 @@ public class SteamApiClientImpl implements SteamApiClient {
             }
         }
 
-        if (body == null) {
+        if (resp == null || body == null) {
+            logger.error("SteamApiClient: GetOwnedGames failed — no response received");
             return new ArrayList<>();
         }
 
-        return parseGamesFromJson(body, steamId);
+        if (resp.statusCode() != 200) {
+            logger.error("SteamApiClient: GetOwnedGames returned HTTP {} (expected 200)", resp.statusCode());
+            throw new IOException("Steam API returned HTTP " + resp.statusCode());
+        }
+
+        return parseGamesFromJson(body);
     }
 
     /**
      * 从 Steam API 响应 JSON 中解析游戏列表。
+     * 只负责解析 Steam 返回字段 (appid/name/playtime_forever)，
+     * userId、steamId、lastSyncedAt 等归属字段由业务服务统一设置。
      *
-     * @param body    Steam API 原始响应 JSON
-     * @param steamId 请求时使用的 64 位 Steam 用户 ID
-     * @return 解析后的游戏列表
+     * @param body Steam API 原始响应 JSON
+     * @return 解析后的游戏列表（仅含 Steam 原始字段）
      */
-    List<OwnedGame> parseGamesFromJson(String body, String steamId) throws IOException {
+    List<OwnedGame> parseGamesFromJson(String body) throws IOException {
         List<OwnedGame> gameList = new ArrayList<>();
         JsonNode root = objectMapper.readTree(body);
         // 响应结构：{ response: { games: [ { appid, name, playtime_forever }, ... ] } }
         JsonNode responseNode = root.path("response");
         JsonNode gamesNode = responseNode.path("games");
-        java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
 
         if (gamesNode.isArray()) {
             Iterator<JsonNode> it = gamesNode.elements();
             while (it.hasNext()) {
                 JsonNode g = it.next();
                 OwnedGame game = new OwnedGame();
-                game.setUserId("default");
-                game.setSteamId(steamId);
                 game.setAppid(g.path("appid").asLong());
                 game.setName(g.path("name").asText(null));
                 game.setPlaytimeForever(g.path("playtime_forever").asInt(0));
-                game.setLastSyncedAt(now);
                 gameList.add(game);
             }
         }

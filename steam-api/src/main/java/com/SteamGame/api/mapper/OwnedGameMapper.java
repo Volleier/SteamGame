@@ -31,26 +31,28 @@ public interface OwnedGameMapper {
     List<OwnedGame> listByUserId(@Param("userId") String userId);
 
     /**
-     * 更新游戏的开发商、发行商、发行日期和标签。
+     * 更新游戏的开发商、发行商、发行日期和标签 —— 必须带 userId 防止多用户串数据。
      */
     @org.apache.ibatis.annotations.Update(
             "UPDATE owned_game SET developer = #{developer}, publisher = #{publisher}, " +
             "release_date = #{releaseDate}, tags = #{tags} " +
-            "WHERE appid = #{appid}")
-    void updateDetails(@Param("appid") Long appid,
+            "WHERE user_id = #{userId} AND appid = #{appid}")
+    void updateDetails(@Param("userId") String userId,
+                       @Param("appid") Long appid,
                        @Param("developer") String developer,
                        @Param("publisher") String publisher,
                        @Param("releaseDate") String releaseDate,
                        @Param("tags") String tags);
 
     /**
-     * 查询所有开发商或发行商为空的游戏。
+     * 查询指定用户缺失详情的游戏，限制返回数量防止扫全表。
      */
     @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
             "playtime_forever AS playtimeForever, developer, publisher, " +
             "release_date AS releaseDate, tags, last_synced_at AS lastSyncedAt " +
-            "FROM owned_game WHERE developer IS NULL OR publisher IS NULL")
-    List<OwnedGame> listMissingDetails();
+            "FROM owned_game WHERE user_id = #{userId} AND (developer IS NULL OR publisher IS NULL) " +
+            "LIMIT #{limit}")
+    List<OwnedGame> listMissingDetailsByUserId(@Param("userId") String userId, @Param("limit") int limit);
 
     /**
      * 按用户 ID 统计游戏总数。
