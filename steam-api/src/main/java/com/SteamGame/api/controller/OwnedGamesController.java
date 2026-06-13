@@ -5,14 +5,12 @@ import com.SteamGame.api.dto.OwnedGameCountDTO;
 import com.SteamGame.api.dto.OwnedGameDTO;
 import com.SteamGame.api.dto.OwnedGameDtoConverter;
 import com.SteamGame.api.service.OwnedGameService;
-import com.SteamGame.api.service.SteamApiService;
 import com.SteamGame.common.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -24,12 +22,10 @@ public class OwnedGamesController {
     private static final Logger logger = LoggerFactory.getLogger(OwnedGamesController.class);
 
     private final OwnedGameService ownedGameService;
-    private final SteamApiService steamApiService;
     private final OwnedGameDtoConverter converter = new OwnedGameDtoConverter();
 
-    public OwnedGamesController(OwnedGameService ownedGameService, SteamApiService steamApiService) {
+    public OwnedGamesController(OwnedGameService ownedGameService) {
         this.ownedGameService = ownedGameService;
-        this.steamApiService = steamApiService;
     }
 
     /**
@@ -65,18 +61,4 @@ public class OwnedGamesController {
         return ApiResponse.ok(new OwnedGameCountDTO(count));
     }
 
-    /**
-     * [调试] 通过 steamId + apiKey 直接从 Steam 拉取并写入数据库。
-     * 正式链路请使用 POST /sync。
-     */
-    @GetMapping("/fetch")
-    public List<OwnedGame> fetchAndList(@RequestParam String steamId, @RequestParam String apiKey) {
-        try {
-            String body = steamApiService.getOwnedGames(steamId, apiKey);
-            logger.info("Fetched OwnedGames result: {}", body);
-        } catch (Exception e) {
-            logger.warn("Error fetching owned games: {}", e.getMessage());
-        }
-        return ownedGameService.listOwnedGames(null);
-    }
 }
