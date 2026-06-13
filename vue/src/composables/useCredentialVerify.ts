@@ -41,7 +41,7 @@ export function useCredentialVerify() {
 
       if (resp.success) {
         store.commit('setAuthenticated', true);
-        router.push('/dashboard');
+        router.push('/dashboard?initialSync=true');
       } else {
         const code = resp.code;
         errorMessage.value = resp.message || getCredentialMessage(code, `验证失败（code=${code})`);

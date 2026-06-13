@@ -5,6 +5,7 @@ import TheFooter from '@/components/TheFooter.vue'
 import MainPage from '@/views/Dashboard/MainPage.vue'
 import GameList from '@/views/Dashboard/GameList.vue'
 import Settings from '@/views/Dashboard/Settings.vue'
+import SyncModal from '@/components/SyncModal.vue'
 
 export default {
   name: "Dashboard",
@@ -15,6 +16,7 @@ export default {
     MainPage,
     GameList,
     Settings,
+    SyncModal,
   },
   data() {
     return {
@@ -22,6 +24,20 @@ export default {
       currentView: 'dashboard',
       sidebarOpen: false,
       isAppFullscreen: false,
+      showInitialSyncModal: false,
+    }
+  },
+  created() {
+    if (this.$route.query.initialSync === 'true') {
+      this.showInitialSyncModal = true;
+      // 移除 URL 中的 query 参数，避免刷新再次弹出
+      const query = { ...this.$route.query };
+      delete query.initialSync;
+      this.$router.replace({ query }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error(err);
+        }
+      });
     }
   },
   methods: {
@@ -34,6 +50,9 @@ export default {
     },
     toggleAppFullscreen() {
       this.isAppFullscreen = !this.isAppFullscreen;
+    },
+    handleSyncComplete() {
+      this.showInitialSyncModal = false;
     },
   }
 }
@@ -76,6 +95,11 @@ export default {
       </main>
       <TheFooter v-if="currentView !== 'dashboard'" />
     </div>
+
+    <!-- 初始同步弹窗 -->
+    <transition name="fade">
+      <SyncModal v-if="showInitialSyncModal" @sync-complete="handleSyncComplete" />
+    </transition>
   </div>
 </template>
 
