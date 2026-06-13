@@ -59,22 +59,17 @@ public class OwnedGameServiceImpl implements OwnedGameService {
             return listOwnedGames(uid);
         }
 
-        // 3) 将游戏列表 upsert 到本地数据库
+        // 3) 使用 MERGE INTO upsert 写入本地数据库
         int savedCount = 0;
         for (OwnedGame game : games) {
             try {
-                List<OwnedGame> existing = ownedGameMapper.findByAppid(game.getAppid());
-                if (existing != null && !existing.isEmpty()) {
-                    ownedGameMapper.updateByAppid(game);
-                } else {
-                    ownedGameMapper.insert(game);
-                }
+                ownedGameMapper.upsert(game);
                 savedCount++;
             } catch (Exception e) {
-                logger.warn("保存游戏记录失败 (appid={}): {}", game.getAppid(), e.getMessage());
+                logger.warn("upsert 游戏记录失败 (appid={}): {}", game.getAppid(), e.getMessage());
             }
         }
-        logger.info("同步完成 — userId={}, 获取 {} 款游戏, 成功保存 {} 款", uid, games.size(), savedCount);
+        logger.info("同步完成 — userId={}, 获取 {} 款游戏, 成功 upsert {} 款", uid, games.size(), savedCount);
 
         // 4) 返回数据库最新列表
         return listOwnedGames(uid);
@@ -82,12 +77,12 @@ public class OwnedGameServiceImpl implements OwnedGameService {
 
     @Override
     public List<OwnedGame> listOwnedGames(String userId) {
-        return ownedGameMapper.listAll();
+        return ownedGameMapper.listByUserId(userIdOrDefault(userId));
     }
 
     @Override
     public int countOwnedGames(String userId) {
-        return ownedGameMapper.listAll().size();
+        return ownedGameMapper.countByUserId(userIdOrDefault(userId));
     }
 
     private String userIdOrDefault(String userId) {

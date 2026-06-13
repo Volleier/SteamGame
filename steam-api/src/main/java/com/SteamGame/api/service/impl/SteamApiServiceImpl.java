@@ -87,17 +87,12 @@ public class SteamApiServiceImpl implements SteamApiService {
         // 委托 SteamApiClient 完成 HTTP 请求和 JSON 解析
         List<OwnedGame> games = steamApiClient.fetchOwnedGames(steamId, apiKey);
 
-        // 将游戏列表持久化到本地数据库
+        // 使用 MERGE INTO upsert 写入本地数据库
         for (OwnedGame game : games) {
             try {
-                List<OwnedGame> existing = ownedGameMapper.findByAppid(game.getAppid());
-                if (existing != null && !existing.isEmpty()) {
-                    ownedGameMapper.updateByAppid(game);
-                } else {
-                    ownedGameMapper.insert(game);
-                }
+                ownedGameMapper.upsert(game);
             } catch (Exception e) {
-                logger.warn("保存 owned_game 记录失败 (appid={}): {}", game.getAppid(), e.getMessage());
+                logger.warn("upsert owned_game 失败 (appid={}): {}", game.getAppid(), e.getMessage());
             }
         }
 
