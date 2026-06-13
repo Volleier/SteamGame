@@ -1,5 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: local
 
-# 默认本地开发使用 H2 内存数据库，配合 application-dev.yml
+# 默认 profile 为 local，使用 H2 文件数据库开箱即用
+# 可选 profile：dev（开发调试）
