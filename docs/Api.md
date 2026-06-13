@@ -86,12 +86,20 @@
     {
       "appid": 359550,
       "name": "Tom Clancy's Rainbow Six Siege",
-      "playtimeForever": 3840
+      "playtimeForever": 3840,
+      "developer": "Ubisoft Montreal",
+      "publisher": "Ubisoft",
+      "releaseDate": "2015-12-01",
+      "tags": "FPS,Hero Shooter,Multiplayer,Tactical"
     },
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtimeForever": 12845
+      "playtimeForever": 12845,
+      "developer": "Valve",
+      "publisher": "Valve",
+      "releaseDate": "2012-08-21",
+      "tags": "FPS,Shooter,Multiplayer,Competitive"
     }
   ]
 }
@@ -104,12 +112,20 @@
   {
     "appid": 359550,
     "name": "Tom Clancy's Rainbow Six Siege",
-    "playtimeForever": 3840
+    "playtimeForever": 3840,
+    "developer": "Ubisoft Montreal",
+    "publisher": "Ubisoft",
+    "releaseDate": "2015-12-01",
+    "tags": "FPS,Hero Shooter,Multiplayer,Tactical"
   },
   {
     "appid": 730,
     "name": "Counter-Strike 2",
-    "playtimeForever": 12845
+    "playtimeForever": 12845,
+    "developer": "Valve",
+    "publisher": "Valve",
+    "releaseDate": "2012-08-21",
+    "tags": "FPS,Shooter,Multiplayer,Competitive"
   }
 ]
 ```
@@ -121,6 +137,10 @@
 | `appid` | `Number` | 游戏的 Steam AppID |
 | `name` | `String` | 游戏的 Steam 名称 |
 | `playtimeForever` | `Number` | 总游戏时长，单位为分钟。前端会自动除以 60 折算为小时并保留两位小数 |
+| `developer` | `String` | 游戏开发商。如果是初步拉取或未能成功获取，则可能为空或 "Unknown" |
+| `publisher` | `String` | 游戏发行商。如果是初步拉取或未能成功获取，则可能为空或 "Unknown" |
+| `releaseDate` | `String` | 游戏发行日期（格式如 `2015-12-01` 或 `1 Dec, 2015`），具体取决于 Steam API 语言设置 |
+| `tags` | `String` | 游戏标签，多个标签通过英文逗号 `,` 分隔。前端会根据逗号进行拆分展示 |
 
 ## 同步用户游戏库
 
@@ -146,12 +166,20 @@
     {
       "appid": 359550,
       "name": "Tom Clancy's Rainbow Six Siege",
-      "playtimeForever": 3840
+      "playtimeForever": 3840,
+      "developer": "Ubisoft Montreal",
+      "publisher": "Ubisoft",
+      "releaseDate": "2015-12-01",
+      "tags": "FPS,Hero Shooter,Multiplayer,Tactical"
     },
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtimeForever": 12845
+      "playtimeForever": 12845,
+      "developer": "Valve",
+      "publisher": "Valve",
+      "releaseDate": "2012-08-21",
+      "tags": "FPS,Shooter,Multiplayer,Competitive"
     }
   ]
 }
@@ -166,6 +194,10 @@
 | `appid` | `Number` | 游戏的 Steam AppID |
 | `name` | `String` | 游戏的 Steam 名称 |
 | `playtimeForever` | `Number` | 总游戏时长，单位为分钟。前端会自动除以 60 折算为小时并保留两位小数 |
+| `developer` | `String` | 游戏开发商 |
+| `publisher` | `String` | 游戏发行商 |
+| `releaseDate` | `String` | 游戏发行日期 |
+| `tags` | `String` | 游戏标签，多个标签通过英文逗号 `,` 分隔 |
 
 ## 前端调用说明
 
