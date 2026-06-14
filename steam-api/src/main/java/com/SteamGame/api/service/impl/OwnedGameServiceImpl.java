@@ -2,7 +2,9 @@ package com.SteamGame.api.service.impl;
 
 import com.SteamGame.api.client.SteamApiClient;
 import com.SteamGame.api.domain.OwnedGame;
+import com.SteamGame.api.domain.OwnedGameSyncResult;
 import com.SteamGame.api.mapper.OwnedGameMapper;
+import com.SteamGame.api.service.OwnedGameDetailsService;
 import com.SteamGame.api.service.OwnedGameService;
 import com.SteamGame.common.context.CredentialProvider;
 import com.SteamGame.common.context.SteamCredential;
@@ -14,11 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import jakarta.annotation.PostConstruct;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * OwnedGameService 默认实现 —— 编排凭证获取、Steam 同步、数据库持久化。
+ * 详情补全委托给 OwnedGameDetailsService。
  */
 @Service
 public class OwnedGameServiceImpl implements OwnedGameService {
@@ -34,9 +35,23 @@ public class OwnedGameServiceImpl implements OwnedGameService {
     @Autowired
     private OwnedGameMapper ownedGameMapper;
 
+    @Autowired
+    private OwnedGameDetailsService detailsService;
+
     @Override
     @Transactional
     public List<OwnedGame> syncOwnedGames(String userId) {
+        return doSync(userId).getGames();
+    }
+
+    /**
+     * 同步并返回包含统计信息的完整结果。
+     */
+    public OwnedGameSyncResult syncOwnedGamesWithResult(String userId) {
+        return doSync(userId);
+    }
+
+    private OwnedGameSyncResult doSync(String userId) {
         String uid = userIdOrDefault(userId);
 
         // 1) 读取当前用户凭证
@@ -54,12 +69,14 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         } catch (Exception e) {
             logger.error("Steam API 请求失败: {}", e.getMessage(), e);
             // Steam API 不可用时返回本地已有数据，不清空数据库
-            return listOwnedGames(uid);
+            List<OwnedGame> local = listOwnedGames(uid);
+            return new OwnedGameSyncResult(local.size(), 0, local, false);
         }
 
         if (games.isEmpty()) {
             logger.info("Steam 返回空游戏列表 (userId={})，可能资料私密或无游戏", uid);
-            return listOwnedGames(uid);
+            List<OwnedGame> local = listOwnedGames(uid);
+            return new OwnedGameSyncResult(local.size(), 0, local, false);
         }
 
         // 3) 设置用户归属字段，然后使用 MERGE INTO upsert 写入本地数据库
@@ -79,10 +96,11 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         logger.info("同步完成 — userId={}, 获取 {} 款游戏, 成功 upsert {} 款", uid, games.size(), savedCount);
 
         // 异步触发后台拉取开发商和发行商真实数据
-        triggerBackgroundDetailsFetch(uid);
+        detailsService.enqueueMissingDetails(uid);
 
         // 4) 返回数据库最新列表
-        return listOwnedGames(uid);
+        List<OwnedGame> latest = listOwnedGames(uid);
+        return new OwnedGameSyncResult(games.size(), savedCount, latest, true);
     }
 
     @Override
@@ -99,57 +117,9 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         return userId != null && !userId.isEmpty() ? userId : "default";
     }
 
-    private final AtomicBoolean isFetchingDetails = new AtomicBoolean(false);
-
     @PostConstruct
     public void init() {
         // 项目启动时自动触发后台拉取缺失的开发商/发行商数据（针对默认用户）
-        triggerBackgroundDetailsFetch("default");
-    }
-
-    /**
-     * 异步触发后台补全游戏详情（开发商、发行商、发行日期、标签）。
-     * 使用 AtomicBoolean 防止重复调度，每次最多处理 100 条，请求间隔 1.5 秒。
-     *
-     * @param userId 用户 ID
-     */
-    private void triggerBackgroundDetailsFetch(String userId) {
-        if (isFetchingDetails.compareAndSet(false, true)) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    logger.info("开始后台拉取游戏详细信息（userId={}）...", userId);
-                    int limit = 100;
-                    List<OwnedGame> missing = ownedGameMapper.listMissingDetailsByUserId(userId, limit);
-                    logger.info("userId={} 发现 {} 款游戏缺失详细信息（limit={}）", userId, missing.size(), limit);
-                    for (OwnedGame game : missing) {
-                        try {
-                            steamApiClient.fillGameDetails(game);
-                            if (game.getDeveloper() != null || game.getPublisher() != null) {
-                                ownedGameMapper.updateDetails(
-                                    userId,
-                                    game.getAppid(),
-                                    game.getDeveloper(),
-                                    game.getPublisher(),
-                                    game.getReleaseDate(),
-                                    game.getTags()
-                                );
-                                logger.info("成功更新游戏 (userId={}, appid={}) 的开发商为 [{}]，发行商为 [{}]",
-                                        userId, game.getAppid(), game.getDeveloper(), game.getPublisher());
-                            }
-                            // 每次请求后休眠 1.5 秒，防频率限制
-                            Thread.sleep(1500);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        } catch (Exception e) {
-                            logger.warn("拉取游戏详情失败 (appid={}): {}", game.getAppid(), e.getMessage());
-                        }
-                    }
-                } finally {
-                    isFetchingDetails.set(false);
-                    logger.info("后台游戏详细信息拉取任务结束（userId={}）。", userId);
-                }
-            });
-        }
+        detailsService.enqueueMissingDetails("default");
     }
 }

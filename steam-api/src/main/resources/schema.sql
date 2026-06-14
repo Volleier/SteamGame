@@ -10,12 +10,16 @@ CREATE TABLE IF NOT EXISTS owned_game (
   release_date VARCHAR(128),
   tags VARCHAR(1024),
   last_synced_at TIMESTAMP,
+  details_synced_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT uk_owned_game_user_app UNIQUE (user_id, appid)
 );
 
+CREATE INDEX IF NOT EXISTS idx_owned_game_user_id ON owned_game(user_id);
+
 ALTER TABLE owned_game ADD COLUMN IF NOT EXISTS developer VARCHAR(256);
 ALTER TABLE owned_game ADD COLUMN IF NOT EXISTS publisher VARCHAR(256);
 ALTER TABLE owned_game ADD COLUMN IF NOT EXISTS release_date VARCHAR(128);
 ALTER TABLE owned_game ADD COLUMN IF NOT EXISTS tags VARCHAR(1024);
+ALTER TABLE owned_game ADD COLUMN IF NOT EXISTS details_synced_at TIMESTAMP;
