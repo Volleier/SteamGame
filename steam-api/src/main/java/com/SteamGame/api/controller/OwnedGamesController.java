@@ -5,7 +5,7 @@ import com.SteamGame.api.dto.OwnedGameCountDTO;
 import com.SteamGame.api.dto.OwnedGameDTO;
 import com.SteamGame.api.dto.OwnedGameDtoConverter;
 import com.SteamGame.api.service.OwnedGameService;
-import com.SteamGame.common.dto.ApiResponse;
+import com.SteamGame.common.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
