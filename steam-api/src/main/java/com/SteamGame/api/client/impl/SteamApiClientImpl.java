@@ -95,7 +95,7 @@ public class SteamApiClientImpl implements SteamApiClient {
      * @param body Steam API 原始响应 JSON
      * @return 解析后的游戏列表（仅含 Steam 原始字段）
      */
-    List<OwnedGame> parseGamesFromJson(String body) throws IOException {
+    public List<OwnedGame> parseGamesFromJson(String body) throws IOException {
         List<OwnedGame> gameList = new ArrayList<>();
         JsonNode root = objectMapper.readTree(body);
         // 响应结构：{ response: { games: [ { appid, name, playtime_forever }, ... ] } }
