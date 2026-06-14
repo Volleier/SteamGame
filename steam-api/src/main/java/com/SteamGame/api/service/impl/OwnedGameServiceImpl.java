@@ -1,11 +1,11 @@
-package com.SteamGame.login.service.impl;
+package com.SteamGame.api.service.impl;
 
 import com.SteamGame.api.client.SteamApiClient;
 import com.SteamGame.api.domain.OwnedGame;
-import com.SteamGame.api.domain.SteamCredential;
 import com.SteamGame.api.mapper.OwnedGameMapper;
-import com.SteamGame.api.service.CredentialProvider;
 import com.SteamGame.api.service.OwnedGameService;
+import com.SteamGame.common.context.CredentialProvider;
+import com.SteamGame.common.context.SteamCredential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

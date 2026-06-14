@@ -1,4 +1,4 @@
-package com.SteamGame.api.domain;
+package com.SteamGame.common.context;
 
 /**
  * 解密后的 Steam 凭证，供后端内部使用，不暴露给前端。

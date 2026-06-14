@@ -1,6 +1,4 @@
-package com.SteamGame.api.service;
-
-import com.SteamGame.api.domain.SteamCredential;
+package com.SteamGame.common.context;
 
 /**
  * 凭证提供服务 —— 从本地存储中获取解密后的 steamId 和 apiKey。

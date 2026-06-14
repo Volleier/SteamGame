@@ -1,7 +1,7 @@
 package com.SteamGame.login.service.impl;
 
-import com.SteamGame.api.domain.SteamCredential;
-import com.SteamGame.api.service.CredentialProvider;
+import com.SteamGame.common.context.SteamCredential;
+import com.SteamGame.common.context.CredentialProvider;
 import com.SteamGame.login.service.CredentialKeyService;
 import com.SteamGame.login.service.CredentialSessionStore;
 import com.SteamGame.util.CryptoUtil;
