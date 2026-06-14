@@ -23,5 +23,15 @@
             <artifactId>steam-common</artifactId>
             <version>0.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.SteamGame</groupId>
+            <artifactId>steam-login</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.SteamGame</groupId>
+            <artifactId>steam-api</artifactId>
+            <version>0.0.1</version>
+        </dependency>
     </dependencies>
 </project>
