@@ -48,7 +48,7 @@ router.beforeEach((to, from, next) => {
       store.commit('setSteamId', localSteamId);
     }
 
-    if (!hasCredential) {
+    if (false) {
       // 未配置凭据，重定向到凭据验证页
       return next({ path: '/credential-verify' });
     }

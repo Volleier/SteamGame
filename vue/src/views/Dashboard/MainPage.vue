@@ -35,7 +35,43 @@
             <span class="tag text-[#00d4ff] text-xs font-bold tracking-widest uppercase">{{ card.tag }}</span>
             <h2 class="text-xl font-extrabold tracking-wider uppercase mt-1">{{ card.heading }}</h2>
           </header>
-          <div class="card-body markdown-body pl-4 text-gray-300 text-sm leading-relaxed flex-1 select-none pointer-events-none" v-html="card.content"></div>
+          <div class="card-body pl-4 text-gray-300 text-sm leading-relaxed flex-1 select-none pointer-events-none">
+            <template v-if="card.id === 1">
+              <!-- Upper Half: User profile -->
+              <div class="flex items-center gap-4 border-b border-white/10 pb-4 mb-4">
+                <!-- Avatar (rounded matrix/square) -->
+                <div class="w-16 h-16 rounded-xl overflow-hidden border border-white/15 flex-shrink-0">
+                  <img :src="profile?.avatarFull || profile?.avatarMedium || profile?.avatar || defaultAvatar" @error="handleAvatarError" alt="Avatar" class="w-full h-full object-cover" />
+                </div>
+                <!-- Three lines of text (closer spacing, enlarged fonts) -->
+                <div class="flex flex-col justify-center gap-1.5 min-w-0">
+                  <!-- Line 1 (Top): Username -->
+                  <div class="text-lg font-extrabold text-white truncate leading-none">
+                    {{ profile?.personaName || '加载中...' }}
+                  </div>
+                  <!-- Line 2 (Middle): Steam ID -->
+                  <div class="text-xs text-gray-500 font-mono tracking-wider leading-none">
+                    ID: {{ steamId || '--' }}
+                  </div>
+                  <!-- Line 3 (Bottom): User status -->
+                  <div class="text-sm font-bold leading-none" :class="getStatusClass(profile?.personaState)">
+                    {{ getStatusText(profile?.personaState) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lower Half: Games Count -->
+              <div class="text-center py-2">
+                <p class="text-gray-400 text-xs tracking-widest uppercase mb-1">已收录游戏</p>
+                <p class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00ffd5] leading-tight">
+                  {{ gamesCount !== null ? gamesCount : '--' }}
+                </p>
+              </div>
+            </template>
+            <template v-else>
+              <div class="markdown-body" v-html="card.content"></div>
+            </template>
+          </div>
         </article>
       </div>
     </div>
@@ -71,9 +107,15 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { getGamesCount } from '@/api/games';
+import { getPlayerProfile, type PlayerProfile } from '@/api/player';
+import defaultAvatar from '@/assets/images/SteamGame_Icon.png';
 
 const props = defineProps<{ isFullscreen: boolean }>();
 const emit = defineEmits(['toggle-fullscreen']);
+
+const gamesCount = ref<number | null>(null);
+const profile = ref<PlayerProfile | null>(null);
+const steamId = ref<string>('');
 
 const gridSize = 24;
 
@@ -464,13 +506,59 @@ const toggleFullscreen = () => {
   emit('toggle-fullscreen');
 };
 
+const fetchProfile = async () => {
+  try {
+    const data = await getPlayerProfile();
+    profile.value = data;
+    if (data) {
+      steamId.value = data.steamId;
+    }
+  } catch (error) {
+    console.error('Failed to fetch profile in dashboard main page:', error);
+  }
+};
+
+const handleAvatarError = (event: Event) => {
+  const target = event.target as HTMLImageElement;
+  if (target && target.src !== defaultAvatar) {
+    target.src = defaultAvatar;
+  }
+};
+
+const getStatusText = (state: number | undefined) => {
+  if (state === undefined) return '加载中...';
+  switch (state) {
+    case 0: return '离线 (OFFLINE)';
+    case 1: return '在线 (ONLINE)';
+    case 2: return '忙碌 (BUSY)';
+    case 3: return '离开 (AWAY)';
+    case 4: return '打盹 (SNOOZE)';
+    case 5: return '想交易 (LOOKING TO TRADE)';
+    case 6: return '想玩游戏 (LOOKING TO PLAY)';
+    default: return '未知 (UNKNOWN)';
+  }
+};
+
+const getStatusClass = (state: number | undefined) => {
+  if (state === undefined) return 'text-gray-500';
+  switch (state) {
+    case 0: return 'text-gray-400';
+    case 1:
+    case 5:
+    case 6:
+      return 'text-[#00ffd5]';
+    case 2: return 'text-red-400';
+    case 3:
+    case 4:
+      return 'text-yellow-400';
+    default: return 'text-gray-400';
+  }
+};
+
 const fetchGamesCount = async () => {
   try {
     const count = await getGamesCount();
-    const el = document.getElementById('games-count');
-    if (el) {
-      el.textContent = count.toString();
-    }
+    gamesCount.value = count;
   } catch (error) {
     console.error('Failed to fetch games count:', error);
   }
@@ -479,6 +567,7 @@ const fetchGamesCount = async () => {
 onMounted(() => {
   edge.reqFrame = window.requestAnimationFrame(edgeScroll);
   fetchGamesCount();
+  fetchProfile();
 });
 
 onUnmounted(() => {
