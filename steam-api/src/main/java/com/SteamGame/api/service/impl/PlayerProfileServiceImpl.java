@@ -41,28 +41,29 @@ public class PlayerProfileServiceImpl implements PlayerProfileService {
 
     @Override
     public PlayerProfileDTO getProfile(String userId) {
-        // Try local cache first
+        // Fetch from Steam first for live status
+        try {
+            SteamCredential cred = credentialProvider.getCurrentCredential(userId);
+            if (cred != null && cred.isValid()) {
+                PlayerProfileDTO dto = webApiClient.getPlayerSummary(cred.getSteamId(), cred.getApiKey());
+                if (dto != null) {
+                    saveProfile(userId, dto);
+                    return dto;
+                }
+            } else {
+                log.warn("No valid credential for userId={}", userId);
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch player profile for userId={}: {}", userId, e.getMessage());
+        }
+
+        // Fallback to local cache
         PlayerProfile cached = profileMapper.findByUserId(userId);
         if (cached != null) {
             return toProfileDTO(cached);
         }
 
-        // Fetch from Steam
-        try {
-            SteamCredential cred = credentialProvider.getCurrentCredential(userId);
-            if (cred == null || !cred.isValid()) {
-                log.warn("No valid credential for userId={}", userId);
-                return null;
-            }
-            PlayerProfileDTO dto = webApiClient.getPlayerSummary(cred.getSteamId(), cred.getApiKey());
-            if (dto != null) {
-                saveProfile(userId, dto);
-            }
-            return dto;
-        } catch (Exception e) {
-            log.error("Failed to fetch player profile for userId={}: {}", userId, e.getMessage());
-            return null;
-        }
+        return null;
     }
 
     @Override

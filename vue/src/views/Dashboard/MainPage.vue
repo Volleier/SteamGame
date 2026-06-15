@@ -136,7 +136,7 @@
                   <!-- Info -->
                   <div class="flex-1 min-w-0">
                     <h3 class="text-sm font-bold text-white truncate">{{ item.name || '未知游戏 (Unknown Game)' }}</h3>
-                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">AppID: {{ item.appid }}</p>
+                    <p class="text-[13px] font-black text-[#00ffd5] mt-1 tracking-wider">{{ item.price ? item.price : '¥ --' }}</p>
                   </div>
                 </div>
                 <div v-if="wishlist.length === 0" class="text-center py-8 text-gray-500 text-sm">
@@ -157,9 +157,6 @@
                     <h3 class="text-sm font-bold text-white truncate">{{ friend.steamId }}</h3>
                     <p class="text-[10px] text-gray-400 font-mono mt-0.5">关系: {{ friend.relationship }}</p>
                   </div>
-                </div>
-                <div v-if="friends.length === 0" class="text-center py-8 text-gray-500 text-sm">
-                  暂无好友数据
                 </div>
               </div>
             </template>
@@ -863,22 +860,10 @@ const fetchWishlistData = async () => {
   try {
     const result = await getWishlist();
     const items = result?.items || [];
-    if (items.length === 0) {
-      wishlist.value = [
-        { appid: 1091500, name: 'Cyberpunk 2077', priority: 1, addedAt: Date.now() },
-        { appid: 1245620, name: 'Elden Ring', priority: 2, addedAt: Date.now() },
-        { appid: 2358720, name: 'Black Myth: Wukong', priority: 3, addedAt: Date.now() }
-      ];
-    } else {
-      wishlist.value = items.slice(0, 3);
-    }
+    wishlist.value = items.slice(0, 5);
   } catch (error) {
     console.warn('Failed to fetch wishlist:', error);
-    wishlist.value = [
-      { appid: 1091500, name: 'Cyberpunk 2077', priority: 1, addedAt: Date.now() },
-      { appid: 1245620, name: 'Elden Ring', priority: 2, addedAt: Date.now() },
-      { appid: 2358720, name: 'Black Myth: Wukong', priority: 3, addedAt: Date.now() }
-    ];
+    wishlist.value = [];
   }
 };
 
@@ -886,22 +871,10 @@ const fetchFriendsData = async () => {
   try {
     const result = await getFriends();
     const items = result?.items || [];
-    if (items.length === 0) {
-      friends.value = [
-        { steamId: 'GabeNewell_Official', relationship: 'friend', friendSince: 0 },
-        { steamId: 'ChanaMei_Chan', relationship: 'friend', friendSince: 0 },
-        { steamId: 'SteamSupport_Staff', relationship: 'friend', friendSince: 0 }
-      ];
-    } else {
-      friends.value = items.slice(0, 3);
-    }
+    friends.value = items.slice(0, 5);
   } catch (error) {
     console.warn('Failed to fetch friends:', error);
-    friends.value = [
-      { steamId: 'GabeNewell_Official', relationship: 'friend', friendSince: 0 },
-      { steamId: 'ChanaMei_Chan', relationship: 'friend', friendSince: 0 },
-      { steamId: 'SteamSupport_Staff', relationship: 'friend', friendSince: 0 }
-    ];
+    friends.value = [];
   }
 };
 
