@@ -6,6 +6,7 @@ import com.SteamGame.api.dto.player.WishlistItemDTO;
 import com.SteamGame.api.dto.player.WishlistResultDTO;
 import com.SteamGame.api.mapper.PlayerWishlistMapper;
 import com.SteamGame.api.service.PlayerWishlistService;
+import com.SteamGame.api.service.GameMetadataService;
 import com.SteamGame.common.context.CredentialProvider;
 import com.SteamGame.common.context.SteamCredential;
 import org.slf4j.Logger;
@@ -24,13 +25,16 @@ public class PlayerWishlistServiceImpl implements PlayerWishlistService {
     private final CredentialProvider credentialProvider;
     private final SteamWebApiClient webApiClient;
     private final PlayerWishlistMapper wishlistMapper;
+    private final GameMetadataService gameMetadataService;
 
     public PlayerWishlistServiceImpl(CredentialProvider credentialProvider,
                                      SteamWebApiClient webApiClient,
-                                     PlayerWishlistMapper wishlistMapper) {
+                                     PlayerWishlistMapper wishlistMapper,
+                                     GameMetadataService gameMetadataService) {
         this.credentialProvider = credentialProvider;
         this.webApiClient = webApiClient;
         this.wishlistMapper = wishlistMapper;
+        this.gameMetadataService = gameMetadataService;
     }
 
     @Override
@@ -40,6 +44,16 @@ public class PlayerWishlistServiceImpl implements PlayerWishlistService {
             if (cred != null && cred.isValid()) {
                 List<WishlistItemDTO> items = webApiClient.getWishlist(cred.getSteamId(), cred.getApiKey());
                 if (items != null) {
+                    for (WishlistItemDTO item : items) {
+                        try {
+                            var meta = gameMetadataService.getMetadata(item.getAppid());
+                            if (meta != null && meta.getName() != null) {
+                                item.setName(meta.getName());
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to fetch metadata for wishlist item appid={}: {}", item.getAppid(), e.getMessage());
+                        }
+                    }
                     saveWishlist(userId, items);
                     return wrap(items);
                 }
@@ -71,7 +85,18 @@ public class PlayerWishlistServiceImpl implements PlayerWishlistService {
     private WishlistItemDTO toDto(PlayerWishlist item) {
         WishlistItemDTO dto = new WishlistItemDTO();
         dto.setAppid(item.getAppid());
-        dto.setName(item.getName());
+        String name = item.getName();
+        if (name == null || name.isEmpty()) {
+            try {
+                var meta = gameMetadataService.getMetadata(item.getAppid());
+                if (meta != null) {
+                    name = meta.getName();
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        dto.setName(name);
         dto.setPriority(item.getPriority());
         dto.setAddedAt(item.getAddedAt());
         return dto;

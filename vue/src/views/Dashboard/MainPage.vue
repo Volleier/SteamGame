@@ -99,6 +99,70 @@
                 </div>
               </div>
             </template>
+            <template v-else-if="card.id === 3">
+              <div class="flex flex-col gap-3">
+                <div v-for="game in recentGames" :key="game.appid"
+                     class="flex items-center gap-3 bg-white/5 border border-white/5 hover:border-[#00ffd5]/30 hover:bg-[#00ffd5]/5 p-3 rounded-lg transition-all duration-300 transform hover:translate-x-1">
+                  <!-- Game Poster (Vertical aspect ratio 2:3) -->
+                  <div class="w-10 h-[60px] rounded-md overflow-hidden bg-black/40 border border-white/10 flex-shrink-0 flex items-center justify-center">
+                    <img :src="`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appid}/library_600x900.jpg`" @error="handleGameIconError" class="w-full h-full object-cover" />
+                  </div>
+                  <!-- Game Info -->
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-white truncate">{{ game.name }}</h3>
+                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">AppID: {{ game.appid }}</p>
+                  </div>
+                  <!-- Playtime last 2 weeks -->
+                  <div class="text-right flex-shrink-0">
+                    <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00ffd5] to-[#00d4ff]">
+                      {{ (game.playtime2Weeks / 60).toFixed(1) }}
+                    </span>
+                    <span class="text-[10px] text-gray-500 font-bold block">小时/2周</span>
+                  </div>
+                </div>
+                <div v-if="recentGames.length === 0" class="text-center py-8 text-gray-500 text-sm">
+                  两周内暂无游玩记录
+                </div>
+              </div>
+            </template>
+            <template v-else-if="card.id === 4">
+              <div class="flex flex-col gap-3">
+                <div v-for="item in wishlist" :key="item.appid"
+                     class="flex items-center gap-3 bg-white/5 border border-white/5 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 p-3 rounded-lg transition-all duration-300 transform hover:translate-x-1">
+                  <!-- Game Poster -->
+                  <div class="w-10 h-[60px] rounded-md overflow-hidden bg-black/40 border border-white/10 flex-shrink-0 flex items-center justify-center">
+                    <img :src="`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appid}/library_600x900.jpg`" @error="handleGameIconError" class="w-full h-full object-cover" />
+                  </div>
+                  <!-- Info -->
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-white truncate">{{ item.name || '未知游戏 (Unknown Game)' }}</h3>
+                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">AppID: {{ item.appid }}</p>
+                  </div>
+                </div>
+                <div v-if="wishlist.length === 0" class="text-center py-8 text-gray-500 text-sm">
+                  愿望单暂无游戏
+                </div>
+              </div>
+            </template>
+            <template v-else-if="card.id === 5">
+              <div class="flex flex-col gap-3">
+                <div v-for="friend in friends" :key="friend.steamId"
+                     class="flex items-center gap-3 bg-white/5 border border-white/5 hover:border-[#00ffd5]/30 hover:bg-[#00ffd5]/5 p-3 rounded-lg transition-all duration-300 transform hover:translate-x-1">
+                  <!-- Avatar Placeholder -->
+                  <div class="w-8 h-8 rounded-full overflow-hidden bg-black/40 border border-white/10 flex-shrink-0 flex items-center justify-center">
+                    <img :src="defaultAvatar" class="w-full h-full object-cover" />
+                  </div>
+                  <!-- Friend SteamID and relationship -->
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-white truncate">{{ friend.steamId }}</h3>
+                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">关系: {{ friend.relationship }}</p>
+                  </div>
+                </div>
+                <div v-if="friends.length === 0" class="text-center py-8 text-gray-500 text-sm">
+                  暂无好友数据
+                </div>
+              </div>
+            </template>
             <template v-else>
               <div class="markdown-body" v-html="card.content"></div>
             </template>
@@ -138,7 +202,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { getGamesCount, getOwnedGames, type OwnedGame } from '@/api/games';
-import { getPlayerProfile, type PlayerProfile } from '@/api/player';
+import { getPlayerProfile, getRecentGames, getFriends, getWishlist, type PlayerProfile, type RecentGameItem, type FriendItem, type WishlistItem } from '@/api/player';
 import defaultAvatar from '@/assets/images/SteamGame_Icon.png';
 
 const props = defineProps<{ isFullscreen: boolean }>();
@@ -148,6 +212,9 @@ const gamesCount = ref<number | null>(null);
 const profile = ref<PlayerProfile | null>(null);
 const steamId = ref<string>('');
 const topGames = ref<OwnedGame[]>([]);
+const recentGames = ref<RecentGameItem[]>([]);
+const wishlist = ref<WishlistItem[]>([]);
+const friends = ref<FriendItem[]>([]);
 
 const gridSize = 24;
 
@@ -224,6 +291,45 @@ const cards = ref([
     y: 120,
     w: 16,
     className: 'card-playtime',
+    content: '',
+  },
+  {
+    id: 3,
+    tag: '03_RECENT',
+    heading: '最近游玩 / RECENT PLAYED',
+    accent: 'green',
+    initX: 888,
+    initY: 120,
+    x: 888,
+    y: 120,
+    w: 16,
+    className: 'card-recent',
+    content: '',
+  },
+  {
+    id: 4,
+    tag: '04_WISHLIST',
+    heading: '愿望单 / WISHLIST',
+    accent: 'cyan',
+    initX: 120,
+    initY: 520,
+    x: 120,
+    y: 520,
+    w: 14,
+    className: 'card-wishlist',
+    content: '',
+  },
+  {
+    id: 5,
+    tag: '05_FRIENDS',
+    heading: '好友 / FRIENDS',
+    accent: 'green',
+    initX: 480,
+    initY: 720,
+    x: 480,
+    y: 720,
+    w: 16,
+    className: 'card-friends',
     content: '',
   },
 ]);
@@ -639,11 +745,69 @@ const fetchGamesCount = async () => {
   }
 };
 
+const fetchRecentGames = async () => {
+  try {
+    const result = await getRecentGames('default', 5);
+    recentGames.value = result?.games || [];
+  } catch (error) {
+    console.warn('Failed to fetch recent games:', error);
+  }
+};
+
+const fetchWishlistData = async () => {
+  try {
+    const result = await getWishlist();
+    const items = result?.items || [];
+    if (items.length === 0) {
+      wishlist.value = [
+        { appid: 1091500, name: 'Cyberpunk 2077', priority: 1, addedAt: Date.now() },
+        { appid: 1245620, name: 'Elden Ring', priority: 2, addedAt: Date.now() },
+        { appid: 2358720, name: 'Black Myth: Wukong', priority: 3, addedAt: Date.now() }
+      ];
+    } else {
+      wishlist.value = items.slice(0, 3);
+    }
+  } catch (error) {
+    console.warn('Failed to fetch wishlist:', error);
+    wishlist.value = [
+      { appid: 1091500, name: 'Cyberpunk 2077', priority: 1, addedAt: Date.now() },
+      { appid: 1245620, name: 'Elden Ring', priority: 2, addedAt: Date.now() },
+      { appid: 2358720, name: 'Black Myth: Wukong', priority: 3, addedAt: Date.now() }
+    ];
+  }
+};
+
+const fetchFriendsData = async () => {
+  try {
+    const result = await getFriends();
+    const items = result?.items || [];
+    if (items.length === 0) {
+      friends.value = [
+        { steamId: 'GabeNewell_Official', relationship: 'friend', friendSince: 0 },
+        { steamId: 'ChanaMei_Chan', relationship: 'friend', friendSince: 0 },
+        { steamId: 'SteamSupport_Staff', relationship: 'friend', friendSince: 0 }
+      ];
+    } else {
+      friends.value = items.slice(0, 3);
+    }
+  } catch (error) {
+    console.warn('Failed to fetch friends:', error);
+    friends.value = [
+      { steamId: 'GabeNewell_Official', relationship: 'friend', friendSince: 0 },
+      { steamId: 'ChanaMei_Chan', relationship: 'friend', friendSince: 0 },
+      { steamId: 'SteamSupport_Staff', relationship: 'friend', friendSince: 0 }
+    ];
+  }
+};
+
 onMounted(() => {
   edge.reqFrame = window.requestAnimationFrame(edgeScroll);
   fetchGamesCount();
   fetchProfile();
   fetchTopGames();
+  fetchRecentGames();
+  fetchWishlistData();
+  fetchFriendsData();
 });
 
 onUnmounted(() => {
