@@ -8,6 +8,8 @@ import com.SteamGame.api.service.OwnedGameDetailsService;
 import com.SteamGame.api.service.OwnedGameService;
 import com.SteamGame.common.context.CredentialProvider;
 import com.SteamGame.common.context.SteamCredential;
+import com.SteamGame.common.error.BusinessException;
+import com.SteamGame.common.error.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +46,6 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         return doSync(userId).getGames();
     }
 
-    /**
-     * 同步并返回包含统计信息的完整结果。
-     */
-    public OwnedGameSyncResult syncOwnedGamesWithResult(String userId) {
-        return doSync(userId);
-    }
-
     private OwnedGameSyncResult doSync(String userId) {
         String uid = userIdOrDefault(userId);
 
@@ -59,7 +54,7 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         if (!credential.isValid()) {
             String msg = "未找到有效 Steam 凭据 (userId=" + uid + ")，请先在设置页配置 SteamID 和 API Key";
             logger.warn(msg);
-            throw new RuntimeException(msg);
+            throw new BusinessException(ErrorCode.STEAM_CREDENTIAL_NOT_FOUND, msg);
         }
 
         // 2) 调用 Steam API 获取游戏列表
@@ -86,6 +81,7 @@ public class OwnedGameServiceImpl implements OwnedGameService {
             game.setUserId(uid);
             game.setSteamId(credential.getSteamId());
             game.setLastSyncedAt(now);
+            game.setUpdatedAt(now);
             try {
                 ownedGameMapper.upsert(game);
                 savedCount++;
@@ -111,6 +107,11 @@ public class OwnedGameServiceImpl implements OwnedGameService {
     @Override
     public int countOwnedGames(String userId) {
         return ownedGameMapper.countByUserId(userIdOrDefault(userId));
+    }
+
+    @Override
+    public OwnedGameSyncResult syncOwnedGamesWithResult(String userId) {
+        return doSync(userId);
     }
 
     private String userIdOrDefault(String userId) {

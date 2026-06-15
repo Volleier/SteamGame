@@ -62,6 +62,8 @@ public class OwnedGameDetailsServiceImpl implements OwnedGameDetailsService {
             try {
                 steamApiClient.fillGameDetails(game);
                 if (game.getDeveloper() != null || game.getPublisher() != null) {
+                    java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                    game.setDetailsSyncedAt(now);
                     ownedGameMapper.updateDetails(
                         userId,
                         game.getAppid(),

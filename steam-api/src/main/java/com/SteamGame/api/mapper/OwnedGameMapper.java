@@ -15,9 +15,9 @@ public interface OwnedGameMapper {
      * 使用 H2 MERGE INTO 实现 upsert —— 存在则更新，不存在则插入。
      * 不要在 MERGE INTO 中包含 developer 和 publisher 字段，以防同步时已存在的记录被重置为 NULL。
      */
-    @Insert("MERGE INTO owned_game (user_id, steam_id, appid, name, playtime_forever, last_synced_at) " +
+    @Insert("MERGE INTO owned_game (user_id, steam_id, appid, name, playtime_forever, last_synced_at, updated_at) " +
             "KEY (user_id, appid) " +
-            "VALUES (#{userId}, #{steamId}, #{appid}, #{name}, #{playtimeForever}, #{lastSyncedAt})")
+            "VALUES (#{userId}, #{steamId}, #{appid}, #{name}, #{playtimeForever}, #{lastSyncedAt}, #{updatedAt})")
     void upsert(OwnedGame game);
 
     /**
@@ -26,6 +26,7 @@ public interface OwnedGameMapper {
     @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
             "playtime_forever AS playtimeForever, developer, publisher, " +
             "release_date AS releaseDate, tags, last_synced_at AS lastSyncedAt, " +
+            "details_synced_at AS detailsSyncedAt, " +
             "created_at AS createdAt, updated_at AS updatedAt " +
             "FROM owned_game WHERE user_id = #{userId} ORDER BY name")
     List<OwnedGame> listByUserId(@Param("userId") String userId);
@@ -35,7 +36,8 @@ public interface OwnedGameMapper {
      */
     @org.apache.ibatis.annotations.Update(
             "UPDATE owned_game SET developer = #{developer}, publisher = #{publisher}, " +
-            "release_date = #{releaseDate}, tags = #{tags} " +
+            "release_date = #{releaseDate}, tags = #{tags}, " +
+            "details_synced_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP " +
             "WHERE user_id = #{userId} AND appid = #{appid}")
     void updateDetails(@Param("userId") String userId,
                        @Param("appid") Long appid,
@@ -49,8 +51,9 @@ public interface OwnedGameMapper {
      */
     @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
             "playtime_forever AS playtimeForever, developer, publisher, " +
-            "release_date AS releaseDate, tags, last_synced_at AS lastSyncedAt " +
-            "FROM owned_game WHERE user_id = #{userId} AND (developer IS NULL OR publisher IS NULL) " +
+            "release_date AS releaseDate, tags, last_synced_at AS lastSyncedAt, " +
+            "details_synced_at AS detailsSyncedAt " +
+            "FROM owned_game WHERE user_id = #{userId} AND (details_synced_at IS NULL OR developer IS NULL OR publisher IS NULL) " +
             "LIMIT #{limit}")
     List<OwnedGame> listMissingDetailsByUserId(@Param("userId") String userId, @Param("limit") int limit);
 

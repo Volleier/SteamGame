@@ -1,9 +1,13 @@
 package com.SteamGame.api.controller;
 
 import com.SteamGame.api.domain.OwnedGame;
+import com.SteamGame.api.domain.OwnedGameSyncResult;
 import com.SteamGame.api.dto.OwnedGameCountDTO;
 import com.SteamGame.api.dto.OwnedGameDTO;
 import com.SteamGame.api.dto.OwnedGameDtoConverter;
+import com.SteamGame.common.context.CurrentUser;
+import com.SteamGame.common.context.CurrentUserProvider;
+import com.SteamGame.common.error.BusinessException;
 import com.SteamGame.api.service.OwnedGameService;
 import com.SteamGame.common.response.ApiResponse;
 import org.slf4j.Logger;
@@ -22,10 +26,12 @@ public class OwnedGamesController {
     private static final Logger logger = LoggerFactory.getLogger(OwnedGamesController.class);
 
     private final OwnedGameService ownedGameService;
+    private final CurrentUserProvider currentUserProvider;
     private final OwnedGameDtoConverter converter = new OwnedGameDtoConverter();
 
-    public OwnedGamesController(OwnedGameService ownedGameService) {
+    public OwnedGamesController(OwnedGameService ownedGameService, CurrentUserProvider currentUserProvider) {
         this.ownedGameService = ownedGameService;
+        this.currentUserProvider = currentUserProvider;
     }
 
     /**
@@ -34,9 +40,13 @@ public class OwnedGamesController {
     @PostMapping("/sync")
     public ApiResponse<List<OwnedGameDTO>> sync() {
         try {
-            List<OwnedGame> games = ownedGameService.syncOwnedGames(null);
-            logger.info("POST /sync — 同步完成，共 {} 款游戏", games.size());
-            return ApiResponse.ok(converter.toDtoList(games));
+            CurrentUser currentUser = currentUserProvider.currentUser();
+            OwnedGameSyncResult result = ownedGameService.syncOwnedGamesWithResult(currentUser.getUserId());
+            logger.info("POST /sync — 同步完成，userId={}，共 {} 款游戏", currentUser.getUserId(), result.getTotal());
+            return ApiResponse.ok(converter.toDtoList(result.getGames()));
+        } catch (BusinessException e) {
+            logger.warn("同步游戏库业务失败: {}", e.getMessage());
+            return ApiResponse.fail(e.getErrorCode().getCode(), e.getMessage());
         } catch (Exception e) {
             logger.error("同步游戏库失败: {}", e.getMessage(), e);
             return ApiResponse.fail(500, "同步失败: " + e.getMessage());
@@ -48,7 +58,8 @@ public class OwnedGamesController {
      */
     @GetMapping("/list")
     public ApiResponse<List<OwnedGameDTO>> list() {
-        List<OwnedGame> games = ownedGameService.listOwnedGames(null);
+        String userId = currentUserProvider.currentUser().getUserId();
+        List<OwnedGame> games = ownedGameService.listOwnedGames(userId);
         return ApiResponse.ok(converter.toDtoList(games));
     }
 
@@ -57,7 +68,8 @@ public class OwnedGamesController {
      */
     @GetMapping("/count")
     public ApiResponse<OwnedGameCountDTO> count() {
-        int count = ownedGameService.countOwnedGames(null);
+        String userId = currentUserProvider.currentUser().getUserId();
+        int count = ownedGameService.countOwnedGames(userId);
         return ApiResponse.ok(new OwnedGameCountDTO(count));
     }
 

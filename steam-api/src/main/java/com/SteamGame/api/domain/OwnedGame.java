@@ -12,6 +12,7 @@ public class OwnedGame {
     private String releaseDate;
     private String tags;
     private java.sql.Timestamp lastSyncedAt;
+    private java.sql.Timestamp detailsSyncedAt;
     private java.sql.Timestamp createdAt;
     private java.sql.Timestamp updatedAt;
 
@@ -101,6 +102,14 @@ public class OwnedGame {
 
     public void setLastSyncedAt(java.sql.Timestamp lastSyncedAt) {
         this.lastSyncedAt = lastSyncedAt;
+    }
+
+    public java.sql.Timestamp getDetailsSyncedAt() {
+        return detailsSyncedAt;
+    }
+
+    public void setDetailsSyncedAt(java.sql.Timestamp detailsSyncedAt) {
+        this.detailsSyncedAt = detailsSyncedAt;
     }
 
     public java.sql.Timestamp getCreatedAt() {

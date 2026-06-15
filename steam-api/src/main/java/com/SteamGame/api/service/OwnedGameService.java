@@ -1,6 +1,7 @@
 package com.SteamGame.api.service;
 
 import com.SteamGame.api.domain.OwnedGame;
+import com.SteamGame.api.domain.OwnedGameSyncResult;
 
 import java.util.List;
 
@@ -16,6 +17,14 @@ public interface OwnedGameService {
      * @return 同步后的游戏列表
      */
     List<OwnedGame> syncOwnedGames(String userId);
+
+    /**
+     * 从 Steam 同步当前用户的游戏库到本地数据库，并返回同步统计和最新列表。
+     *
+     * @param userId 本地用户 ID
+     * @return 同步结果
+     */
+    OwnedGameSyncResult syncOwnedGamesWithResult(String userId);
 
     /**
      * 从本地数据库查询当前用户的游戏列表。
