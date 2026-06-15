@@ -33,8 +33,9 @@ export interface CredentialLoginResult {
 
 export interface CredentialVerifyResult {
   success: boolean;
-  code?: string;
+  code?: string | number;
   message?: string;
+  msg?: string;
   data?: CredentialLoginResult | null;
 }
 
@@ -58,11 +59,22 @@ export async function getCredentialStatus(): Promise<CredentialStatus> {
 /** 保存并验证凭据 */
 export async function configureCredential(payload: CredentialConfigPayload): Promise<CredentialVerifyResult> {
   const response = await http.post('/credentials/configure', payload);
-  return response.data || {};
+  return normalizeCredentialResponse(response.data);
 }
 
 /** 验证已配置的凭据 */
 export async function verifyCredential(): Promise<CredentialVerifyResult> {
   const response = await http.post('/credentials/verify');
-  return response.data || {};
+  return normalizeCredentialResponse(response.data);
+}
+
+function normalizeCredentialResponse(body: any): CredentialVerifyResult {
+  const code = body?.code;
+  return {
+    success: body?.success === true || code === 200 || code === '200',
+    code,
+    message: body?.message || body?.msg,
+    msg: body?.msg,
+    data: body?.data ?? null,
+  };
 }

@@ -1,92 +1,138 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <!-- 顶部栏 -->
-    <div class="bg-white shadow rounded-lg mb-6">
-      <div class="flex flex-col sm:flex-row items-center justify-between py-6 px-4 space-y-3 sm:space-y-0">
-        <div class="flex items-center space-x-3">
-          <h1 class="text-xl font-semibold text-gray-800">游戏列表</h1>
-        </div>
-
-        <div class="flex-1 max-w-md mx-0 sm:mx-4 w-full">
+  <div class="container mx-auto px-4 pt-3 pb-8 text-white font-sans">
+    <!-- 顶部控制栏 -->
+    <div class="bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl mb-6 p-4">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- 搜索框 -->
+        <div class="relative w-full md:max-w-md">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="搜索游戏名称或ID..."
-            class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="搜索游戏名称或 ID..."
+            class="w-full bg-black/65 border border-white/15 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff] transition-all"
           />
         </div>
 
-        <!-- 操作区域 -->
-        <div class="flex flex-col items-end space-y-2">
-          <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-600 mr-2">排序：</span>
-            <button @click="setSort('app_id')" :class="['px-3 py-1 rounded-md text-sm border', sortKey === 'app_id' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700']">
-              ID <span v-if="sortKey === 'app_id'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-            </button>
-            <button @click="setSort('app_name')" :class="['px-3 py-1 rounded-md text-sm border', sortKey === 'app_name' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700']">
-              名称 <span v-if="sortKey === 'app_name'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-            </button>
-            <button @click="setSort('app_time')" :class="['px-3 py-1 rounded-md text-sm border', sortKey === 'app_time' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700']">
-              时长 <span v-if="sortKey === 'app_time'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+        <!-- 排序与导出 -->
+        <div class="flex flex-wrap items-center justify-end gap-3 w-full md:w-auto">
+          <div class="flex items-center bg-black/40 border border-white/10 rounded-lg p-1">
+            <button
+              v-for="option in sortOptions"
+              :key="option.key"
+              @click="setSort(option.key)"
+              :class="[
+                'px-3.5 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5',
+                sortKey === option.key
+                  ? 'bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/30'
+                  : 'text-gray-400 hover:text-white border border-transparent'
+              ]"
+            >
+              {{ option.label }}
+              <span v-if="sortKey === option.key" class="text-[10px]">
+                {{ sortOrder === 'asc' ? '▲' : '▼' }}
+              </span>
             </button>
           </div>
-          <div>
-            <button @click="exportCSV" class="px-3 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-500">导出为 CSV</button>
-          </div>
+
+          <button
+            @click="exportCSV"
+            class="px-4 py-2 bg-[#00d4ff]/10 hover:bg-[#00d4ff]/25 border border-[#00d4ff]/30 text-[#00d4ff] rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            导出 CSV
+          </button>
         </div>
       </div>
     </div>
 
     <!-- 加载状态 -->
-    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20">
-      <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-200 border-t-indigo-600 mb-4"></div>
-      <p class="text-gray-500 text-sm">正在加载游戏列表...</p>
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-[#00d4ff]/30 border-t-[#00d4ff] mb-4"></div>
+      <p class="text-gray-400 text-sm tracking-widest uppercase">正在加载游戏列表...</p>
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="errorMessage" class="flex flex-col items-center justify-center py-20 bg-white rounded-lg shadow">
+    <div v-else-if="errorMessage" class="flex flex-col items-center justify-center py-20 bg-black/40 backdrop-blur-xl border border-red-500/30 rounded-xl shadow-2xl">
       <div class="text-4xl mb-4">😵</div>
-      <p class="text-red-500 text-sm mb-4">{{ errorMessage }}</p>
-      <button @click="loadGames" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-500 transition-colors">
+      <p class="text-red-400 text-sm mb-4">{{ errorMessage }}</p>
+      <button @click="loadGames" class="px-4 py-2 bg-red-500/20 border border-red-500 text-red-400 rounded-md text-sm hover:bg-red-500/40 transition-colors uppercase">
         重新加载
       </button>
     </div>
 
-    <!-- 空状态（已加载但接口返回为空） -->
-    <div v-else-if="games.length === 0" class="flex flex-col items-center justify-center py-20 bg-white rounded-lg shadow">
+    <!-- 空状态 -->
+    <div v-else-if="games.length === 0" class="flex flex-col items-center justify-center py-20 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
       <div class="text-4xl mb-4">🎮</div>
-      <p class="text-gray-500 text-sm mb-2">暂无游戏数据</p>
-      <p class="text-gray-400 text-xs">您的 Steam 账户中可能没有公开的游戏，或尚未同步。</p>
+      <p class="text-gray-300 text-sm mb-2 uppercase tracking-widest">暂无游戏数据</p>
+      <p class="text-gray-500 text-xs">您的 Steam 账户中可能没有公开的游戏，或尚未同步。</p>
     </div>
 
-    <!-- 表格 -->
-    <div v-else class="overflow-x-auto rounded-lg shadow">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">游戏ID</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">游戏名称</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">游戏时长</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="game in filteredAndSortedGames" :key="game.app_id" class="hover:bg-gray-100 transition-colors">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-              {{ game.app_id }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+    <!-- 游戏卡片列表 -->
+    <div v-else class="flex flex-col gap-4">
+      <div v-for="game in filteredAndSortedGames" :key="game.app_id"
+           class="game-card flex flex-col md:flex-row bg-black/40 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:border-[#00d4ff]/40 hover:bg-[#00d4ff]/5 transition-all duration-300 group shadow-lg">
+        
+        <!-- 左侧: 游戏垂直海报 -->
+        <div class="relative w-full md:w-[100px] lg:w-[120px] aspect-[2/3] md:h-[150px] shrink-0 bg-black/80 overflow-hidden border-r border-white/5">
+          <img
+            :src="`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.app_id}/library_600x900.jpg`"
+            @error="handleImageError"
+            class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+            alt="Game Poster"
+          />
+        </div>
+
+        <!-- 中部及右侧内容包装 -->
+        <div class="flex-1 p-5 flex flex-col lg:flex-row gap-5 justify-between">
+          <!-- 中左侧: 标题 -->
+          <div class="flex-1 flex flex-col justify-center min-w-0">
+            <h2 class="text-xl font-bold text-white group-hover:text-[#00d4ff] transition-colors truncate">
               {{ game.app_name }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ (Number(game.app_time) || 0).toFixed(2) }} 小时</td>
-          </tr>
-          <!-- 搜索无匹配 -->
-          <tr v-if="filteredAndSortedGames.length === 0 && games.length > 0">
-            <td colspan="3" class="px-6 py-8 text-center text-sm text-gray-400">
-              没有匹配 "{{ searchQuery }}" 的游戏
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </h2>
+          </div>
+
+          <!-- 中右侧: 开发者与发行信息 -->
+          <div class="w-full lg:w-[280px] shrink-0 flex flex-col justify-center text-xs text-gray-400 space-y-1.5 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-5">
+            <div><span class="text-gray-500">游戏 ID:</span> <span class="text-gray-300 font-mono ml-1">{{ game.app_id }}</span></div>
+            <div><span class="text-gray-500">开发者:</span> <span class="text-gray-300 font-medium ml-1">{{ game.developer || 'Unknown' }}</span></div>
+            <div><span class="text-gray-500">发行商:</span> <span class="text-gray-300 font-medium ml-1">{{ game.publisher || 'Unknown' }}</span></div>
+            <div><span class="text-gray-500">发行日期:</span> <span class="text-gray-300 font-medium ml-1">{{ game.release_date || 'Unknown' }}</span></div>
+          </div>
+
+          <!-- 右侧: 游戏时长与特性标签 -->
+          <div class="w-full lg:w-[240px] shrink-0 flex flex-col justify-between items-start lg:items-end border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-5">
+            <div class="text-left lg:text-right w-full">
+              <div class="text-xs text-gray-500 uppercase tracking-widest">总游玩时间</div>
+              <div class="text-2xl font-black text-white mt-0.5">
+                <span class="text-[#00d4ff]">{{ (Number(game.app_time) || 0).toFixed(2) }}</span> <span class="text-xs text-gray-400 font-normal">小时</span>
+              </div>
+            </div>
+
+            <!-- 特性标签 -->
+            <div v-if="game.tags && game.tags.length > 0" class="flex flex-wrap lg:justify-end gap-1.5 w-full mt-3">
+              <span v-for="tag in game.tags" :key="tag"
+                    class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-gray-300 tracking-wider">
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 搜索无匹配 -->
+      <div v-if="filteredAndSortedGames.length === 0 && games.length > 0"
+           class="flex flex-col items-center justify-center py-20 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
+        <div class="text-4xl mb-4">🔍</div>
+        <p class="text-gray-400 text-sm uppercase tracking-widest">没有匹配 "{{ searchQuery }}" 的游戏</p>
+      </div>
     </div>
   </div>
 </template>
@@ -106,4 +152,35 @@ const {
   setSort,
   exportCSV,
 } = useGameList();
+
+const sortOptions = [
+  { key: 'app_time', label: '时间' },
+  { key: 'app_name', label: '名称' },
+  { key: 'app_id', label: 'ID' }
+] as const;
+
+
+
+function handleImageError(event: Event) {
+  const img = event.target as HTMLImageElement;
+  if (!img) return;
+
+  const url = img.src;
+  if (url.includes('library_600x900.jpg')) {
+    // 降级使用 header.jpg
+    img.src = url.replace('library_600x900.jpg', 'header.jpg');
+  } else if (url.includes('header.jpg')) {
+    // 再降级使用 capsule
+    img.src = url.replace('header.jpg', 'capsule_616x353.jpg');
+  } else {
+    // 最终默认占位图
+    img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900"><rect width="100%" height="100%" fill="%231a1d24"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%234a5264">🎮</text></svg>';
+  }
+}
 </script>
+
+<style scoped>
+.game-card {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+</style>

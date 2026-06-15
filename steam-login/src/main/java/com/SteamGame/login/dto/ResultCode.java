@@ -1,16 +1,10 @@
 package com.SteamGame.login.dto;
 
+/**
+ * 凭据校验内部结果码 —— 仅用于 ValidationUtil 和 Service 内部校验逻辑。
+ * 对外 API 响应统一使用 com.SteamGame.common.error.ErrorCode。
+ */
 public enum ResultCode {
-    REGISTER_OK,
-    LOGIN_OK,
-    CONFIG_NOT_FOUND,
-    CONFIG_INVALID,
-    DECRYPT_FAILED,
     INVALID_STEAM_ID,
-    INVALID_API_KEY_FORMAT,
-    INVALID_KEY_OR_USER,
-    STEAM_API_TIMEOUT,
-    STEAM_API_UNAVAILABLE,
-    PROFILE_PRIVATE_OR_NO_GAMES,
-    INTERNAL_ERROR
+    INVALID_API_KEY_FORMAT
 }

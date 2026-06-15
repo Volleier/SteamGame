@@ -53,5 +53,8 @@ _ReSharper.Caches
 ### JetBrains Application ###
 .idea/
 
+### H2 file database ###
+data/
+
 ### node_modules ###
 node_modules/

@@ -3,7 +3,7 @@
 /* header.scss - Top Header Navigation Styling */
 
 .header-container {
-  @apply fixed top-0 left-0 w-full h-12 flex items-center justify-between overflow-hidden shadow-sm z-50 bg-[#191b1d];
+  @apply fixed top-0 left-0 w-full h-12 flex items-center justify-between overflow-hidden shadow-sm z-50 bg-black/40 backdrop-blur-md border-b border-white/10;
 }
 
 .header-logo-group {

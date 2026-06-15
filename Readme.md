@@ -1,54 +1,41 @@
 # Steam Games Logger
-记录Steam游戏的游戏时间和长度
+记录并展示 Steam 游戏库、游玩时长和游戏元数据。
 
 ## 部署
 
+```bash
+steam-api\mvnw.cmd -f pom.xml -DskipTests package
+java -Dfile.encoding=UTF-8 -jar steam-launcher\target\steam-launcher-0.0.1.jar
+```
+
 ## 使用
+
+前端开发：
+
+```bash
+cd vue
+npm run dev
+```
 
 ## 模块
 
 ### steam-dependencies
-项目的"依赖版本控制中心"  
-功能：
-- 统一管理所有子模块的依赖版本（Spring Boot、数据库驱动、工具库等）
-- 定义全局Maven插件版本和配置
-- 不包含任何业务代码，仅通过`<dependencyManagement>`和`<pluginManagement>`管理版本
-- 确保所有子模块使用一致的依赖版本，避免冲突
+根 Maven 聚合工程，统一管理后端模块构建顺序和公共依赖版本。
 
 ### steam-common
-项目的"公共代码库"  
-功能：
-- 存放所有模块共享的代码和配置
-- 提供通用工具类、基础DTO、异常处理等
-- 定义跨模块的常量、枚举、注解
-- 包含数据库实体类、通用AOP切面、基础安全配置等
+公共基础模块，提供统一响应 `ApiResponse`、错误码、业务异常、当前用户上下文和凭据接口。
 
 ### steam-login
-认证与授权服务  
-- 功能：
-- 处理凭据配置、凭据验证、注销
-- 实现身份认证（如JWT、OAuth2）
-- 管理权限验证（RBAC模型）
-- 提供会话管理、单点登录(SSO)支
+Steam 凭据模块，负责 SteamID/API Key 的配置、加密保存、解密读取、在线验证和默认用户上下文。
 
 ### steam-api
-业务API服务  
-功能：
-- 提供核心业务逻辑的RESTful API
-- 包含控制器(Controller)、服务层(Service)
-- 数据校验、业务规则处理
+普通用户侧游戏业务模块，负责 Steam 游戏库同步、H2 入库、游戏列表/数量查询、游戏详情异步补全。
 
 ### steam-admin
-后台管理系统  
-功能：
-- 提供管理界面所需的后端接口
-- 处理用户管理、角色权限配置
-- 数据统计、系统监控
+平台管理后台模块，提供用户、凭据状态、同步任务、游戏元数据和系统配置的管理接口。
 
-### steam-test
-测试系统
-功能：
-- 提供测试，先行开发
+### steam-launcher
+唯一后端启动入口，聚合 `steam-common`、`steam-login`、`steam-api`、`steam-admin` 并监听 `8080`。
 
 ### vue
-前端 
+Vue 前端应用，负责凭据配置、Dashboard、游戏列表和同步入口。

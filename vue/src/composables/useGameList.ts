@@ -11,8 +11,8 @@ export function useGameList() {
   const isLoading = ref(false);
   const errorMessage = ref('');
   const searchQuery = ref('');
-  const sortKey = ref<'app_id' | 'app_name' | 'app_time' | ''>('');
-  const sortOrder = ref<'asc' | 'desc'>('asc');
+  const sortKey = ref<'app_id' | 'app_name' | 'app_time' | ''>('app_time');
+  const sortOrder = ref<'asc' | 'desc'>('desc');
 
   const filteredAndSortedGames = computed<OwnedGame[]>(() => {
     const q = searchQuery.value.trim().toLowerCase();

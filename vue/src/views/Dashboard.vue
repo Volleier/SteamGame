@@ -4,6 +4,8 @@ import TheSidebar from '@/components/TheSidebar.vue'
 import TheFooter from '@/components/TheFooter.vue'
 import MainPage from '@/views/Dashboard/MainPage.vue'
 import GameList from '@/views/Dashboard/GameList.vue'
+import Settings from '@/views/Dashboard/Settings.vue'
+import SyncModal from '@/components/SyncModal.vue'
 
 export default {
   name: "Dashboard",
@@ -13,12 +15,29 @@ export default {
     TheFooter,
     MainPage,
     GameList,
+    Settings,
+    SyncModal,
   },
   data() {
     return {
       username: 'User',
       currentView: 'dashboard',
       sidebarOpen: false,
+      isAppFullscreen: false,
+      showInitialSyncModal: false,
+    }
+  },
+  created() {
+    if (this.$route.query.initialSync === 'true') {
+      this.showInitialSyncModal = true;
+      // 移除 URL 中的 query 参数，避免刷新再次弹出
+      const query = { ...this.$route.query };
+      delete query.initialSync;
+      this.$router.replace({ query }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error(err);
+        }
+      });
     }
   },
   methods: {
@@ -28,6 +47,12 @@ export default {
     },
     toggleSidebar() {
       this.sidebarOpen = !this.sidebarOpen;
+    },
+    toggleAppFullscreen() {
+      this.isAppFullscreen = !this.isAppFullscreen;
+    },
+    handleSyncComplete() {
+      this.showInitialSyncModal = false;
     },
   }
 }
@@ -46,25 +71,35 @@ export default {
     <div v-if="sidebarOpen" class="sidebar-overlay" @click="sidebarOpen = false"></div>
 
     <TheSidebar
+      v-show="!isAppFullscreen"
       @change-view="changeView"
       :currentView="currentView"
       :class="{ 'sidebar-open': sidebarOpen }"
     />
-    <div class="main-content">
-      <TheHeader :username="username" />
+    <div class="main-content" :class="{ 'fullscreen-mode': isAppFullscreen }">
+      <TheHeader v-show="!isAppFullscreen" :username="username" />
       <main class="content">
         <transition name="fade" mode="out-in">
-          <div v-if="currentView === 'dashboard'" key="dashboard" class="view-content">
-            <MainPage />
+          <div v-if="currentView === 'dashboard'" key="dashboard" class="view-content flex-1 h-full flex flex-col relative">
+            <MainPage @toggle-fullscreen="toggleAppFullscreen" :is-fullscreen="isAppFullscreen" />
           </div>
 
-          <div v-else-if="currentView === 'games'" key="games" class="view-content">
+          <div v-else-if="currentView === 'games'" key="games" class="view-content flex-1 h-full flex flex-col relative pt-12">
             <GameList />
+          </div>
+
+          <div v-else-if="currentView === 'settings'" key="settings" class="view-content flex-1 h-full flex flex-col relative pt-12">
+            <Settings />
           </div>
         </transition>
       </main>
-      <TheFooter />
+      <TheFooter v-if="currentView !== 'dashboard'" />
     </div>
+
+    <!-- 初始同步弹窗 -->
+    <transition name="fade">
+      <SyncModal v-if="showInitialSyncModal" @sync-complete="handleSyncComplete" />
+    </transition>
   </div>
 </template>
 
@@ -84,6 +119,8 @@ export default {
   display: flex;
   height: 100vh;
   position: relative;
+  background-color: #0a0d14; /* Dark void background */
+  color: #ffffff; /* White text for dark mode */
 }
 
 /* 移动端汉堡按钮 */
@@ -139,16 +176,22 @@ export default {
   flex-direction: column;
   overflow: hidden;
   margin-left: 240px;
-  padding-top: 70px;
   width: calc(100% - 240px);
   min-width: 0; /* 防止 flex 子元素溢出 */
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.main-content.fullscreen-mode {
+  margin-left: 0;
+  width: 100%;
 }
 
 .content {
   flex: 1;
-  padding: 1.5rem;
   overflow-y: auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .fade-enter-active,

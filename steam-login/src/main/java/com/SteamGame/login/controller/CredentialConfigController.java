@@ -1,6 +1,6 @@
 package com.SteamGame.login.controller;
 
-import com.SteamGame.login.dto.ApiResponse;
+import com.SteamGame.common.response.ApiResponse;
 import com.SteamGame.login.dto.RegisterCredentialRequest;
 import com.SteamGame.login.service.CredentialService;
 import org.slf4j.Logger;

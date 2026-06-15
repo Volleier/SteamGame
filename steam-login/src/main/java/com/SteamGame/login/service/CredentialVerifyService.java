@@ -1,6 +1,6 @@
 package com.SteamGame.login.service;
 
-import com.SteamGame.login.dto.ApiResponse;
+import com.SteamGame.common.response.ApiResponse;
 import com.SteamGame.login.dto.CredentialViewDTO;
 import com.SteamGame.login.dto.CredentialCheckResult;
 

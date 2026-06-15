@@ -1,6 +1,15 @@
 spring:
   application:
-    name: steam-launcher
+    name: steam-game
+  datasource:
+    url: jdbc:h2:file:./data/steamdb;DATABASE_TO_UPPER=false;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+
 server:
   port: 8080
 
@@ -12,3 +21,9 @@ login:
     failRetryHours: 1
     maxPerRun: 50
     schedulerEnabled: true
+
+steam:
+  api:
+    timeoutSeconds: 15
+    detailsTimeoutSeconds: 6
+    detailsDelayMillis: 1500

@@ -1,10 +1,11 @@
 package com.SteamGame.login.service.impl;
 
-import com.SteamGame.login.dto.ApiResponse;
+import com.SteamGame.common.response.ApiResponse;
 import com.SteamGame.login.dto.CredentialCheckResult;
 import com.SteamGame.login.dto.CredentialInputDTO;
 import com.SteamGame.login.dto.CredentialViewDTO;
 import com.SteamGame.login.dto.ResultCode;
+import com.SteamGame.common.error.ErrorCode;
 import com.SteamGame.login.model.CredentialRecord;
 import com.SteamGame.login.model.CredentialValidationMeta;
 import com.SteamGame.login.repository.CredentialRepository;
@@ -69,7 +70,7 @@ public class CredentialServiceImpl implements CredentialService {
                 msg = "API Key 通常为 32 位十六进制字符串";
             }
             logger.warn("输入格式校验失败 — steamId={} code={}", steamId, formatError);
-            return ApiResponse.fail(formatError, msg);
+            return ApiResponse.fail(ErrorCode.STEAM_CREDENTIAL_INVALID, msg);
         }
 
         // Step 2: online validation
@@ -79,30 +80,22 @@ public class CredentialServiceImpl implements CredentialService {
                 result = validationService.validateOnline(steamId, apiKey);
             } else {
                 logger.error("未注入 CredentialValidationService");
-                return ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam 校验服务未配置");
+                return ApiResponse.fail(ErrorCode.STEAM_API_UNAVAILABLE, "Steam 校验服务未配置");
             }
         } catch (Exception e) {
             String msg = e.getMessage();
             logger.error("在线验证异常: {}", msg, e);
             if (msg != null && msg.contains("STEAM_API_TIMEOUT")) {
-                return ApiResponse.fail(ResultCode.STEAM_API_TIMEOUT, "Steam API 请求超时，请稍后重试");
+                return ApiResponse.fail(ErrorCode.STEAM_API_TIMEOUT, "Steam API 请求超时，请稍后重试");
             }
-            return ApiResponse.fail(ResultCode.STEAM_API_UNAVAILABLE, "Steam 服务不可用，请稍后重试");
+            return ApiResponse.fail(ErrorCode.STEAM_API_UNAVAILABLE, "Steam 服务不可用，请稍后重试");
         }
 
         if (!result.isValidKeyAndUser()) {
-            return ApiResponse.fail(ResultCode.INVALID_KEY_OR_USER, result.getMessage());
+            return ApiResponse.fail(ErrorCode.STEAM_CREDENTIAL_INVALID, result.getMessage());
         }
 
-        // Step 3: determine result code
-        ResultCode resultCode;
-        if (result.isProfilePrivate() || !result.isOwnsGames()) {
-            resultCode = ResultCode.PROFILE_PRIVATE_OR_NO_GAMES;
-        } else {
-            resultCode = ResultCode.LOGIN_OK;
-        }
-
-        // Step 4: persist or store in-memory
+        // Step 3: persist or store in-memory
         String userId = req.getUserId() != null ? req.getUserId() : "default";
         try {
             if (rememberMe) {
@@ -113,7 +106,7 @@ public class CredentialServiceImpl implements CredentialService {
                 ApiResponse<Object> saveResp = configService.saveCredentialWithValidation(dto, result);
                 if (saveResp == null || !saveResp.isSuccess()) {
                     return saveResp == null
-                            ? ApiResponse.fail(ResultCode.INTERNAL_ERROR, "保存配置失败")
+                            ? ApiResponse.fail(ErrorCode.INTERNAL_ERROR, "保存配置失败")
                             : saveResp;
                 }
                 logger.info("凭据已持久化到 auth.yaml — steamId={} rememberMe=true", steamId);
@@ -131,10 +124,10 @@ public class CredentialServiceImpl implements CredentialService {
 
         } catch (Exception e) {
             logger.error("保存凭据时异常: {}", e.getMessage(), e);
-            return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "保存凭据失败");
+            return ApiResponse.fail(ErrorCode.INTERNAL_ERROR, "保存凭据失败");
         }
 
-        return ApiResponse.ok(resultCode, result, resultCode == ResultCode.LOGIN_OK ? "配置并验证成功" : "验证部分成功（游戏列表可能受限）");
+        return ApiResponse.ok(result);
     }
 
     // ========== P0-9: loadAndValidateForLogin ==========
@@ -152,7 +145,7 @@ public class CredentialServiceImpl implements CredentialService {
                     CredentialCheckResult cached = new CredentialCheckResult(
                             entry.validKeyAndUser, entry.ownsGames,
                             entry.profilePrivate, "内存会话：凭据有效", entry.gameCount);
-                    return ApiResponse.ok(ResultCode.LOGIN_OK, cached, "凭据有效（内存会话）");
+                    return ApiResponse.ok(cached);
                 }
             }
         }
@@ -167,7 +160,7 @@ public class CredentialServiceImpl implements CredentialService {
                     if (m != null && cachePolicy != null && cachePolicy.isValidationFresh(m)) {
                         CredentialCheckResult cached = new CredentialCheckResult(true, true, false,
                                 "缓存校验通过", 0);
-                        return ApiResponse.ok(ResultCode.LOGIN_OK, cached, "缓存命中：凭据有效");
+                        return ApiResponse.ok(cached);
                     }
                 }
             } catch (Exception e) {
@@ -181,7 +174,7 @@ public class CredentialServiceImpl implements CredentialService {
             tryUpdateRepository(uid, null, validateResp.getData());
         }
         if (validateResp == null) {
-            return ApiResponse.fail(ResultCode.INTERNAL_ERROR, "在线校验未返回结果");
+            return ApiResponse.fail(ErrorCode.INTERNAL_ERROR, "在线校验未返回结果");
         }
         return validateResp;
     }
@@ -201,7 +194,7 @@ public class CredentialServiceImpl implements CredentialService {
                 view.setSteamId(entry.steamId);
                 view.setHasApiKey(true);
                 view.setUpdatedAt(null);
-                return ApiResponse.ok(ResultCode.LOGIN_OK, view, "凭据状态返回（内存会话）");
+                return ApiResponse.ok(view);
             }
         }
 
@@ -215,7 +208,7 @@ public class CredentialServiceImpl implements CredentialService {
                     view.setSteamId(r.getSteamId());
                     view.setUpdatedAt(r.getValidation() == null ? null : r.getValidation().getLastValidatedAt());
                     view.setHasApiKey(r.getApiKey() != null);
-                    return ApiResponse.ok(ResultCode.LOGIN_OK, view, "凭据状态返回");
+                    return ApiResponse.ok(view);
                 }
             }
         } catch (Exception e) {

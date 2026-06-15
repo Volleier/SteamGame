@@ -4,6 +4,7 @@ import com.SteamGame.login.dto.CredentialCheckResult;
 import com.SteamGame.login.service.CredentialValidationService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -21,10 +22,11 @@ public class CredentialValidationServiceImpl implements CredentialValidationServ
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public CredentialValidationServiceImpl() {
+    public CredentialValidationServiceImpl(@Value("${steam.api.timeoutSeconds:15}") int timeoutSeconds) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(5000);
-        requestFactory.setReadTimeout(5000);
+        int timeoutMillis = Math.max(timeoutSeconds, 1) * 1000;
+        requestFactory.setConnectTimeout(timeoutMillis);
+        requestFactory.setReadTimeout(timeoutMillis);
         this.restTemplate = new RestTemplate(requestFactory);
     }
 

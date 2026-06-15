@@ -1,5 +1,3 @@
-spring:
-  profiles:
-    active: dev
-
-# 默认本地开发使用 H2 内存数据库，配合 application-dev.yml
+# steam-api 模块默认配置
+# 运行时的主配置以 steam-launcher/src/main/resources/application.yaml 为准
+# 本文件仅作为模块独立测试时的 fallback
