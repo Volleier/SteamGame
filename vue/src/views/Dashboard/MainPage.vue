@@ -1,7 +1,7 @@
 <template>
   <div class="about-container relative w-full h-full overflow-hidden bg-[#121212] font-sans flex-1">
-    <div 
-      class="canvas-viewport absolute inset-0 overflow-hidden touch-none" 
+    <div
+      class="canvas-viewport absolute inset-0 overflow-hidden touch-none"
       ref="viewport"
       @pointerdown="onViewportPointerDown"
       @pointermove="onPointerMove"
@@ -12,22 +12,19 @@
     >
       <!-- Grid Layer -->
       <div class="dot-grid-layer absolute inset-0 pointer-events-none" :style="gridStyle"></div>
-      
+
       <!-- Canvas Content -->
       <div class="canvas-content absolute top-0 left-0 origin-top-left will-change-transform" :style="contentStyle" ref="canvas">
         <article
           v-for="card in cards"
           :key="card.id"
           class="info-card about-card absolute border border-white/10 rounded-lg p-6 bg-black/60 backdrop-blur-md shadow-2xl text-white transition-all duration-500 flex flex-col"
-          :class="[
-            card.className, 
-            { 'is-dragging': drag.cardId === card.id, 'is-armed': drag.armed && drag.cardId === card.id, 'is-focus-mode': isFocusMode }
-          ]"
+          :class="[card.className, { 'is-dragging': drag.cardId === card.id, 'is-armed': drag.armed && drag.cardId === card.id, 'is-focus-mode': isFocusMode }]"
           :style="{
             '--card-grid-w': card.w,
             width: `calc(${card.w} * var(--grid-size))`,
             transform: `translate3d(${card.x}px, ${card.y}px, 0)`,
-            zIndex: drag.cardId === card.id ? 50 : 1
+            zIndex: drag.cardId === card.id ? 50 : 1,
           }"
           :data-id="card.id"
           @pointerdown.stop="onCardDown($event, card)"
@@ -42,15 +39,25 @@
         </article>
       </div>
     </div>
-    
+
     <!-- Controls -->
-    <div class="canvas-controls absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 backdrop-blur-lg border border-white/10 p-2 rounded-full shadow-2xl z-50 items-center">
-      <button @click="resetView" class="px-6 py-2 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-widest transition-colors rounded-full hover:bg-white/10">RESET</button>
-      <button @click="fitView" class="px-6 py-2 text-xs font-bold text-[#00d4ff] hover:text-white uppercase tracking-widest transition-colors rounded-full hover:bg-white/10">FIT</button>
+    <div
+      class="canvas-controls absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 backdrop-blur-lg border border-white/10 p-2 rounded-full shadow-2xl z-50 items-center"
+    >
+      <button @click="resetView" class="px-6 py-2 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-widest transition-colors rounded-full hover:bg-white/10">
+        RESET
+      </button>
+      <button @click="fitView" class="px-6 py-2 text-xs font-bold text-[#00d4ff] hover:text-white uppercase tracking-widest transition-colors rounded-full hover:bg-white/10">
+        FIT
+      </button>
     </div>
 
     <!-- Standalone Fullscreen Button -->
-    <button @click="toggleFullscreen" class="absolute bottom-8 right-8 w-12 h-12 flex items-center justify-center bg-black/50 backdrop-blur-lg border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors rounded-full shadow-2xl z-50" title="全屏切换">
+    <button
+      @click="toggleFullscreen"
+      class="absolute bottom-8 right-8 w-12 h-12 flex items-center justify-center bg-black/50 backdrop-blur-lg border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors rounded-full shadow-2xl z-50"
+      title="全屏切换"
+    >
       <svg v-if="!isFullscreen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
       </svg>
@@ -117,28 +124,21 @@ const pan = reactive({
   middlePressed: false,
 });
 
-// Three test cards as requested
 const cards = ref([
   {
-    id: 1, tag: "01_PROFILE", heading: "身份识别 / PROFILE", accent: "cyan",
-    initX: 48, initY: 72, x: 48, y: 72, w: 14, className: "card-profile",
-    content: "<h3>VOLLEIER</h3><p>一名游戏开发者</p><br/><ul><li><code class='text-[#00d4ff] bg-[#00d4ff]/10 px-1 py-0.5 rounded'>MAIL.</code> Volleiershao@gmail.com</li></ul>"
+    id: 1,
+    tag: '01_INVENTORY',
+    heading: '库容 / INVENTORY',
+    accent: 'cyan',
+    initX: 120,
+    initY: 120,
+    x: 120,
+    y: 120,
+    w: 14,
+    className: 'card-inventory',
+    content:
+      "<div class='text-center py-4'><p class='text-gray-400 text-sm tracking-widest uppercase mb-2'>已收录游戏</p><p class='text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00ffd5]' id='games-count'>--</p></div>",
   },
-  {
-    id: 2, tag: "02_PROJECT", heading: "当前项目 / PROJECT", accent: "magenta",
-    initX: 432, initY: 120, x: 432, y: 120, w: 18, className: "card-project",
-    content: "<p>正在进行 <strong>SteamGame</strong> 游戏库管理系统的开发。</p><br/><p>架构: Vue 3 + Tailwind CSS</p><p>状态: 核心互动引擎开发中</p>"
-  },
-  {
-    id: 3, tag: "03_SYSTEM", heading: "系统状态 / SYSTEM", accent: "gold",
-    initX: 96, initY: 336, x: 96, y: 336, w: 16, className: "card-system",
-    content: "<p>核心温度: 42°C</p><p>内存占用: 1.2GB / 16GB</p><br/><p class='text-[#00ffd5]'>所有子系统运行正常 (OPTIMAL)。</p>"
-  },
-  {
-    id: 4, tag: "04_INVENTORY", heading: "库容 / INVENTORY", accent: "cyan",
-    initX: 800, initY: 120, x: 800, y: 120, w: 12, className: "card-inventory",
-    content: "<div class='text-center py-4'><p class='text-gray-400 text-sm tracking-widest uppercase mb-2'>已收录游戏</p><p class='text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00ffd5]' id='games-count'>--</p></div>"
-  }
 ]);
 
 // Computed Styles
@@ -159,16 +159,16 @@ const snap = (value: number) => Math.round(value / gridSize) * gridSize;
 const clampScale = (v: number) => Math.min(2.4, Math.max(0.45, v));
 
 const getCardRect = (cardId: number) => {
-  const card = cards.value.find(c => c.id === cardId);
+  const card = cards.value.find((c) => c.id === cardId);
   const el = document.querySelector(`[data-id="${cardId}"]`) as HTMLElement;
   if (!card || !el) return { x: 0, y: 0, w: 0, h: 0, cx: 0, cy: 0 };
-  return { 
-    x: card.x, 
-    y: card.y, 
-    w: el.offsetWidth, 
-    h: el.offsetHeight, 
-    cx: card.x + el.offsetWidth/2, 
-    cy: card.y + el.offsetHeight/2 
+  return {
+    x: card.x,
+    y: card.y,
+    w: el.offsetWidth,
+    h: el.offsetHeight,
+    cx: card.x + el.offsetWidth / 2,
+    cy: card.y + el.offsetHeight / 2,
   };
 };
 
@@ -177,7 +177,9 @@ const resetDragState = () => {
   if (drag.cardId !== null) {
     const el = document.querySelector(`[data-id="${drag.cardId}"]`) as HTMLElement;
     if (el && el.hasPointerCapture(drag.pointerId)) {
-      try { el.releasePointerCapture(drag.pointerId); } catch(e) {}
+      try {
+        el.releasePointerCapture(drag.pointerId);
+      } catch (e) {}
     }
   }
   drag.cardId = null;
@@ -190,7 +192,7 @@ const resetDragState = () => {
 // Events
 const onViewportPointerDown = (ev: PointerEvent) => {
   // Middle click (1) or Left click + Alt for panning
-  if (ev.button === 1 || (ev.button === 0 && ev.altKey)) { 
+  if (ev.button === 1 || (ev.button === 0 && ev.altKey)) {
     ev.preventDefault();
     pan.active = true;
     pan.pointerId = ev.pointerId;
@@ -198,7 +200,7 @@ const onViewportPointerDown = (ev: PointerEvent) => {
     pan.startY = ev.clientY;
     pan.startPanX = state.panX;
     pan.startPanY = state.panY;
-    pan.middlePressed = (ev.button === 1);
+    pan.middlePressed = ev.button === 1;
     if (viewport.value) viewport.value.setPointerCapture(ev.pointerId);
   }
 };
@@ -266,7 +268,7 @@ const onPointerMove = (ev: PointerEvent) => {
   const nextX = snap(drag.startX + (worldX - drag.startWorldX));
   const nextY = snap(drag.startY + (worldY - drag.startWorldY));
 
-  const card = cards.value.find(c => c.id === drag.cardId);
+  const card = cards.value.find((c) => c.id === drag.cardId);
   if (card) {
     card.x = nextX;
     card.y = nextY;
@@ -280,7 +282,7 @@ const resolveCollisions = (movedCardId: number, startX: number, startY: number) 
   let curX = startX;
   let curY = startY;
 
-  const movedCard = cards.value.find(c => c.id === movedCardId);
+  const movedCard = cards.value.find((c) => c.id === movedCardId);
   if (!movedCard) return { x: startX, y: startY };
 
   movedCard.x = curX;
@@ -297,9 +299,7 @@ const resolveCollisions = (movedCardId: number, startX: number, startY: number) 
       const r2 = getCardRect(other.id);
 
       // AABB Collision Detection
-      if (r1.x < r2.x + r2.w && r1.x + r1.w > r2.x &&
-          r1.y < r2.y + r2.h && r1.y + r1.h > r2.y) {
-        
+      if (r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y) {
         hasCollision = true;
         const dx = r1.cx - r2.cx;
         const dy = r1.cy - r2.cy;
@@ -313,7 +313,7 @@ const resolveCollisions = (movedCardId: number, startX: number, startY: number) 
 
         curX = snap(curX);
         curY = snap(curY);
-        
+
         movedCard.x = curX;
         movedCard.y = curY;
         break; // Recalculate all overlaps with new position
@@ -335,7 +335,7 @@ const onPointerUp = (ev: PointerEvent) => {
 
   if (drag.cardId !== null) {
     if (drag.dragging) {
-      const card = cards.value.find(c => c.id === drag.cardId);
+      const card = cards.value.find((c) => c.id === drag.cardId);
       if (card) {
         // Resolve collisions and snap to final grid position
         const finalPos = resolveCollisions(card.id, card.x, card.y);
@@ -378,7 +378,8 @@ const edgeScroll = () => {
     const localX = edge.mouseX - rect.left;
     const localY = edge.mouseY - rect.top;
 
-    let dx = 0, dy = 0;
+    let dx = 0,
+      dy = 0;
     if (localX < edge.threshold) dx = edge.speed;
     if (localX > rect.width - edge.threshold) dx = -edge.speed;
     if (localY < edge.threshold) dy = edge.speed;
@@ -408,18 +409,21 @@ const focusOnCard = (cardId: number) => {
   const targetScale = clampScale(targetW / rect.w);
 
   state.scale = Math.min(targetScale, 1.8);
-  
+
   const vW = viewport.value?.offsetWidth || window.innerWidth;
   const vH = viewport.value?.offsetHeight || window.innerHeight;
-  
+
   state.panX = vW / 2 - rect.cx * state.scale;
   state.panY = vH / 2 - rect.cy * state.scale;
 };
 
 const fitView = () => {
   isFocusMode.value = false;
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  cards.value.forEach(card => {
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  cards.value.forEach((card) => {
     const rect = getCardRect(card.id);
     if (rect.w === 0) return;
     minX = Math.min(minX, rect.x);
@@ -437,17 +441,17 @@ const fitView = () => {
 
   const targetScale = Math.min(availableW / contentW, availableH / contentH, 1.2);
   state.scale = clampScale(targetScale);
-  
+
   const vW = viewport.value?.offsetWidth || window.innerWidth;
   const vH = viewport.value?.offsetHeight || window.innerHeight;
-  
+
   state.panX = (vW - contentW * state.scale) / 2 - minX * state.scale;
   state.panY = (vH - contentH * state.scale) / 2 - minY * state.scale;
 };
 
 const resetView = () => {
   isFocusMode.value = false;
-  cards.value.forEach(card => {
+  cards.value.forEach((card) => {
     card.x = card.initX;
     card.y = card.initY;
   });
@@ -486,11 +490,7 @@ onUnmounted(() => {
 <style scoped>
 .dot-grid-layer {
   background-color: #121212;
-  background-image: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.15) 1.1px,
-    transparent 1.1px
-  );
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1.1px, transparent 1.1px);
   background-size: calc(var(--grid-size) * var(--zoom)) calc(var(--grid-size) * var(--zoom));
   background-position: calc(var(--pan-x) * 1px) calc(var(--pan-y) * 1px);
 }
@@ -501,7 +501,11 @@ onUnmounted(() => {
 
 .about-card {
   min-height: 200px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), z-index 0s;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    z-index 0s;
   cursor: grab;
 }
 
@@ -511,7 +515,9 @@ onUnmounted(() => {
 }
 
 .about-card.is-armed {
-  box-shadow: 0 0 0 1px rgba(61, 220, 192, 0.42), 0 20px 44px rgba(0, 0, 0, 0.56);
+  box-shadow:
+    0 0 0 1px rgba(61, 220, 192, 0.42),
+    0 20px 44px rgba(0, 0, 0, 0.56);
 }
 
 .about-card.is-focus-mode {
@@ -519,8 +525,14 @@ onUnmounted(() => {
 }
 
 @keyframes breathe {
-  0% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.1); }
-  50% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.3); }
-  100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.1); }
+  0% {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+  }
 }
 </style>

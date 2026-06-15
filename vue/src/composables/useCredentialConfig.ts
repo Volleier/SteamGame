@@ -138,7 +138,7 @@ export function useCredentialConfig() {
         }
 
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push('/dashboard?initialSync=true');
         }, 600);
       } else {
         configError.value = buildApiFailureMessage(resp);
@@ -152,7 +152,7 @@ export function useCredentialConfig() {
   };
 
   const handleReturnToDashboard = (): void => {
-    router.push('/dashboard');
+    router.push('/dashboard?initialSync=true');
   };
 
   const clearConfigError = (): void => {

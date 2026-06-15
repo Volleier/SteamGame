@@ -22,7 +22,7 @@ class CredentialValidationServiceImplTest {
 
     @Test
     void validatesOnlineCredentialAndCountsOwnedGames() throws Exception {
-        CredentialValidationServiceImpl service = new CredentialValidationServiceImpl();
+        CredentialValidationServiceImpl service = new CredentialValidationServiceImpl(15);
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
 
@@ -49,7 +49,7 @@ class CredentialValidationServiceImplTest {
 
     @Test
     void mapsSteamTimeoutToExplicitExceptionCode() {
-        CredentialValidationServiceImpl service = new CredentialValidationServiceImpl();
+        CredentialValidationServiceImpl service = new CredentialValidationServiceImpl(15);
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
 
