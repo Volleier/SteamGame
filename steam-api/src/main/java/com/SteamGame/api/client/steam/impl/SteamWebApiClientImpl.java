@@ -10,6 +10,7 @@ import com.SteamGame.api.dto.news.GameNewsResultDTO;
 import com.SteamGame.api.dto.player.PlayerFriendDTO;
 import com.SteamGame.api.dto.player.PlayerProfileDTO;
 import com.SteamGame.api.dto.player.RecentGameDTO;
+import com.SteamGame.api.dto.player.WishlistItemDTO;
 import com.SteamGame.api.dto.stats.CurrentPlayerCountDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,6 +157,17 @@ public class SteamWebApiClientImpl implements SteamWebApiClient {
 
         String body = get(url, config.getTimeoutSeconds());
         return parseFriendList(body);
+    }
+
+    @Override
+    public List<WishlistItemDTO> getWishlist(String steamId, String apiKey) throws IOException, InterruptedException {
+        String url = String.format(
+                "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?key=%s&steamid=%s&format=json",
+                encode(apiKey), encode(steamId));
+        log.info("SteamWebApiClient: GetWishlist for steamId={}", steamId);
+
+        String body = get(url, config.getTimeoutSeconds());
+        return parseWishlist(body);
     }
 
     // ──────────────────────────────────────────────
@@ -324,6 +336,37 @@ public class SteamWebApiClientImpl implements SteamWebApiClient {
                 dto.setRelationship(f.path("relationship").asText(null));
                 dto.setFriendSince(f.path("friend_since").asLong());
                 list.add(dto);
+            }
+        }
+        return list;
+    }
+
+    public List<WishlistItemDTO> parseWishlist(String body) throws IOException {
+        List<WishlistItemDTO> list = new ArrayList<>();
+        JsonNode root = objectMapper.readTree(body);
+        JsonNode items = root.path("response").path("items");
+        if (!items.isArray()) {
+            items = root.path("response").path("wishlist");
+        }
+        if (!items.isArray()) {
+            items = root.path("items");
+        }
+        if (items.isArray()) {
+            for (JsonNode item : items) {
+                WishlistItemDTO dto = new WishlistItemDTO();
+                dto.setAppid(item.path("appid").asLong());
+                dto.setName(item.path("name").asText(null));
+                dto.setPriority(item.has("priority") ? item.path("priority").asInt() : null);
+                if (item.has("date_added")) {
+                    dto.setAddedAt(item.path("date_added").asLong());
+                } else if (item.has("added_at")) {
+                    dto.setAddedAt(item.path("added_at").asLong());
+                } else if (item.has("time_added")) {
+                    dto.setAddedAt(item.path("time_added").asLong());
+                }
+                if (dto.getAppid() != null && dto.getAppid() > 0) {
+                    list.add(dto);
+                }
             }
         }
         return list;

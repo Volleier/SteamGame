@@ -14,6 +14,6 @@ public interface PlayerWishlistMapper {
     void upsert(PlayerWishlist item);
 
     @Select("SELECT id, user_id AS userId, appid, name, priority, added_at AS addedAt, synced_at AS syncedAt " +
-            "FROM player_wishlist WHERE user_id = #{userId}")
+            "FROM player_wishlist WHERE user_id = #{userId} ORDER BY priority ASC, added_at DESC")
     List<PlayerWishlist> findByUserId(@Param("userId") String userId);
 }

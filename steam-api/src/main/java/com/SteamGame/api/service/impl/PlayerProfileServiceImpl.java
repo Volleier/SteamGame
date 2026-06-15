@@ -6,14 +6,13 @@ import com.SteamGame.api.dto.player.PlayerProfileDTO;
 import com.SteamGame.api.dto.player.PlayerSummaryDTO;
 import com.SteamGame.api.mapper.OwnedGameMapper;
 import com.SteamGame.api.mapper.PlayerProfileMapper;
+import com.SteamGame.api.mapper.RecentGameMapper;
 import com.SteamGame.api.service.PlayerProfileService;
 import com.SteamGame.common.context.CredentialProvider;
 import com.SteamGame.common.context.SteamCredential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.sql.Timestamp;
 
 @Service
 public class PlayerProfileServiceImpl implements PlayerProfileService {
@@ -24,15 +23,18 @@ public class PlayerProfileServiceImpl implements PlayerProfileService {
     private final SteamWebApiClient webApiClient;
     private final PlayerProfileMapper profileMapper;
     private final OwnedGameMapper ownedGameMapper;
+    private final RecentGameMapper recentGameMapper;
 
     public PlayerProfileServiceImpl(CredentialProvider credentialProvider,
                                      SteamWebApiClient webApiClient,
                                      PlayerProfileMapper profileMapper,
-                                     OwnedGameMapper ownedGameMapper) {
+                                     OwnedGameMapper ownedGameMapper,
+                                     RecentGameMapper recentGameMapper) {
         this.credentialProvider = credentialProvider;
         this.webApiClient = webApiClient;
         this.profileMapper = profileMapper;
         this.ownedGameMapper = ownedGameMapper;
+        this.recentGameMapper = recentGameMapper;
     }
 
     @Override
@@ -71,10 +73,9 @@ public class PlayerProfileServiceImpl implements PlayerProfileService {
         // Game stats
         int gameCount = ownedGameMapper.countByUserId(userId);
         summary.setOwnedGameCount(gameCount);
-        summary.setRecentGameCount(0); // updated in Step 9
-
-        summary.setTotalPlaytimeForever(null); // computed from DB aggregation
-        summary.setLastSyncedAt(new Timestamp(System.currentTimeMillis()));
+        summary.setRecentGameCount(recentGameMapper.countByUserId(userId));
+        summary.setTotalPlaytimeForever(ownedGameMapper.sumPlaytimeForeverByUserId(userId));
+        summary.setLastSyncedAt(ownedGameMapper.findLastSyncedAtByUserId(userId));
 
         return summary;
     }

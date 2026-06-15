@@ -4,6 +4,7 @@ import com.SteamGame.api.domain.OwnedGame;
 import com.SteamGame.api.dto.player.PlayerProfileDTO;
 import com.SteamGame.api.dto.player.RecentGameDTO;
 import com.SteamGame.api.dto.player.PlayerFriendDTO;
+import com.SteamGame.api.dto.player.WishlistItemDTO;
 import com.SteamGame.api.dto.stats.CurrentPlayerCountDTO;
 import com.SteamGame.api.dto.achievement.AchievementGlobalPercentDTO;
 import com.SteamGame.api.dto.news.GameNewsResultDTO;
@@ -52,6 +53,11 @@ public interface SteamWebApiClient {
      * ISteamUser/GetFriendList/v1
      */
     List<PlayerFriendDTO> getFriendList(String steamId, String apiKey) throws IOException, InterruptedException;
+
+    /**
+     * IWishlistService/GetWishlist/v1
+     */
+    List<WishlistItemDTO> getWishlist(String steamId, String apiKey) throws IOException, InterruptedException;
 
     /**
      * ISteamWebAPIUtil/GetSupportedAPIList/v1

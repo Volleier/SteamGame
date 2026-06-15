@@ -81,13 +81,17 @@ class PlayerControllerTest {
     }
 
     @Test
-    void getWishlistReturnsEmpty() throws Exception {
+    void getWishlistReturnsList() throws Exception {
         WishlistResultDTO result = new WishlistResultDTO();
-        result.setItems(List.of());
+        WishlistItemDTO item = new WishlistItemDTO();
+        item.setAppid(570L);
+        item.setPriority(1);
+        result.setItems(List.of(item));
         when(wishlistService.getWishlist(anyString())).thenReturn(result);
 
         mockMvc.perform(get("/api/player/wishlist"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.items[0].appid").value(570));
     }
 }

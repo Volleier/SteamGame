@@ -78,4 +78,10 @@ public interface OwnedGameMapper {
      */
     @Select("SELECT COUNT(*) FROM owned_game WHERE user_id = #{userId}")
     int countByUserId(@Param("userId") String userId);
+
+    @Select("SELECT COALESCE(SUM(playtime_forever), 0) FROM owned_game WHERE user_id = #{userId}")
+    Long sumPlaytimeForeverByUserId(@Param("userId") String userId);
+
+    @Select("SELECT MAX(last_synced_at) FROM owned_game WHERE user_id = #{userId}")
+    java.sql.Timestamp findLastSyncedAtByUserId(@Param("userId") String userId);
 }

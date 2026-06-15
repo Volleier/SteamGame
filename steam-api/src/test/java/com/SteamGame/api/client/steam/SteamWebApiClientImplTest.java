@@ -3,6 +3,7 @@ package com.SteamGame.api.client.steam;
 import com.SteamGame.api.client.steam.impl.SteamWebApiClientImpl;
 import com.SteamGame.api.config.SteamHttpClientConfig;
 import com.SteamGame.api.domain.OwnedGame;
+import com.SteamGame.api.dto.player.WishlistItemDTO;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpClient;
@@ -95,5 +96,25 @@ class SteamWebApiClientImplTest {
         assertNull(g.getRtimeLastPlayed());
         assertNull(g.getImgIconUrl());
         assertNull(g.getHasCommunityVisibleStats());
+    }
+
+    @Test
+    void parseWishlistExtractsItems() throws Exception {
+        String json = """
+            {
+              "response": {
+                "items": [
+                  { "appid": 570, "priority": 1, "date_added": 1718420000 },
+                  { "appid": 730, "name": "Counter-Strike 2", "priority": 2, "added_at": 1718420100 }
+                ]
+              }
+            }
+            """;
+        List<WishlistItemDTO> items = client.parseWishlist(json);
+        assertEquals(2, items.size());
+        assertEquals(570L, items.get(0).getAppid());
+        assertEquals(1, items.get(0).getPriority());
+        assertEquals(1718420000L, items.get(0).getAddedAt());
+        assertEquals("Counter-Strike 2", items.get(1).getName());
     }
 }
