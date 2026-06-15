@@ -14,17 +14,7 @@
 
     </router-link>
 
-    <!-- Right: ABOUT Button seamlessly integrated -->
-    <router-link to="/about" class="about-btn">
-
-      <div class="about-slider"></div>
-
-      <div class="about-text-wrapper">
-        <span>About</span>
-      </div>
-
-    </router-link>
-
+    <!-- Right slot empty or placeholder for spacing -->
   </header>
 </template>
 
