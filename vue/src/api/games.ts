@@ -72,3 +72,16 @@ export async function syncOwnedGames(): Promise<OwnedGame[]> {
   const list = response.data?.data ?? response.data ?? [];
   return (Array.isArray(list) ? list : []).map(toOwnedGame);
 }
+
+export interface SyncStatus {
+  total: number;
+  missing: number;
+  synced: number;
+  isSyncingDetails: boolean;
+}
+
+/** 获取同步进度状态 (GET /api/ownedgames/sync-status) */
+export async function getSyncStatus(): Promise<SyncStatus> {
+  const response = await http.get('/ownedgames/sync-status');
+  return response.data?.data ?? response.data;
+}

@@ -61,21 +61,20 @@ public class OwnedGameDetailsServiceImpl implements OwnedGameDetailsService {
         for (OwnedGame game : missing) {
             try {
                 steamApiClient.fillGameDetails(game);
-                if (game.getDeveloper() != null || game.getPublisher() != null) {
-                    java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-                    game.setDetailsSyncedAt(now);
-                    ownedGameMapper.updateDetails(
-                        userId,
-                        game.getAppid(),
-                        game.getDeveloper(),
-                        game.getPublisher(),
-                        game.getReleaseDate(),
-                        game.getTags()
-                    );
-                    logger.info("成功更新游戏 (userId={}, appid={}) 的开发商为 [{}]，发行商为 [{}]",
-                            userId, game.getAppid(), game.getDeveloper(), game.getPublisher());
-                    updated++;
-                }
+                
+                // 无论是否拉取到有效开发商/发行商，都强制写入数据库，确保 details_synced_at 不为 null
+                ownedGameMapper.updateDetails(
+                    userId,
+                    game.getAppid(),
+                    game.getDeveloper() != null ? game.getDeveloper() : "Unknown",
+                    game.getPublisher() != null ? game.getPublisher() : "Unknown",
+                    game.getReleaseDate() != null ? game.getReleaseDate() : "Unknown",
+                    game.getTags() != null ? game.getTags() : ""
+                );
+                
+                logger.info("成功同步并更新游戏详情 (userId={}, appid={})", userId, game.getAppid());
+                updated++;
+                
                 // 每次请求后休眠 1.5 秒，防频率限制
                 Thread.sleep(1500);
             } catch (InterruptedException ie) {
@@ -83,9 +82,27 @@ public class OwnedGameDetailsServiceImpl implements OwnedGameDetailsService {
                 break;
             } catch (Exception e) {
                 logger.warn("拉取游戏详情失败 (appid={}): {}", game.getAppid(), e.getMessage());
+                // 发生网络或接口异常的游戏，也写入占位同步标记，防止进度条卡死
+                try {
+                    ownedGameMapper.updateDetails(
+                        userId,
+                        game.getAppid(),
+                        "Unknown",
+                        "Unknown",
+                        "Unknown",
+                        ""
+                    );
+                } catch (Exception ex) {
+                    logger.error("写入异常占位同步标记失败 (appid={})", game.getAppid(), ex);
+                }
             }
         }
         logger.info("细节补全完成 — userId={}, 已更新 {} 款游戏", userId, updated);
         return updated;
+    }
+
+    @Override
+    public boolean isFetching() {
+        return isFetchingDetails.get();
     }
 }

@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { syncOwnedGames } from '@/api/games';
+import { syncOwnedGames, getSyncStatus } from '@/api/games';
 
 const emit = defineEmits(['sync-complete']);
 
@@ -36,37 +36,57 @@ const isSyncing = ref(true);
 const statusMessage = ref('连接至 Steam 服务器...');
 
 onMounted(async () => {
-  // 模拟进度条动画
-  const progressInterval = setInterval(() => {
-    if (progress.value < 85) {
-      // 随机增加 1 到 5，减缓速度
-      progress.value += Math.random() * 4 + 1;
-      if (progress.value > 85) progress.value = 85;
-      
-      if (progress.value > 20) statusMessage.value = '拉取游戏元数据...';
-      if (progress.value > 50) statusMessage.value = '写入本地数据库...';
-      if (progress.value > 70) statusMessage.value = '处理额外信息...';
-    }
-  }, 400);
-
   try {
-    // 实际调用同步接口
+    statusMessage.value = '正在拉取游戏基本信息...';
+    progress.value = 5;
+
+    // Phase 1: list sync
+    const listInterval = setInterval(() => {
+      if (progress.value < 45) {
+        progress.value += Math.floor(Math.random() * 3 + 1);
+      }
+    }, 200);
+
     await syncOwnedGames();
-    
-    // 同步完成，填满进度条
-    clearInterval(progressInterval);
-    progress.value = 100;
-    statusMessage.value = '同步完成！';
-    
-    // 稍微延迟一下让用户看到 100% 然后关闭
-    setTimeout(() => {
-      emit('sync-complete');
-    }, 800);
-    
+    clearInterval(listInterval);
+    progress.value = 50;
+    statusMessage.value = '获取游戏库成功，正在读取游戏详细信息...';
+
+    // Phase 2: poll detail sync progress
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await getSyncStatus();
+        const { total, missing, synced, isSyncingDetails } = status;
+
+        if (total > 0) {
+          const detailPct = (synced / total) * 50;
+          progress.value = Math.min(99, Math.floor(50 + detailPct));
+          statusMessage.value = `读取详细游戏数据中... (${synced}/${total})`;
+        } else {
+          progress.value = 50;
+          statusMessage.value = '处理中...';
+        }
+
+        // If background detail sync finished or no missing details left
+        if (!isSyncingDetails || missing === 0) {
+          clearInterval(pollInterval);
+          progress.value = 100;
+          statusMessage.value = '同步完成！';
+          isSyncing.value = false;
+          setTimeout(() => {
+            emit('sync-complete');
+          }, 800);
+        }
+      } catch (pollErr) {
+        console.warn('获取同步进度失败:', pollErr);
+      }
+    }, 1000);
+
   } catch (err) {
     console.error('初始同步失败:', err);
-    clearInterval(progressInterval);
     statusMessage.value = '同步失败，即将进入主界面';
+    isSyncing.value = false;
+    progress.value = 100;
     setTimeout(() => {
       emit('sync-complete');
     }, 1500);

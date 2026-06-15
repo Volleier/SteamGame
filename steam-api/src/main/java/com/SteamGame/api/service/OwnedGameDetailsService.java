@@ -20,4 +20,11 @@ public interface OwnedGameDetailsService {
      * @return 实际处理数量
      */
     int syncMissingDetails(String userId, int limit);
+
+    /**
+     * 查询当前是否正在后台拉取详情。
+     *
+     * @return 是否在拉取中
+     */
+    boolean isFetching();
 }

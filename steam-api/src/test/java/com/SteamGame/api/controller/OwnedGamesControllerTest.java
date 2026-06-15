@@ -3,6 +3,7 @@ package com.SteamGame.api.controller;
 import com.SteamGame.api.domain.OwnedGame;
 import com.SteamGame.api.domain.OwnedGameSyncResult;
 import com.SteamGame.api.service.OwnedGameService;
+import com.SteamGame.api.service.OwnedGameDetailsService;
 import com.SteamGame.common.context.CurrentUser;
 import com.SteamGame.common.context.CurrentUserProvider;
 import com.SteamGame.common.error.BusinessException;
@@ -37,6 +38,9 @@ class OwnedGamesControllerTest {
 
     @MockBean
     private OwnedGameService ownedGameService;
+
+    @MockBean
+    private OwnedGameDetailsService ownedGameDetailsService;
 
     @MockBean
     private CurrentUserProvider currentUserProvider;

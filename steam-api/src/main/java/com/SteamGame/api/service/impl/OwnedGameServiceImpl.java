@@ -114,6 +114,11 @@ public class OwnedGameServiceImpl implements OwnedGameService {
         return doSync(userId);
     }
 
+    @Override
+    public int countMissingDetails(String userId) {
+        return ownedGameMapper.countMissingDetailsByUserId(userIdOrDefault(userId));
+    }
+
     private String userIdOrDefault(String userId) {
         return userId != null && !userId.isEmpty() ? userId : "default";
     }

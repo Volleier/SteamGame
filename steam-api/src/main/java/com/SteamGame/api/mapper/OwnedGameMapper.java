@@ -79,6 +79,9 @@ public interface OwnedGameMapper {
     @Select("SELECT COUNT(*) FROM owned_game WHERE user_id = #{userId}")
     int countByUserId(@Param("userId") String userId);
 
+    @Select("SELECT COUNT(*) FROM owned_game WHERE user_id = #{userId} AND (details_synced_at IS NULL OR developer IS NULL OR publisher IS NULL)")
+    int countMissingDetailsByUserId(@Param("userId") String userId);
+
     @Select("SELECT COALESCE(SUM(playtime_forever), 0) FROM owned_game WHERE user_id = #{userId}")
     Long sumPlaytimeForeverByUserId(@Param("userId") String userId);
 
