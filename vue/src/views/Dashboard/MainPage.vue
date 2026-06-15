@@ -44,9 +44,9 @@
                   <img :src="profile?.avatarFull || profile?.avatarMedium || profile?.avatar || defaultAvatar" @error="handleAvatarError" alt="Avatar" class="w-full h-full object-cover" />
                 </div>
                 <!-- Three lines of text (closer spacing, enlarged fonts) -->
-                <div class="flex flex-col justify-center gap-1.5 min-w-0">
+                <div class="flex flex-col justify-center gap-0.5 min-w-0">
                   <!-- Line 1 (Top): Username -->
-                  <div class="text-lg font-extrabold text-white truncate leading-none">
+                  <div class="text-2xl font-black text-white truncate leading-none">
                     {{ profile?.personaName || '加载中...' }}
                   </div>
                   <!-- Line 2 (Middle): Steam ID -->
@@ -54,7 +54,7 @@
                     ID: {{ steamId || '--' }}
                   </div>
                   <!-- Line 3 (Bottom): User status -->
-                  <div class="text-sm font-bold leading-none" :class="getStatusClass(profile?.personaState)">
+                  <div class="text-base font-bold leading-none" :class="getStatusClass(profile?.personaState)">
                     {{ getStatusText(profile?.personaState) }}
                   </div>
                 </div>
@@ -66,6 +66,37 @@
                 <p class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00ffd5] leading-tight">
                   {{ gamesCount !== null ? gamesCount : '--' }}
                 </p>
+              </div>
+            </template>
+            <template v-else-if="card.id === 2">
+              <div class="flex flex-col gap-3">
+                <div v-for="(game, index) in topGames" :key="game.app_id"
+                     class="flex items-center gap-3 bg-white/5 border border-white/5 hover:border-[#ff00ff]/30 hover:bg-[#ff00ff]/5 p-3 rounded-lg transition-all duration-300 transform hover:translate-x-1">
+                  <!-- Rank Index badge with glow -->
+                  <div class="w-6 h-6 flex items-center justify-center rounded-md text-xs font-black shrink-0" :class="getRankClass(index)">
+                    {{ index + 1 }}
+                  </div>
+                  <!-- Game poster/avatar (or fallback icon) -->
+                  <div class="w-10 h-[60px] rounded-md overflow-hidden bg-black/40 border border-white/10 flex-shrink-0 flex items-center justify-center">
+                    <img :src="`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.app_id}/library_600x900.jpg`" @error="handleGameIconError" class="w-full h-full object-cover" />
+                  </div>
+                  <!-- Game info -->
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-white truncate">{{ game.app_name }}</h3>
+                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">AppID: {{ game.app_id }}</p>
+                  </div>
+                  <!-- Playtime (hours) -->
+                  <div class="text-right flex-shrink-0">
+                    <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00f7ff]">
+                      {{ game.app_time }}
+                    </span>
+                    <span class="text-[10px] text-gray-500 font-bold block">小时</span>
+                  </div>
+                </div>
+                <!-- Empty state fallback if no games -->
+                <div v-if="topGames.length === 0" class="text-center py-8 text-gray-500 text-sm">
+                  暂无游玩记录
+                </div>
               </div>
             </template>
             <template v-else>
@@ -106,7 +137,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
-import { getGamesCount } from '@/api/games';
+import { getGamesCount, getOwnedGames, type OwnedGame } from '@/api/games';
 import { getPlayerProfile, type PlayerProfile } from '@/api/player';
 import defaultAvatar from '@/assets/images/SteamGame_Icon.png';
 
@@ -116,6 +147,7 @@ const emit = defineEmits(['toggle-fullscreen']);
 const gamesCount = ref<number | null>(null);
 const profile = ref<PlayerProfile | null>(null);
 const steamId = ref<string>('');
+const topGames = ref<OwnedGame[]>([]);
 
 const gridSize = 24;
 
@@ -180,6 +212,19 @@ const cards = ref([
     className: 'card-inventory',
     content:
       "<div class='text-center py-4'><p class='text-gray-400 text-sm tracking-widest uppercase mb-2'>已收录游戏</p><p class='text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00ffd5]' id='games-count'>--</p></div>",
+  },
+  {
+    id: 2,
+    tag: '02_PLAYTIME',
+    heading: '游玩排行 / PLAYTIME TOP 5',
+    accent: 'magenta',
+    initX: 480,
+    initY: 120,
+    x: 480,
+    y: 120,
+    w: 16,
+    className: 'card-playtime',
+    content: '',
   },
 ]);
 
@@ -525,6 +570,36 @@ const handleAvatarError = (event: Event) => {
   }
 };
 
+const fetchTopGames = async () => {
+  try {
+    const list = await getOwnedGames();
+    const sorted = [...list].sort((a, b) => b.app_time - a.app_time);
+    topGames.value = sorted.slice(0, 5);
+  } catch (error) {
+    console.error('Failed to fetch top games:', error);
+  }
+};
+
+const getRankClass = (index: number) => {
+  switch (index) {
+    case 0:
+      return 'bg-gradient-to-br from-[#ffd700] to-[#ffa500] text-black shadow-[0_0_8px_rgba(255,215,0,0.5)]';
+    case 1:
+      return 'bg-gradient-to-br from-[#e0e0e0] to-[#9e9e9e] text-black shadow-[0_0_6px_rgba(224,224,224,0.4)]';
+    case 2:
+      return 'bg-gradient-to-br from-[#cd7f32] to-[#8b5a2b] text-white shadow-[0_0_6px_rgba(205,127,50,0.3)]';
+    default:
+      return 'bg-white/10 text-gray-300';
+  }
+};
+
+const handleGameIconError = (event: Event) => {
+  const target = event.target as HTMLImageElement;
+  if (target && target.src !== defaultAvatar) {
+    target.src = defaultAvatar;
+  }
+};
+
 const getStatusText = (state: number | undefined) => {
   if (state === undefined) return '加载中...';
   switch (state) {
@@ -568,6 +643,7 @@ onMounted(() => {
   edge.reqFrame = window.requestAnimationFrame(edgeScroll);
   fetchGamesCount();
   fetchProfile();
+  fetchTopGames();
 });
 
 onUnmounted(() => {
