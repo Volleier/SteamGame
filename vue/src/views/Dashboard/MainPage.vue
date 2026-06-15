@@ -15,26 +15,26 @@
 
       <!-- Canvas Content -->
       <div class="canvas-content absolute top-0 left-0 origin-top-left will-change-transform" :style="contentStyle" ref="canvas">
-        <article
-          v-for="card in cards"
-          :key="card.id"
-          class="info-card about-card absolute border border-white/10 rounded-lg p-6 bg-black/60 backdrop-blur-md shadow-2xl text-white transition-all duration-500 flex flex-col"
-          :class="[card.className, { 'is-dragging': drag.cardId === card.id, 'is-armed': drag.armed && drag.cardId === card.id, 'is-focus-mode': isFocusMode }]"
-          :style="{
-            '--card-grid-w': card.w,
-            width: `calc(${card.w} * var(--grid-size))`,
-            transform: `translate3d(${card.x}px, ${card.y}px, 0)`,
-            zIndex: drag.cardId === card.id ? 50 : 1,
-          }"
-          :data-id="card.id"
-          @pointerdown.stop="onCardDown($event, card)"
-          @click="onCardClick($event, card)"
-        >
-          <div :class="['card-accent absolute left-0 top-6 w-1 h-10', card.accent === 'cyan' ? 'bg-[#00d4ff]' : card.accent === 'magenta' ? 'bg-[#ff00ff]' : 'bg-[#00ffd5]']"></div>
-          <header class="card-header mb-4 pl-4 pointer-events-none select-none">
-            <span class="tag text-[#00d4ff] text-xs font-bold tracking-widest uppercase">{{ card.tag }}</span>
-            <h2 class="text-xl font-extrabold tracking-wider uppercase mt-1">{{ card.heading }}</h2>
-          </header>
+        <template v-for="card in cards" :key="card.id">
+          <article
+            v-if="card.visible !== false"
+            class="info-card about-card absolute border border-white/10 rounded-lg p-6 bg-black/60 backdrop-blur-md shadow-2xl text-white transition-all duration-500 flex flex-col"
+            :class="[card.className, { 'is-dragging': drag.cardId === card.id, 'is-armed': drag.armed && drag.cardId === card.id, 'is-focus-mode': isFocusMode }]"
+            :style="{
+              '--card-grid-w': card.w,
+              width: `calc(${card.w} * var(--grid-size))`,
+              transform: `translate3d(${card.x}px, ${card.y}px, 0)`,
+              zIndex: drag.cardId === card.id ? 50 : 1,
+            }"
+            :data-id="card.id"
+            @pointerdown.stop="onCardDown($event, card)"
+            @click="onCardClick($event, card)"
+          >
+            <div :class="['card-accent absolute left-0 top-6 w-1 h-10', card.accent === 'cyan' ? 'bg-[#00d4ff]' : card.accent === 'magenta' ? 'bg-[#ff00ff]' : 'bg-[#00ffd5]']"></div>
+            <header class="card-header mb-4 pl-4 pointer-events-none select-none">
+              <span class="tag text-[#00d4ff] text-xs font-bold tracking-widest uppercase">{{ card.tag }}</span>
+              <h2 class="text-xl font-extrabold tracking-wider uppercase mt-1">{{ card.heading }}</h2>
+            </header>
           <div class="card-body pl-4 text-gray-300 text-sm leading-relaxed flex-1 select-none pointer-events-none">
             <template v-if="card.id === 1">
               <!-- Upper Half: User profile -->
@@ -168,6 +168,7 @@
             </template>
           </div>
         </article>
+        </template>
       </div>
     </div>
 
@@ -183,6 +184,15 @@
       </button>
     </div>
 
+    <!-- Side LAYOUT Button -->
+    <button
+      @click="isDrawerOpen = !isDrawerOpen"
+      class="fixed right-0 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur-md border border-white/10 border-r-0 px-3 py-12 text-2xl rounded-l-xl text-[#00ffd5] hover:text-white hover:bg-white/10 transition-all duration-300 shadow-[0_0_15px_rgba(0,255,213,0.2)] z-[102] flex items-center justify-center font-black"
+      :style="{ transform: isDrawerOpen ? 'translateX(-640px)' : 'translateX(0)' }"
+    >
+      {{ isDrawerOpen ? '&gt;' : '&lt;' }}
+    </button>
+
     <!-- Standalone Fullscreen Button -->
     <button
       @click="toggleFullscreen"
@@ -196,6 +206,52 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 14h4v4m0-4l-5 5m15-1v4h-4m4-4l-5 5M4 10h4V6m0 4l-5-5m15 1V6h-4m4 4l-5-5" />
       </svg>
     </button>
+
+    <!-- Slide-out Drawer (No Overlay to allow dragging out seamlessly) -->
+    <div
+      class="drawer-panel fixed right-0 top-0 h-full w-[640px] bg-[#121212]/90 backdrop-blur-xl border-l border-white/10 z-[101] shadow-2xl transition-transform duration-300 flex flex-col"
+      :class="{ 'translate-x-0': isDrawerOpen, 'translate-x-full': !isDrawerOpen }"
+    >
+      <!-- Drawer Body -->
+      <div class="flex-1 overflow-y-auto p-6">
+        <div class="flex flex-col gap-4">
+          <template v-for="card in cards" :key="card.id">
+            <div
+              v-if="card.visible === false"
+              @pointerdown.stop="onDrawerCardDown($event, card)"
+              class="relative flex items-center p-4 rounded-lg border border-white/10 bg-black/40 backdrop-blur-md shadow-lg text-white transition-all cursor-grab hover:bg-black/60 hover:border-white/30"
+              :class="{ 'opacity-50 pointer-events-none': drag.cardId === card.id }"
+            >
+              <div :class="['absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r', card.accent === 'cyan' ? 'bg-[#00d4ff]' : card.accent === 'magenta' ? 'bg-[#ff00ff]' : 'bg-[#00ffd5]']"></div>
+              <div class="pl-4 min-w-0 flex-1 pointer-events-none select-none">
+                <p class="text-xs text-gray-500 font-mono tracking-wider mb-1">{{ card.tag }}</p>
+                <h4 class="text-sm font-bold text-white truncate uppercase tracking-widest">{{ card.heading.split(' /')[0].trim() }}</h4>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-6 border-t border-white/10 bg-black/20 space-y-3">
+        <button
+          @click="saveLayout"
+          class="w-full py-3 bg-gradient-to-r from-[#00d4ff] to-[#00ffd5] text-black font-black uppercase text-xs tracking-widest rounded-lg shadow-[0_0_15px_rgba(0,212,255,0.3)] hover:shadow-[0_0_25px_rgba(0,212,255,0.5)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          保存当前布局
+        </button>
+      </div>
+    </div>
+
+    <!-- Save Success Toast -->
+    <transition name="fade">
+      <div
+        v-if="showSaveToast"
+        class="fixed bottom-24 right-8 px-6 py-3 bg-[#00ffd5] text-black font-black uppercase text-xs tracking-widest rounded-lg shadow-[0_0_20px_rgba(0,255,213,0.4)] z-[200] border border-white/20 transition-all"
+      >
+        布局已成功保存
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -204,9 +260,13 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { getGamesCount, getOwnedGames, type OwnedGame } from '@/api/games';
 import { getPlayerProfile, getRecentGames, getFriends, getWishlist, type PlayerProfile, type RecentGameItem, type FriendItem, type WishlistItem } from '@/api/player';
 import defaultAvatar from '@/assets/images/SteamGame_Icon.png';
+import http from '@/api/http';
 
 const props = defineProps<{ isFullscreen: boolean }>();
 const emit = defineEmits(['toggle-fullscreen']);
+
+const isDrawerOpen = ref(false);
+const showSaveToast = ref(false);
 
 const gamesCount = ref<number | null>(null);
 const profile = ref<PlayerProfile | null>(null);
@@ -276,6 +336,7 @@ const cards = ref([
     x: 120,
     y: 120,
     w: 14,
+    visible: true,
     className: 'card-inventory',
     content:
       "<div class='text-center py-4'><p class='text-gray-400 text-sm tracking-widest uppercase mb-2'>已收录游戏</p><p class='text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#00d4ff] to-[#00ffd5]' id='games-count'>--</p></div>",
@@ -290,6 +351,7 @@ const cards = ref([
     x: 480,
     y: 120,
     w: 16,
+    visible: true,
     className: 'card-playtime',
     content: '',
   },
@@ -303,6 +365,7 @@ const cards = ref([
     x: 888,
     y: 120,
     w: 16,
+    visible: true,
     className: 'card-recent',
     content: '',
   },
@@ -316,6 +379,7 @@ const cards = ref([
     x: 120,
     y: 520,
     w: 14,
+    visible: true,
     className: 'card-wishlist',
     content: '',
   },
@@ -329,6 +393,7 @@ const cards = ref([
     x: 480,
     y: 720,
     w: 16,
+    visible: true,
     className: 'card-friends',
     content: '',
   },
@@ -516,6 +581,33 @@ const resolveCollisions = (movedCardId: number, startX: number, startY: number) 
   return { x: curX, y: curY };
 };
 
+const onDrawerCardDown = (ev: PointerEvent, card: any) => {
+  if (ev.button !== 0) return; // Only left click
+
+  // Immediately make it visible on canvas
+  card.visible = true;
+
+  // Set initial coordinates based on mouse position to snap to cursor
+  const worldX = snap((ev.clientX - state.panX) / state.scale - (card.w * gridSize) / 2);
+  const worldY = snap((ev.clientY - state.panY) / state.scale - 200); // approximate center offset
+  card.x = worldX;
+  card.y = worldY;
+
+  // Initiate drag as if it was on the canvas
+  onCardDown(ev, card);
+
+  // Force it to be dragging immediately so it doesn't wait for "hold"
+  drag.armed = true;
+  drag.dragging = true;
+  drag.wasDragging = true;
+
+  // Capture pointer on the new canvas element
+  nextTick(() => {
+    const el = document.querySelector(`[data-id="${card.id}"]`) as HTMLElement;
+    if (el) el.setPointerCapture(ev.pointerId);
+  });
+};
+
 const onPointerUp = (ev: PointerEvent) => {
   if (pan.active && ev.pointerId === pan.pointerId) {
     pan.active = false;
@@ -530,10 +622,15 @@ const onPointerUp = (ev: PointerEvent) => {
     if (drag.dragging) {
       const card = cards.value.find((c) => c.id === drag.cardId);
       if (card) {
-        // Resolve collisions and snap to final grid position
-        const finalPos = resolveCollisions(card.id, card.x, card.y);
-        card.x = finalPos.x;
-        card.y = finalPos.y;
+        if (isDrawerOpen.value && ev.clientX > window.innerWidth - 640) {
+          // Dropped into drawer
+          card.visible = false;
+        } else {
+          // Resolve collisions and snap to final grid position
+          const finalPos = resolveCollisions(card.id, card.x, card.y);
+          card.x = finalPos.x;
+          card.y = finalPos.y;
+        }
       }
     }
     // Defer resetting wasDragging to allow click event to be blocked
@@ -642,15 +739,23 @@ const fitView = () => {
   state.panY = (vH - contentH * state.scale) / 2 - minY * state.scale;
 };
 
-const resetView = () => {
+const resetView = async () => {
   isFocusMode.value = false;
-  cards.value.forEach((card) => {
-    card.x = card.initX;
-    card.y = card.initY;
-  });
   state.panX = 0;
   state.panY = 0;
   state.scale = 1;
+  
+  // Try to overwrite with backend saved layout
+  const hasLayout = await fetchLayout();
+
+  if (!hasLayout) {
+    // Fallback: Reset to initial hardcoded state
+    cards.value.forEach((card) => {
+      card.x = card.initX;
+      card.y = card.initY;
+      card.visible = true;
+    });
+  }
 };
 
 const toggleFullscreen = () => {
@@ -800,8 +905,51 @@ const fetchFriendsData = async () => {
   }
 };
 
+const fetchLayout = async () => {
+  try {
+    const res = await http.get('/dashboard/layout');
+    const layout = res.data?.data;
+    if (layout && layout.length > 0) {
+      layout.forEach((item: any) => {
+        const card = cards.value.find((c) => c.id === item.id);
+        if (card) {
+          card.x = item.x;
+          card.y = item.y;
+          if (item.w) card.w = item.w;
+          card.visible = item.visible !== false;
+        }
+      });
+      return true;
+    }
+  } catch (error) {
+    console.error('Failed to fetch dashboard layout:', error);
+  }
+  return false;
+};
+
+const saveLayout = async () => {
+  try {
+    const payload = cards.value.map((c) => ({
+      id: c.id,
+      x: c.x,
+      y: c.y,
+      w: c.w,
+      visible: c.visible !== false,
+    }));
+    await http.post('/dashboard/layout', payload);
+    showSaveToast.value = true;
+    setTimeout(() => {
+      showSaveToast.value = false;
+    }, 3000);
+  } catch (error) {
+    console.error('Failed to save layout:', error);
+    alert('保存布局失败: ' + error);
+  }
+};
+
 onMounted(() => {
   edge.reqFrame = window.requestAnimationFrame(edgeScroll);
+  fetchLayout();
   fetchGamesCount();
   fetchProfile();
   fetchTopGames();
@@ -863,5 +1011,15 @@ onUnmounted(() => {
   100% {
     box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
 }
 </style>
