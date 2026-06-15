@@ -28,6 +28,7 @@ export default {
     }
   },
   created() {
+    this.$store.commit('setIsFullscreen', false);
     if (this.$route.query.initialSync === 'true') {
       this.showInitialSyncModal = true;
       // 移除 URL 中的 query 参数，避免刷新再次弹出
@@ -50,6 +51,7 @@ export default {
     },
     toggleAppFullscreen() {
       this.isAppFullscreen = !this.isAppFullscreen;
+      this.$store.commit('setIsFullscreen', this.isAppFullscreen);
     },
     handleSyncComplete() {
       this.showInitialSyncModal = false;
@@ -77,7 +79,6 @@ export default {
       :class="{ 'sidebar-open': sidebarOpen }"
     />
     <div class="main-content" :class="{ 'fullscreen-mode': isAppFullscreen }">
-      <TheHeader v-show="!isAppFullscreen" :username="username" />
       <main class="content">
         <transition name="fade" mode="out-in">
           <div v-if="currentView === 'dashboard'" key="dashboard" class="view-content flex-1 h-full flex flex-col relative">

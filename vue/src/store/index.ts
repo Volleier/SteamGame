@@ -3,12 +3,14 @@ import { createStore } from 'vuex';
 export interface RootState {
   authenticated: boolean;
   steamId: string;
+  isFullscreen: boolean;
 }
 
 export default createStore<RootState>({
   state: {
     authenticated: false,
     steamId: localStorage.getItem('steamId') || '',
+    isFullscreen: false,
   },
 
   mutations: {
@@ -22,6 +24,9 @@ export default createStore<RootState>({
       } else {
         localStorage.removeItem('steamId');
       }
+    },
+    setIsFullscreen(state, value: boolean) {
+      state.isFullscreen = value;
     },
   },
 
