@@ -15,16 +15,27 @@ public interface OwnedGameMapper {
      * 使用 H2 MERGE INTO 实现 upsert —— 存在则更新，不存在则插入。
      * 不要在 MERGE INTO 中包含 developer 和 publisher 字段，以防同步时已存在的记录被重置为 NULL。
      */
-    @Insert("MERGE INTO owned_game (user_id, steam_id, appid, name, playtime_forever, last_synced_at, updated_at) " +
+    @Insert("MERGE INTO owned_game (user_id, steam_id, appid, name, playtime_forever, " +
+            "playtime_2weeks, rtime_last_played, img_icon_url, has_community_visible_stats, " +
+            "playtime_windows_forever, playtime_mac_forever, playtime_linux_forever, playtime_deck_forever, " +
+            "last_synced_at, updated_at) " +
             "KEY (user_id, appid) " +
-            "VALUES (#{userId}, #{steamId}, #{appid}, #{name}, #{playtimeForever}, #{lastSyncedAt}, #{updatedAt})")
+            "VALUES (#{userId}, #{steamId}, #{appid}, #{name}, #{playtimeForever}, " +
+            "#{playtime2weeks}, #{rtimeLastPlayed}, #{imgIconUrl}, #{hasCommunityVisibleStats}, " +
+            "#{playtimeWindowsForever}, #{playtimeMacForever}, #{playtimeLinuxForever}, #{playtimeDeckForever}, " +
+            "#{lastSyncedAt}, #{updatedAt})")
     void upsert(OwnedGame game);
 
     /**
      * 按用户 ID 查询游戏列表。
      */
     @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
-            "playtime_forever AS playtimeForever, developer, publisher, " +
+            "playtime_forever AS playtimeForever, " +
+            "playtime_2weeks AS playtime2weeks, rtime_last_played AS rtimeLastPlayed, " +
+            "img_icon_url AS imgIconUrl, has_community_visible_stats AS hasCommunityVisibleStats, " +
+            "playtime_windows_forever AS playtimeWindowsForever, playtime_mac_forever AS playtimeMacForever, " +
+            "playtime_linux_forever AS playtimeLinuxForever, playtime_deck_forever AS playtimeDeckForever, " +
+            "developer, publisher, " +
             "release_date AS releaseDate, tags, last_synced_at AS lastSyncedAt, " +
             "details_synced_at AS detailsSyncedAt, " +
             "created_at AS createdAt, updated_at AS updatedAt " +
@@ -50,7 +61,12 @@ public interface OwnedGameMapper {
      * 查询指定用户缺失详情的游戏，限制返回数量防止扫全表。
      */
     @Select("SELECT id, user_id AS userId, steam_id AS steamId, appid, name, " +
-            "playtime_forever AS playtimeForever, developer, publisher, " +
+            "playtime_forever AS playtimeForever, " +
+            "playtime_2weeks AS playtime2weeks, rtime_last_played AS rtimeLastPlayed, " +
+            "img_icon_url AS imgIconUrl, has_community_visible_stats AS hasCommunityVisibleStats, " +
+            "playtime_windows_forever AS playtimeWindowsForever, playtime_mac_forever AS playtimeMacForever, " +
+            "playtime_linux_forever AS playtimeLinuxForever, playtime_deck_forever AS playtimeDeckForever, " +
+            "developer, publisher, " +
             "release_date AS releaseDate, tags, last_synced_at AS lastSyncedAt, " +
             "details_synced_at AS detailsSyncedAt " +
             "FROM owned_game WHERE user_id = #{userId} AND (details_synced_at IS NULL OR developer IS NULL OR publisher IS NULL) " +

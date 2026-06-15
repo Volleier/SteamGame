@@ -11,6 +11,14 @@ public class OwnedGame {
     private String publisher;
     private String releaseDate;
     private String tags;
+    private Integer playtime2weeks;
+    private Long rtimeLastPlayed;
+    private String imgIconUrl;
+    private Boolean hasCommunityVisibleStats;
+    private Integer playtimeWindowsForever;
+    private Integer playtimeMacForever;
+    private Integer playtimeLinuxForever;
+    private Integer playtimeDeckForever;
     private java.sql.Timestamp lastSyncedAt;
     private java.sql.Timestamp detailsSyncedAt;
     private java.sql.Timestamp createdAt;
@@ -95,6 +103,30 @@ public class OwnedGame {
     public void setTags(String tags) {
         this.tags = tags;
     }
+
+    public Integer getPlaytime2weeks() { return playtime2weeks; }
+    public void setPlaytime2weeks(Integer playtime2weeks) { this.playtime2weeks = playtime2weeks; }
+
+    public Long getRtimeLastPlayed() { return rtimeLastPlayed; }
+    public void setRtimeLastPlayed(Long rtimeLastPlayed) { this.rtimeLastPlayed = rtimeLastPlayed; }
+
+    public String getImgIconUrl() { return imgIconUrl; }
+    public void setImgIconUrl(String imgIconUrl) { this.imgIconUrl = imgIconUrl; }
+
+    public Boolean getHasCommunityVisibleStats() { return hasCommunityVisibleStats; }
+    public void setHasCommunityVisibleStats(Boolean hasCommunityVisibleStats) { this.hasCommunityVisibleStats = hasCommunityVisibleStats; }
+
+    public Integer getPlaytimeWindowsForever() { return playtimeWindowsForever; }
+    public void setPlaytimeWindowsForever(Integer playtimeWindowsForever) { this.playtimeWindowsForever = playtimeWindowsForever; }
+
+    public Integer getPlaytimeMacForever() { return playtimeMacForever; }
+    public void setPlaytimeMacForever(Integer playtimeMacForever) { this.playtimeMacForever = playtimeMacForever; }
+
+    public Integer getPlaytimeLinuxForever() { return playtimeLinuxForever; }
+    public void setPlaytimeLinuxForever(Integer playtimeLinuxForever) { this.playtimeLinuxForever = playtimeLinuxForever; }
+
+    public Integer getPlaytimeDeckForever() { return playtimeDeckForever; }
+    public void setPlaytimeDeckForever(Integer playtimeDeckForever) { this.playtimeDeckForever = playtimeDeckForever; }
 
     public java.sql.Timestamp getLastSyncedAt() {
         return lastSyncedAt;
