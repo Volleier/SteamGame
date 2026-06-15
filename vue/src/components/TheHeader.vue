@@ -16,7 +16,7 @@
 
     <!-- Right: User profile card (only shown when logged in/authenticated) -->
     <div v-if="showProfileCard" class="user-profile-card">
-      <img :src="profile.avatar" alt="Avatar" class="user-avatar" />
+      <img :src="profile.avatarFull || profile.avatarMedium || profile.avatar" alt="Avatar" class="user-avatar" />
       <span class="user-name">{{ profile.personaName }}</span>
     </div>
   </header>
