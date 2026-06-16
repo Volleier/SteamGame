@@ -4,6 +4,22 @@
 
 .header-container {
   @apply fixed top-0 left-0 w-full h-12 flex items-center justify-between overflow-hidden shadow-sm z-50 bg-black/40 backdrop-blur-md border-b border-white/10;
+  transition:
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.26s ease,
+    visibility 0s linear 0s;
+  will-change: transform, opacity;
+}
+
+.header-container-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.26s ease,
+    visibility 0s linear 0.42s;
 }
 
 .header-logo-group {

@@ -26,7 +26,7 @@ function truncate(value: string, maxLength = 1600): string {
   return value.length > maxLength ? `${value.slice(0, maxLength)}\n...（内容已截断）` : value;
 }
 
-function buildApiFailureMessage(resp: { code?: string; message?: string; data?: unknown }): string {
+function buildApiFailureMessage(resp: { code?: string | number; message?: string; data?: unknown }): string {
   const lines = ['配置凭据失败'];
   if (resp.code) lines.push(`错误码：${resp.code}`);
   lines.push(`错误信息：${resp.message || getCredentialMessage(resp.code, '验证失败，请检查您的凭据')}`);

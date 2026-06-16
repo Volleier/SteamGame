@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import com.SteamGame.api.service.OwnedGameDetailsService;
 
 @RestController
 @RequestMapping("/api/ownedgames")
@@ -26,11 +29,15 @@ public class OwnedGamesController {
     private static final Logger logger = LoggerFactory.getLogger(OwnedGamesController.class);
 
     private final OwnedGameService ownedGameService;
+    private final OwnedGameDetailsService ownedGameDetailsService;
     private final CurrentUserProvider currentUserProvider;
     private final OwnedGameDtoConverter converter = new OwnedGameDtoConverter();
 
-    public OwnedGamesController(OwnedGameService ownedGameService, CurrentUserProvider currentUserProvider) {
+    public OwnedGamesController(OwnedGameService ownedGameService,
+                                OwnedGameDetailsService ownedGameDetailsService,
+                                CurrentUserProvider currentUserProvider) {
         this.ownedGameService = ownedGameService;
+        this.ownedGameDetailsService = ownedGameDetailsService;
         this.currentUserProvider = currentUserProvider;
     }
 
@@ -73,4 +80,21 @@ public class OwnedGamesController {
         return ApiResponse.ok(new OwnedGameCountDTO(count));
     }
 
+    /**
+     * 获取玩家游戏库同步的整体进度。
+     */
+    @GetMapping("/sync-status")
+    public ApiResponse<Map<String, Object>> syncStatus() {
+        String userId = currentUserProvider.currentUser().getUserId();
+        int total = ownedGameService.countOwnedGames(userId);
+        int missing = ownedGameService.countMissingDetails(userId);
+        boolean isSyncingDetails = ownedGameDetailsService.isFetching();
+
+        Map<String, Object> status = new LinkedHashMap<>();
+        status.put("total", total);
+        status.put("missing", missing);
+        status.put("synced", total - missing);
+        status.put("isSyncingDetails", isSyncingDetails);
+        return ApiResponse.ok(status);
+    }
 }

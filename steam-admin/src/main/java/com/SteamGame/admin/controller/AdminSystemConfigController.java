@@ -31,6 +31,15 @@ public class AdminSystemConfigController {
     @Value("${login.cache.revalidateHours:6}")
     private int revalidateHours;
 
+    @Value("${steam.api.maxBatchSize:50}")
+    private int maxBatchSize;
+
+    @Value("${steam.api.storeLanguage:zh-cn}")
+    private String storeLanguage;
+
+    @Value("${steam.api.storeCountryCode:CN}")
+    private String storeCountryCode;
+
     /**
      * 查询当前系统配置（只读）。
      */
@@ -40,6 +49,9 @@ public class AdminSystemConfigController {
         cfg.put("steamApiTimeoutSeconds", steamApiTimeoutSeconds);
         cfg.put("detailsTimeoutSeconds", detailsTimeoutSeconds);
         cfg.put("detailsDelayMillis", detailsDelayMillis);
+        cfg.put("maxBatchSize", maxBatchSize);
+        cfg.put("storeLanguage", storeLanguage);
+        cfg.put("storeCountryCode", storeCountryCode);
         cfg.put("configPath", configPath);
         cfg.put("credentialRevalidateHours", revalidateHours);
         return ApiResponse.ok(cfg);

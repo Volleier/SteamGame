@@ -80,34 +80,45 @@
            class="game-card flex flex-col md:flex-row bg-black/40 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:border-[#00d4ff]/40 hover:bg-[#00d4ff]/5 transition-all duration-300 group shadow-lg">
         
         <!-- 左侧: 游戏垂直海报 -->
-        <div class="relative w-full md:w-[100px] lg:w-[120px] aspect-[2/3] md:h-[150px] shrink-0 bg-black/80 overflow-hidden border-r border-white/5">
+        <a :href="`https://store.steampowered.com/app/${game.app_id}`" target="_blank"
+           class="relative w-full md:w-[100px] lg:w-[120px] aspect-[2/3] md:h-[150px] shrink-0 bg-black/80 overflow-hidden border-r border-white/5 block cursor-pointer">
           <img
             :src="`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.app_id}/library_600x900.jpg`"
             @error="handleImageError"
             class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
             alt="Game Poster"
           />
-        </div>
+        </a>
 
         <!-- 中部及右侧内容包装 -->
         <div class="flex-1 p-5 flex flex-col lg:flex-row gap-5 justify-between">
           <!-- 中左侧: 标题 -->
           <div class="flex-1 flex flex-col justify-center min-w-0">
-            <h2 class="text-xl font-bold text-white group-hover:text-[#00d4ff] transition-colors truncate">
-              {{ game.app_name }}
-            </h2>
+            <a :href="`https://store.steampowered.com/app/${game.app_id}`" target="_blank" class="no-underline hover:no-underline cursor-pointer block">
+              <h2 class="text-xl font-bold text-white group-hover:text-[#00d4ff] transition-colors truncate no-underline">
+                {{ game.app_name }}
+              </h2>
+            </a>
           </div>
 
           <!-- 中右侧: 开发者与发行信息 -->
-          <div class="w-full lg:w-[280px] shrink-0 flex flex-col justify-center text-xs text-gray-400 space-y-1.5 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-5">
+          <div class="w-full lg:w-[220px] shrink-0 flex flex-col justify-center text-[11px] text-gray-400 space-y-1.5 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-4">
             <div><span class="text-gray-500">游戏 ID:</span> <span class="text-gray-300 font-mono ml-1">{{ game.app_id }}</span></div>
-            <div><span class="text-gray-500">开发者:</span> <span class="text-gray-300 font-medium ml-1">{{ game.developer || 'Unknown' }}</span></div>
-            <div><span class="text-gray-500">发行商:</span> <span class="text-gray-300 font-medium ml-1">{{ game.publisher || 'Unknown' }}</span></div>
+            <div><span class="text-gray-500">开发者:</span> <span class="text-gray-300 font-medium ml-1 truncate block">{{ game.developer || 'Unknown' }}</span></div>
+            <div><span class="text-gray-500">发行商:</span> <span class="text-gray-300 font-medium ml-1 truncate block">{{ game.publisher || 'Unknown' }}</span></div>
             <div><span class="text-gray-500">发行日期:</span> <span class="text-gray-300 font-medium ml-1">{{ game.release_date || 'Unknown' }}</span></div>
           </div>
 
+          <!-- 新增: 在线游玩人数 -->
+          <div class="w-full lg:w-[120px] shrink-0 flex flex-col justify-center items-start lg:items-center border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-4">
+            <div class="text-[10px] text-gray-500 uppercase tracking-widest text-center">当前在线</div>
+            <div class="text-xl font-black text-[#00ffd5] mt-1">
+              {{ playerCounts[game.app_id] !== undefined ? playerCounts[game.app_id] : '...' }}
+            </div>
+          </div>
+
           <!-- 右侧: 游戏时长与特性标签 -->
-          <div class="w-full lg:w-[240px] shrink-0 flex flex-col justify-between items-start lg:items-end border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-5">
+          <div class="w-full lg:w-[220px] shrink-0 flex flex-col justify-between items-start lg:items-end border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-4">
             <div class="text-left lg:text-right w-full">
               <div class="text-xs text-gray-500 uppercase tracking-widest">总游玩时间</div>
               <div class="text-2xl font-black text-white mt-0.5">
@@ -116,9 +127,9 @@
             </div>
 
             <!-- 特性标签 -->
-            <div v-if="game.tags && game.tags.length > 0" class="flex flex-wrap lg:justify-end gap-1.5 w-full mt-3">
+            <div v-if="game.tags && game.tags.length > 0" class="flex flex-wrap lg:justify-end gap-1.5 w-full mt-3 overflow-y-auto max-h-[64px] custom-scrollbar pr-1">
               <span v-for="tag in game.tags" :key="tag"
-                    class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-gray-300 tracking-wider">
+                    class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-300 tracking-wider whitespace-nowrap">
                 {{ tag }}
               </span>
             </div>
@@ -139,6 +150,7 @@
 
 <script setup lang="ts">
 import { useGameList } from '@/composables/useGameList';
+import { useGamePlayerCounts } from '@/features/games/composables/useGamePlayerCounts';
 
 const {
   isLoading,
@@ -159,27 +171,37 @@ const sortOptions = [
   { key: 'app_id', label: 'ID' }
 ] as const;
 
-
+const { playerCounts } = useGamePlayerCounts(games);
 
 function handleImageError(event: Event) {
   const img = event.target as HTMLImageElement;
   if (!img) return;
-
   const url = img.src;
   if (url.includes('library_600x900.jpg')) {
-    // 降级使用 header.jpg
     img.src = url.replace('library_600x900.jpg', 'header.jpg');
   } else if (url.includes('header.jpg')) {
-    // 再降级使用 capsule
     img.src = url.replace('header.jpg', 'capsule_616x353.jpg');
   } else {
-    // 最终默认占位图
     img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900"><rect width="100%" height="100%" fill="%231a1d24"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%234a5264">🎮</text></svg>';
   }
 }
 </script>
 
 <style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.5);
+}
+
 .game-card {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }

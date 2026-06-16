@@ -27,16 +27,24 @@
     <!-- Horizontal Divider: Thicker, centered fading line -->
     <div class="w-full max-w-[85%] h-[2px] bg-gradient-to-r from-transparent via-white to-transparent mb-12"></div>
 
-    <!-- Techwear Skewed Credential Verify Button -->
-    <router-link to="/credential-verify" class="credential-btn max-w-[14rem]">
-      <!-- Cyan Slider Block: Now controlled via default.scss and _theme.scss -->
-      <div class="credential-slider"></div>
+    <!-- Action Buttons Container -->
+    <div class="flex flex-col sm:flex-row gap-6 items-center justify-center w-full">
+      <!-- Techwear Skewed About Button -->
+      <router-link to="/about" class="credential-btn max-w-[14rem]">
+        <div class="credential-slider"></div>
+        <div class="credential-text-container">
+          <span>关于此项目</span>
+        </div>
+      </router-link>
 
-      <!-- Text Content -->
-      <div class="credential-text-container">
-        <span>凭据验证</span>
-      </div>
-    </router-link>
+      <!-- Techwear Skewed Credential Verify Button -->
+      <router-link to="/credential-verify" class="credential-btn max-w-[14rem]">
+        <div class="credential-slider"></div>
+        <div class="credential-text-container">
+          <span>凭据验证</span>
+        </div>
+      </router-link>
+    </div>
   </CyberGlassCard>
 </template>
 

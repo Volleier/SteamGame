@@ -1,16 +1,23 @@
 package com.SteamGame.api.client;
 
-import com.SteamGame.api.client.impl.SteamApiClientImpl;
+import com.SteamGame.api.client.steam.impl.SteamWebApiClientImpl;
+import com.SteamGame.api.config.SteamHttpClientConfig;
 import com.SteamGame.api.domain.OwnedGame;
 import org.junit.jupiter.api.Test;
 
+import java.net.http.HttpClient;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Backward-compatible test that now exercises the refactored SteamWebApiClientImpl.
+ */
 class SteamApiClientImplTest {
 
-    private final SteamApiClientImpl client = new SteamApiClientImpl();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final SteamHttpClientConfig config = new SteamHttpClientConfig();
+    private final SteamWebApiClientImpl client = new SteamWebApiClientImpl(httpClient, config);
 
     @Test
     void parseGamesFromJsonExtractsAppidNamePlaytime() throws Exception {
@@ -25,7 +32,7 @@ class SteamApiClientImplTest {
             }
             """;
 
-        List<OwnedGame> games = client.parseGamesFromJson(json);
+        List<OwnedGame> games = client.parseOwnedGames(json);
 
         assertEquals(2, games.size());
         assertEquals(730L, games.get(0).getAppid());
@@ -48,7 +55,7 @@ class SteamApiClientImplTest {
             }
             """;
 
-        List<OwnedGame> games = client.parseGamesFromJson(json);
+        List<OwnedGame> games = client.parseOwnedGames(json);
 
         assertEquals(1, games.size());
         assertNull(games.get(0).getUserId());
@@ -60,7 +67,7 @@ class SteamApiClientImplTest {
     void parseGamesFromJsonEmptyResponse() throws Exception {
         String json = "{ \"response\": {} }";
 
-        List<OwnedGame> games = client.parseGamesFromJson(json);
+        List<OwnedGame> games = client.parseOwnedGames(json);
 
         assertTrue(games.isEmpty());
     }

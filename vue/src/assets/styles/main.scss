@@ -1,0 +1,20 @@
+// @use rules must come before any other rules
+@use './tokens/theme';
+@use './base/global';
+@use './components/header';
+@use './components/sidebar';
+@use './components/sync-modal';
+@use './components/game-card';
+@use './components/dashboard-card';
+@use './components/dashboard-drawer';
+@use './pages/dashboard';
+@use './pages/dashboard-main';
+@use './pages/game-list';
+@use './pages/settings';
+@use './pages/credential-config';
+@use './pages/credential-verify';
+
+// Tailwind directives
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

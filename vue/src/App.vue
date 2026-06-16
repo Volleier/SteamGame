@@ -8,7 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
 import TheHeader from '@/components/TheHeader.vue';
 </script>
 

@@ -41,4 +41,12 @@ public interface OwnedGameService {
      * @return 游戏数量
      */
     int countOwnedGames(String userId);
+
+    /**
+     * 统计当前用户缺失详情的游戏数量。
+     *
+     * @param userId 本地用户 ID
+     * @return 缺失数量
+     */
+    int countMissingDetails(String userId);
 }

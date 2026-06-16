@@ -19,6 +19,14 @@ public class OwnedGameDtoConverter {
         dto.setPublisher(game.getPublisher());
         dto.setReleaseDate(game.getReleaseDate());
         dto.setTags(game.getTags());
+        dto.setPlaytime2Weeks(game.getPlaytime2weeks());
+        dto.setRtimeLastPlayed(game.getRtimeLastPlayed());
+        dto.setIconUrl(game.getImgIconUrl());
+        dto.setHasCommunityVisibleStats(game.getHasCommunityVisibleStats());
+        dto.setPlaytimeWindowsForever(game.getPlaytimeWindowsForever());
+        dto.setPlaytimeMacForever(game.getPlaytimeMacForever());
+        dto.setPlaytimeLinuxForever(game.getPlaytimeLinuxForever());
+        dto.setPlaytimeDeckForever(game.getPlaytimeDeckForever());
         return dto;
     }
 

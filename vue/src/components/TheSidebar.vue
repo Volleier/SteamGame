@@ -61,6 +61,22 @@ export default {
   left: 0;
   top: 0;
   z-index: 10;
+  transition:
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease,
+    visibility 0s linear 0s;
+  will-change: transform, opacity;
+}
+
+.sidebar.sidebar-hidden {
+  transform: translateX(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease,
+    visibility 0s linear 0.42s;
 }
 
 .sidebar-header {
@@ -172,7 +188,10 @@ export default {
 @media (max-width: 767px) {
   .sidebar {
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition:
+      transform 0.3s ease,
+      opacity 0.2s ease,
+      visibility 0s linear 0.3s;
     z-index: 50;
   }
 
