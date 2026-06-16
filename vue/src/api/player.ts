@@ -51,6 +51,8 @@ export interface FriendResult {
 export interface WishlistItem {
   appid: number;
   name: string;
+  nameEn?: string;
+  price?: string;
   priority: number;
   addedAt: number;
 }

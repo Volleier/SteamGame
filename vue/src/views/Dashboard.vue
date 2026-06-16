@@ -43,6 +43,10 @@ export default {
   },
   methods: {
     changeView(viewName) {
+      if (viewName !== 'dashboard' && this.isAppFullscreen) {
+        this.isAppFullscreen = false;
+        this.$store.commit('setIsFullscreen', false);
+      }
       this.currentView = viewName;
       this.sidebarOpen = false; // 移动端切换视图后关闭侧边栏
     },
@@ -73,26 +77,35 @@ export default {
     <div v-if="sidebarOpen" class="sidebar-overlay" @click="sidebarOpen = false"></div>
 
     <TheSidebar
-      v-show="!isAppFullscreen"
       @change-view="changeView"
       :currentView="currentView"
-      :class="{ 'sidebar-open': sidebarOpen }"
+      :aria-hidden="isAppFullscreen"
+      :class="{ 'sidebar-open': sidebarOpen, 'sidebar-hidden': isAppFullscreen }"
     />
-    <div class="main-content" :class="{ 'fullscreen-mode': isAppFullscreen }">
+    <div
+      class="main-content"
+      :class="{
+        'fullscreen-mode': isAppFullscreen,
+        'subpage-mode': currentView !== 'dashboard'
+      }"
+    >
       <main class="content">
-        <transition name="fade" mode="out-in">
-          <div v-if="currentView === 'dashboard'" key="dashboard" class="view-content flex-1 h-full flex flex-col relative">
-            <MainPage @toggle-fullscreen="toggleAppFullscreen" :is-fullscreen="isAppFullscreen" />
-          </div>
-
-          <div v-else-if="currentView === 'games'" key="games" class="view-content flex-1 h-full flex flex-col relative pt-12">
-            <GameList />
-          </div>
-
-          <div v-else-if="currentView === 'settings'" key="settings" class="view-content flex-1 h-full flex flex-col relative pt-12">
-            <Settings />
-          </div>
-        </transition>
+        <div class="view-content flex-1 h-full flex flex-col relative">
+          <MainPage
+            v-show="currentView === 'dashboard'"
+            class="dashboard-view-panel"
+            @toggle-fullscreen="toggleAppFullscreen"
+            :is-fullscreen="isAppFullscreen"
+          />
+          <GameList
+            v-show="currentView === 'games'"
+            class="dashboard-view-panel dashboard-scroll-panel"
+          />
+          <Settings
+            v-show="currentView === 'settings'"
+            class="dashboard-view-panel dashboard-scroll-panel"
+          />
+        </div>
       </main>
       <TheFooter v-if="currentView !== 'dashboard'" />
     </div>
@@ -179,7 +192,10 @@ export default {
   margin-left: 240px;
   width: calc(100% - 240px);
   min-width: 0; /* 防止 flex 子元素溢出 */
-  transition: margin-left 0.3s ease, width 0.3s ease;
+  transition:
+    margin-left 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: margin-left, width;
 }
 
 .main-content.fullscreen-mode {
@@ -193,6 +209,24 @@ export default {
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.main-content.subpage-mode .content {
+  padding-top: 3rem;
+}
+
+.view-content {
+  min-height: 0;
+}
+
+.dashboard-view-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.dashboard-scroll-panel {
+  overflow-y: auto;
 }
 
 .fade-enter-active,
@@ -223,6 +257,10 @@ export default {
     margin-left: 0;
     width: 100%;
     padding-top: 60px;
+  }
+
+  .main-content.subpage-mode .content {
+    padding-top: 0;
   }
 
   .content {

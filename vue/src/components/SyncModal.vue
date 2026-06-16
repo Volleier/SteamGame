@@ -4,13 +4,13 @@
       <div class="sync-modal-content">
         <div class="sync-icon-container">
           <svg class="sync-icon" :class="{ 'is-syncing': isSyncing }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15" />
           </svg>
         </div>
-        
+
         <h2 class="sync-title">初始化同步游戏库</h2>
         <p class="sync-desc">正在从 Steam 获取您的游戏数据，请稍候...</p>
-        
+
         <div class="progress-container">
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
@@ -18,7 +18,7 @@
           </div>
           <div class="progress-text">{{ Math.floor(progress) }}%</div>
         </div>
-        
+
         <div class="status-text">{{ statusMessage }}</div>
       </div>
     </div>
@@ -26,8 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { syncOwnedGames, getSyncStatus } from '@/api/games';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { syncOwnedGames } from '@/api/games';
 
 const emit = defineEmits(['sync-complete']);
 
@@ -35,72 +35,47 @@ const progress = ref(0);
 const isSyncing = ref(true);
 const statusMessage = ref('连接至 Steam 服务器...');
 
+let progressTimer: number | undefined;
+let completed = false;
+
+function finishSync(message: string, delay = 800) {
+  if (completed) return;
+  completed = true;
+  if (progressTimer) window.clearInterval(progressTimer);
+  progress.value = 100;
+  statusMessage.value = message;
+  isSyncing.value = false;
+  window.setTimeout(() => emit('sync-complete'), delay);
+}
+
 onMounted(async () => {
   try {
-    statusMessage.value = '正在拉取游戏基本信息...';
+    statusMessage.value = '正在拉取游戏库...';
     progress.value = 5;
 
-    // Phase 1: list sync
-    const listInterval = setInterval(() => {
-      if (progress.value < 45) {
-        progress.value += Math.floor(Math.random() * 3 + 1);
+    progressTimer = window.setInterval(() => {
+      if (progress.value < 90) {
+        progress.value += Math.floor(Math.random() * 5 + 2);
       }
-    }, 200);
+    }, 250);
 
     await syncOwnedGames();
-    clearInterval(listInterval);
-    progress.value = 50;
-    statusMessage.value = '获取游戏库成功，正在读取游戏详细信息...';
-
-    // Phase 2: poll detail sync progress
-    const pollInterval = setInterval(async () => {
-      try {
-        const status = await getSyncStatus();
-        const { total, missing, synced, isSyncingDetails } = status;
-
-        if (total > 0) {
-          const detailPct = (synced / total) * 50;
-          progress.value = Math.min(99, Math.floor(50 + detailPct));
-          statusMessage.value = `读取详细游戏数据中... (${synced}/${total})`;
-        } else {
-          progress.value = 50;
-          statusMessage.value = '处理中...';
-        }
-
-        // If background detail sync finished or no missing details left
-        if (!isSyncingDetails || missing === 0) {
-          clearInterval(pollInterval);
-          progress.value = 100;
-          statusMessage.value = '同步完成！';
-          isSyncing.value = false;
-          setTimeout(() => {
-            emit('sync-complete');
-          }, 800);
-        }
-      } catch (pollErr) {
-        console.warn('获取同步进度失败:', pollErr);
-      }
-    }, 1000);
-
+    finishSync('同步完成');
   } catch (err) {
     console.error('初始同步失败:', err);
-    statusMessage.value = '同步失败，即将进入主界面';
-    isSyncing.value = false;
-    progress.value = 100;
-    setTimeout(() => {
-      emit('sync-complete');
-    }, 1500);
+    finishSync('同步失败，即将进入主界面', 1200);
   }
+});
+
+onUnmounted(() => {
+  if (progressTimer) window.clearInterval(progressTimer);
 });
 </script>
 
 <style scoped>
 .sync-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: transparent;
   z-index: 9999;
   display: flex;
@@ -158,14 +133,14 @@ onMounted(async () => {
   font-size: 1.5rem;
   font-weight: 600;
   color: #fff;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.5rem;
   letter-spacing: 1px;
 }
 
 .sync-desc {
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 2rem 0;
+  margin: 0 0 2rem;
 }
 
 .progress-container {
@@ -214,6 +189,6 @@ onMounted(async () => {
 .status-text {
   font-size: 0.8rem;
   color: rgba(0, 240, 255, 0.8);
-  height: 1rem;
+  min-height: 1rem;
 }
 </style>

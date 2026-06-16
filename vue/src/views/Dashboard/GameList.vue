@@ -149,9 +149,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import { useGameList } from '@/composables/useGameList';
-import { getCurrentPlayersBatch } from '@/api/gameStats';
+import { useGamePlayerCounts } from '@/features/games/composables/useGamePlayerCounts';
 
 const {
   isLoading,
@@ -172,54 +171,20 @@ const sortOptions = [
   { key: 'app_id', label: 'ID' }
 ] as const;
 
-
+const { playerCounts } = useGamePlayerCounts(games);
 
 function handleImageError(event: Event) {
   const img = event.target as HTMLImageElement;
   if (!img) return;
-
   const url = img.src;
   if (url.includes('library_600x900.jpg')) {
-    // 降级使用 header.jpg
     img.src = url.replace('library_600x900.jpg', 'header.jpg');
   } else if (url.includes('header.jpg')) {
-    // 再降级使用 capsule
     img.src = url.replace('header.jpg', 'capsule_616x353.jpg');
   } else {
-    // 最终默认占位图
     img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900"><rect width="100%" height="100%" fill="%231a1d24"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%234a5264">🎮</text></svg>';
   }
-};
-
-const playerCounts = ref<Record<number, number | string>>({});
-
-const loadAllPlayerCounts = async () => {
-  const allIds = games.value.map((g: any) => g.app_id).filter((id: number) => playerCounts.value[id] === undefined);
-  const chunkSize = 50;
-  for (let i = 0; i < allIds.length; i += chunkSize) {
-    const chunk = allIds.slice(i, i + chunkSize);
-    try {
-      const res = await getCurrentPlayersBatch(chunk);
-      res.items.forEach(item => {
-        playerCounts.value[item.appid] = item.playerCount;
-      });
-      chunk.forEach(id => {
-        if (playerCounts.value[id] === undefined) playerCounts.value[id] = '-';
-      });
-    } catch (e) {
-      console.warn('Failed to fetch player counts chunk', e);
-      chunk.forEach(id => {
-        if (playerCounts.value[id] === undefined) playerCounts.value[id] = '-';
-      });
-    }
-  }
-};
-
-watch(() => games.value, () => {
-  if (games.value.length > 0) {
-    loadAllPlayerCounts();
-  }
-}, { immediate: true });
+}
 </script>
 
 <style scoped>
@@ -236,9 +201,7 @@ watch(() => games.value, () => {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 212, 255, 0.5);
 }
-</style>
 
-<style scoped>
 .game-card {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }

@@ -1,5 +1,5 @@
 <template>
-  <header v-show="!isFullscreen" class="header-container">
+  <header class="header-container" :class="{ 'header-container-hidden': isFullscreen }" :aria-hidden="isFullscreen">
 
     <!-- Left: Two Logos — 点击返回主界面 -->
     <router-link to="/" class="header-logo-group">
