@@ -16,6 +16,17 @@ echo Starting SteamLauncher in UTF-8 console
 start "SteamLauncher" cmd /k "chcp 65001>nul & java -Dfile.encoding=UTF-8 -jar steam-launcher\target\steam-launcher-0.0.1.jar"
 
 echo ==== Start Frontend ====
+if not exist "vue\node_modules" (
+  echo Installing frontend dependencies...
+  cd vue
+  call npm install
+  if %ERRORLEVEL% NEQ 0 (
+    echo npm install Failed!
+    pause
+    exit /b 1
+  )
+  cd ..
+)
 start "Vite" cmd /k "cd vue && npm run dev"
 
 echo ==== Build completed successfully ====
